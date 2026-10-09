@@ -1,16 +1,17 @@
 import { defineConfig, globalIgnores } from "eslint/config"
 import nextVitals from "eslint-config-next/core-web-vitals"
 import nextTs from "eslint-config-next/typescript"
+import prettierRecommended from "eslint-plugin-prettier/recommended"
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  prettierRecommended,
   {
-    extends: ["eslint:recommended", "plugin:prettier/recommended"],
     rules: {
       "react-hooks/exhaustive-deps": "off",
-      semi: ["error", "never"],
       "prettier/prettier": "error",
+      semi: ["error", "never"],
       "import/no-named-as-default-member": "off",
       "@typescript-eslint/no-unused-vars": "off",
       "no-warning-comments": "off",

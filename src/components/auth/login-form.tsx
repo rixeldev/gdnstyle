@@ -1,0 +1,158 @@
+"use client"
+
+import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useMemo, useState, type ChangeEvent, type FormEvent } from "react"
+import { useTranslation } from "react-i18next"
+
+import { RoleSwitch } from "@/components/auth/role-switch"
+import { Alert } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { PasswordField, TextField } from "@/components/ui/text-field"
+import type { UserRole } from "@/interfaces/auth"
+import { isSupabaseConfigured } from "@/libs/supabase/env"
+import { createSignInSchema, type SignInValues } from "@/libs/validation/auth"
+import { signInWithPassword } from "@/services/auth.service"
+import { translateAuthError } from "@/utils/auth-error"
+import { fieldErrorsFrom } from "@/utils/zod"
+
+function parseRole(value: string | null): UserRole {
+  return value === "professional" ? "professional" : "customer"
+}
+
+export function LoginForm() {
+  const { t } = useTranslation()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const role = parseRole(searchParams.get("role"))
+  const linkError = searchParams.get("error") ? t("errors.auth.sessionExpired") : ""
+
+  const schema = useMemo(() => createSignInSchema((key) => t(key)), [t])
+  const [values, setValues] = useState<SignInValues>({ email: "", password: "" })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [formError, setFormError] = useState("")
+  const [success, setSuccess] = useState("")
+  const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  function handleRoleChange(next: UserRole) {
+    router.replace(`/auth/login?role=${next}`, { scroll: false })
+  }
+
+  function handleChange(field: keyof SignInValues) {
+    return (event: ChangeEvent<HTMLInputElement>) => {
+      const next = { ...values, [field]: event.target.value }
+      setValues(next)
+      if (submitted) {
+        const parsed = schema.safeParse(next)
+        setErrors(parsed.success ? {} : fieldErrorsFrom(parsed.error))
+      }
+    }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSubmitted(true)
+    setFormError("")
+    setSuccess("")
+
+    const parsed = schema.safeParse(values)
+    if (!parsed.success) {
+      const nextErrors = fieldErrorsFrom(parsed.error)
+      setErrors(nextErrors)
+      const first = Object.keys(nextErrors)[0]
+      if (first) event.currentTarget.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus()
+      return
+    }
+
+    setErrors({})
+    setLoading(true)
+    const result = await signInWithPassword(parsed.data)
+    setLoading(false)
+
+    if (!result.ok) {
+      setFormError(translateAuthError(result, t))
+      return
+    }
+
+    setSuccess(t("auth.login.success"))
+    router.replace("/dashboard")
+    router.refresh()
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h1 className="font-display text-2xl font-semibold">{t("auth.login.title")}</h1>
+        <p className="text-cream/55 text-sm">
+          {role === "professional"
+            ? t("auth.login.subtitleProfessional")
+            : t("auth.login.subtitleCustomer")}
+        </p>
+      </div>
+
+      <RoleSwitch value={role} onChange={handleRoleChange} />
+
+      {!isSupabaseConfigured && (
+        <Alert tone="info">
+          <span className="font-semibold">{t("auth.unavailable.title")}</span>
+          <br />
+          {t("auth.unavailable.body")}
+        </Alert>
+      )}
+
+      {(formError || linkError) && <Alert tone="error">{formError || linkError}</Alert>}
+      {success && <Alert tone="success">{success}</Alert>}
+
+      <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <TextField
+          name="email"
+          type="email"
+          autoComplete="email"
+          label={t("auth.login.email")}
+          placeholder={t("auth.login.emailPlaceholder")}
+          value={values.email}
+          onChange={handleChange("email")}
+          error={errors.email}
+          required
+        />
+
+        <div className="space-y-2">
+          <PasswordField
+            name="password"
+            autoComplete="current-password"
+            label={t("auth.login.password")}
+            value={values.password}
+            onChange={handleChange("password")}
+            error={errors.password}
+            showLabel={t("auth.fields.showPassword")}
+            hideLabel={t("auth.fields.hidePassword")}
+            required
+          />
+          <div className="text-right">
+            <Link
+              href={`/auth/forgot-password?role=${role}`}
+              className="text-cream/55 hover:text-gold text-xs underline-offset-4 transition hover:underline"
+            >
+              {t("auth.login.forgot")}
+            </Link>
+          </div>
+        </div>
+
+        <Button type="submit" loading={loading} disabled={!isSupabaseConfigured} className="w-full">
+          {loading ? t("auth.status.signingIn") : t("auth.login.submit")}
+        </Button>
+      </form>
+
+      <p className="text-cream/55 text-center text-sm">
+        {t("auth.login.noAccount")}{" "}
+        <Link
+          href={`/auth/signup?role=${role}`}
+          className="text-gold font-semibold underline-offset-4 hover:underline"
+        >
+          {t("auth.login.signUpLink")}
+        </Link>
+      </p>
+    </div>
+  )
+}

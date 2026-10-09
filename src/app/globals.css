@@ -1,27 +1,266 @@
 @import "tailwindcss";
-@import 'tailwind-animations';
+@import "tailwind-animations";
+
+/* ---------------------------------------------------------------------------
+   GDN Style — design tokens
+   Dark "beauty-tech" palette kept from the reference brand, centralized here
+   so every surface reads from the same source of truth.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-ink: #070707;
+  --color-ink-soft: #0c0c0c;
+  --color-ink-card: #111111;
+  --color-cream: #f4f1ea;
+  --color-gold: #e0b044;
+  --color-gold-soft: #f0c56a;
+  --color-gold-deep: #b8862d;
+  --color-gold-ink: #1a1408;
+  --color-plum: #1a001a;
+  --color-royal: #370a5b;
+  --color-royal-deep: #20042f;
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-cinzel), "Times New Roman", serif;
+  --font-accent: var(--font-cormorant), Georgia, "Times New Roman", serif;
+
+  --radius-4xl: 2rem;
+  --radius-5xl: 2.75rem;
+
+  --shadow-luxe: 0 30px 80px rgba(0, 0, 0, 0.55);
+  --shadow-gold: 0 18px 50px -20px rgba(224, 176, 68, 0.45);
+
+  /* Marquee tracks loop over half their width (see @keyframes marquee), so
+     each duration keeps its intended pace. The category strip repeats the
+     list 10× (5 copies per loop, original 36s-per-copy pace); the reviews row
+     repeats it 6× and runs a touch faster (3 sets per loop). */
+  --animate-marquee: marquee 180s linear infinite;
+  --animate-marquee-reviews: marquee 140s linear infinite;
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #070707;
+  --foreground: #f4f1ea;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+* {
+  border-color: color-mix(in oklab, var(--color-cream) 10%, transparent);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  scrollbar-color: color-mix(in oklab, var(--color-gold) 55%, var(--color-ink-card))
+    var(--color-ink);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--color-gold) 35%, transparent);
+  color: var(--color-cream);
+}
+
+/* Gold-tinted scrollbar to match the brand. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-ink);
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid var(--color-ink);
+  background: color-mix(in oklab, var(--color-gold) 55%, var(--color-ink-card));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--color-gold) 75%, var(--color-ink-card));
+}
+
+/* Consistent, high-contrast focus for keyboard users. */
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Decorative brand accents */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate3d(0, -22px, 0) scale(1.08);
+    opacity: 0.8;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -140% 0;
+  }
+  100% {
+    background-position: 240% 0;
+  }
+}
+
+.text-gold-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-gold-deep) 0%,
+    var(--color-gold-soft) 42%,
+    var(--color-gold) 58%,
+    var(--color-gold-deep) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 6s linear infinite;
+}
+
+.animate-drift {
+  animation: drift 9s ease-in-out infinite;
+}
+
+/* Cursor-following spotlight used in the hero (coordinates set from JS). */
+.spotlight {
+  background: radial-gradient(
+    480px circle at var(--spot-x, 70%) var(--spot-y, 25%),
+    rgba(224, 176, 68, 0.14),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* Gold shine sweep for primary buttons. */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: -45%;
+  width: 35%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-18deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+
+.btn-shine:hover::after {
+  left: 130%;
+}
+
+/* Slowly rotating gradient ring (contact panel). */
+@property --border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.border-glow {
+  position: relative;
+}
+
+.border-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--border-angle),
+    rgba(224, 176, 68, 0.85),
+    rgba(55, 10, 91, 0.9) 35%,
+    rgba(224, 176, 68, 0.25) 55%,
+    rgba(224, 176, 68, 0.85)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: border-rotate 9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes border-rotate {
+  to {
+    --border-angle: 360deg;
+  }
+}
+
+/* Subtle film grain to add depth over flat dark surfaces. */
+.grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* Utilities used by a few components. */
+@utility visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Respect the user's reduced-motion preference everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }

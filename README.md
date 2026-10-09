@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GDN Style
 
-## Getting Started
+**Tu belleza, nuestra prioridad.** Marketplace de reservas de belleza y
+cuidado personal que conecta clientes con profesionales (barbería, cejas y
+pestañas, piel, depilación, maquillaje y masaje).
 
-First, run the development server:
+Rebuild + modernización del sitio de referencia implementada sobre **Next.js 16
+(App Router)**, **TypeScript**, **Tailwind CSS v4** y **Supabase Auth**.
+
+---
+
+## Stack
+
+| Área          | Tecnología                                                    |
+| ------------- | ------------------------------------------------------------- |
+| Framework     | Next.js 16 (App Router, `cacheComponents`)                    |
+| Estilos       | Tailwind CSS v4 + `tailwind-animations`                       |
+| Animaciones   | CSS (fade/slide, marquee, float) con `prefers-reduced-motion` |
+| Tipografía    | Cinzel (display), Cormorant Garamond (acento), Geist (sans)   |
+| i18n          | i18next + react-i18next (`src/locales/es.json`, `en.json`)    |
+| Validación    | Zod 4 (schemas localizados en `src/libs/validation`)           |
+| Autenticación | Supabase Auth (`@supabase/ssr`)                               |
+
+## Scripts
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm dev          # desarrollo (http://localhost:3000)
+pnpm build        # producción
+pnpm start        # servidor de producción
+pnpm lint         # eslint
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Estructura
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/                  # Rutas (App Router)
+│   ├── (landing)         # / , /faq, /policies, /terms  (+ contacto como sección en home)
+│   ├── auth/             # /auth/{login,signup,forgot-password,reset-password,verify-email,callback}
+│   └── dashboard/        # Panel autenticado (cliente / profesional)
+├── components/           # UI, landing, auth, legal, dashboard
+├── constants/            # Categorías, enlaces, textos del sitio
+├── hooks/                # useAuth, useScrolled, …
+├── interfaces/           # Tipos compartidos (UserRole, Profile, …)
+├── libs/
+│   ├── i18n/             # Configuración de i18next
+│   ├── supabase/         # Clientes browser/server, env, updateSession
+│   └── validation/       # Schemas Zod
+├── locales/              # Traducciones (es / en)
+├── services/             # auth.service.ts (Supabase)
+└── utils/                # cn, format, auth-error, zod helpers
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Configuración de Supabase
 
-## Learn More
+1. Crea un proyecto en [supabase.com](https://supabase.com).
+2. Copia `.env.example` a `.env.local` y rellena:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-public-key
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Aplica la migración `supabase/migrations/0001_init_profiles.sql` (CLI o SQL
+   editor). Crea `public.profiles`, activa RLS y auto-genera el perfil al
+   registrarse con el rol elegido.
+4. En **Auth → URL Configuration**, apunta el *Site URL* al origen de la app
+   para que los correos de confirmación y recuperación vuelvan por
+   `/auth/callback`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+> Sin credenciales, la app sigue funcionando (landing, i18n, validación) y los
+> formularios de auth muestran un estado "no configurado" claro.
 
-## Deploy on Vercel
+## Flujos implementados
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Landing** con nav, hero + carrusel de pantallas reales (`public/scrennshots`),
+  marquee de categorías, secciones cliente/profesional, "cómo funciona", CTA,
+  sección de contacto con formulario (Zod → cliente de correo) y footer.
+- **Registro e inicio de sesión** por rol (`?role=customer|professional`),
+  con validación Zod localizada, términos, mostrar/ocultar contraseña y
+  errores traducidos de Supabase.
+- **Recuperación y reseteo de contraseña** con callback PKCE.
+- **Panel** protegido con saludo según el rol y tarjetas "Próximamente".
+- **Contacto (sección en home), FAQ, Privacidad y Términos** (con aviso de marcador de posición).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Consideraciones de accesibilidad
+
+- Skip link, landmarks semánticos, un solo `<h1>` por página.
+- Labels asociados, `aria-invalid`/`aria-describedby`, estados `role="status|alert"`.
+- Foco visible dorado, soporte de `prefers-reduced-motion`, contraste AA.

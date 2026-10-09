@@ -1,0 +1,466 @@
+{
+  "meta": {
+    "title": "GDN Style — Reserva belleza cerca de ti",
+    "description": "GDN Style es la app para encontrar y reservar profesionales de belleza, bienestar y servicios de cuidado personal. Busca, reserva, paga y valora en un solo lugar.",
+    "ogAlt": "GDN Style"
+  },
+  "common": {
+    "brand": "GDN Style",
+    "tagline": "Tu belleza, nuestra prioridad",
+    "skipToContent": "Saltar al contenido",
+    "loading": "Cargando…",
+    "back": "Volver",
+    "backHome": "Volver al inicio",
+    "continue": "Continuar",
+    "save": "Guardar",
+    "send": "Enviar",
+    "cancel": "Cancelar",
+    "optional": "opcional",
+    "soon": "Próximamente",
+    "language": "Idioma",
+    "changeLanguage": "Cambiar idioma",
+    "opensInMailClient": "Se abrirá tu aplicación de correo",
+    "close": "Cerrar",
+    "backToTop": "Volver arriba"
+  },
+  "nav": {
+    "clients": "Clientes",
+    "professionals": "Profesionales",
+    "howItWorks": "Cómo funciona",
+    "app": "La app",
+    "contact": "Contacto",
+    "book": "Reservar",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "main": "Navegación principal"
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Tu belleza, nuestra prioridad",
+      "titleLine1": "Reserva",
+      "titleLine2": "belleza",
+      "titleLine3": "cerca de ti.",
+      "supporting": "Barbería, cejas, piel, depilación, maquillaje y masaje. Encuentra al profesional, elige horario y paga desde GDN Style.",
+      "primaryCta": "Quiero reservar",
+      "secondaryCta": "Soy profesional",
+      "screens": {
+        "label": "Pantallas de la aplicación GDN Style",
+        "home": "Inicio de la app con categorías, destacados y profesionales cerca de ti",
+        "profile": "Perfil público de un profesional con reseñas, portafolio y servicios",
+        "booking": "Pantalla de reserva con calendario, horarios y resumen de pago",
+        "previous": "Pantalla anterior",
+        "next": "Pantalla siguiente",
+        "view": "Ver {{name}}",
+        "goTo": "Ir a la pantalla {{name}}"
+      },
+      "trust": {
+        "rating": "4,9",
+        "starsLabel": "Valoración media de 4,9 sobre 5",
+        "reviewsCount": "+2.000 reseñas",
+        "secure": "Pago seguro",
+        "cancel": "Cancelación gratuita",
+        "reminders": "Recordatorios de cita"
+      }
+    },
+    "strip": {
+      "label": "Categorías de servicios disponibles en GDN Style"
+    },
+    "clients": {
+      "eyebrow": "Para clientes",
+      "title": "Tu cita, sin vueltas.",
+      "supporting": "La misma idea de la app: buscar, reservar y valorar. Favoritos, avisos, historial de citas y la tienda de productos viven en el mismo lugar.",
+      "features": {
+        "search": {
+          "title": "Busca",
+          "description": "Por categoría, salón o profesional cerca de ti."
+        },
+        "portfolio": {
+          "title": "Mira el trabajo",
+          "description": "Perfil, portafolio y reseñas antes de elegir."
+        },
+        "booking": {
+          "title": "Reserva y paga",
+          "description": "Horario, tarjeta y confirmación en la misma app."
+        }
+      },
+      "categoriesLabel": "Categorías de servicios",
+      "bookAction": "Reservar"
+    },
+    "professionals": {
+      "eyebrow": "Para profesionales",
+      "title": "Tu agenda, tu trabajo, tus cobros.",
+      "supporting": "Si atiendes en un estudio o en un local, GDN Style reúne lo que usas cada día: calendario, servicios, portafolio y pagos.",
+      "features": {
+        "agenda": {
+          "title": "Agenda",
+          "description": "Citas del día, disponibilidad y calendario."
+        },
+        "services": {
+          "title": "Servicios",
+          "description": "Lo que ofreces, con duración y precio."
+        },
+        "portfolio": {
+          "title": "Portafolio",
+          "description": "Tu trabajo visible para quien reserva."
+        },
+        "locations": {
+          "title": "Ubicaciones",
+          "description": "Tu estudio o el local donde atiendes."
+        },
+        "wallet": {
+          "title": "Billetera",
+          "description": "Cobros y pagos reunidos en un solo lugar."
+        },
+        "verified": {
+          "title": "Cuenta verificada",
+          "description": "Perfil listo para recibir clientes."
+        }
+      }
+    },
+    "howItWorks": {
+      "eyebrow": "Cómo funciona",
+      "title": "Tres pasos. Igual que en la app.",
+      "steps": {
+        "search": {
+          "title": "Buscar",
+          "description": "Elige barbería, piel, maquillaje o masaje y encuentra quién lo hace cerca."
+        },
+        "book": {
+          "title": "Reservar",
+          "description": "Escoge el servicio, el horario y paga. La cita queda confirmada."
+        },
+        "rate": {
+          "title": "Valorar",
+          "description": "Después de la visita dejas tu reseña. La siguiente persona reserva con más claridad."
+        }
+      }
+    },
+    "stats": {
+      "title": "GDN Style en números",
+      "items": {
+        "professionals": "profesionales",
+        "bookings": "reservas completadas",
+        "rating": "valoración media",
+        "cities": "ciudades y barrios"
+      }
+    },
+    "app": {
+      "eyebrow": "La app",
+      "title": "Todo GDN Style, en tu bolsillo.",
+      "supporting": "Las mismas pantallas de la app: busca, reserva, paga y gestiona tus citas desde el móvil.",
+      "bullets": {
+        "payments": {
+          "title": "Pagos protegidos",
+          "description": "Tarjetas guardadas con cifrado y pagos seguros dentro de la app."
+        },
+        "reviews": {
+          "title": "Reseñas verificadas",
+          "description": "Valoraciones reales de cada servicio y profesional."
+        },
+        "support": {
+          "title": "Soporte cercano",
+          "description": "Ayuda por correo, teléfono o chat cuando la necesites."
+        }
+      },
+      "cta": "Crear cuenta",
+      "download": "Descarga la app",
+      "screens": {
+        "welcome": "Pantalla de bienvenida de la app GDN Style",
+        "payments": "Pantalla de métodos de pago guardados en la app",
+        "support": "Pantalla de ayuda y soporte de la app"
+      }
+    },
+    "terminals": {
+      "eyebrow": "Pagos presenciales",
+      "title": "Cobra en el local, sin complicaciones.",
+      "supporting": "Además del pago dentro de la app, GDN Style funciona con terminales para pagos presenciales. Tú eliges cómo cobrar y el dinero llega a tu billetera.",
+      "items": {
+        "counter": {
+          "name": "Terminal de mostrador",
+          "description": "Pantalla táctil en el local: elige el servicio, el importe y cobra en segundos.",
+          "alt": "Terminal de pago de mostrador con pantalla táctil mostrando un cobro de peluquería"
+        },
+        "tap": {
+          "name": "Pago sin contacto",
+          "description": "Tarjeta o móvil: tus clientas pagan con un toque, sin fricción.",
+          "alt": "Terminal de pago con la pantalla de pago sin contacto Tap to Pay"
+        },
+        "phone": {
+          "name": "Tap to Pay en tu móvil",
+          "description": "¿Aún sin terminal? Convierte tu teléfono en lector y cobra donde estés.",
+          "alt": "Terminal de pago junto a un teléfono mostrando la pantalla Hold Near Reader"
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "Opiniones",
+      "title": "Lo que dicen nuestras clientas.",
+      "supporting": "Reseñas reales de la app: después de cada cita, la valoración ayuda a la siguiente persona a elegir mejor.",
+      "listLabel": "Reseñas de clientas de GDN Style",
+      "aggregate": "4,9 sobre 5 · más de 2.000 reseñas",
+      "starsLabel": "{{count}} de 5 estrellas",
+      "items": {
+        "lucia": "Pedí cita un domingo por la noche y el lunes ya me habían atendido. La reserva fue en dos minutos.",
+        "carla": "Llevo años haciéndome las cejas en el mismo sitio y ahora lo reservo desde el móvil sin llamar a nadie.",
+        "andrea": "Me encanta ver el portafolio y las reseñas antes de elegir. Acerté con la limpieza facial.",
+        "valentina": "Pago desde la app y el recordatorio del día antes me salva siempre.",
+        "marta": "Encontré a mi maquilladora para la boda en una tarde. Precio y duración, clarísimos.",
+        "sofia": "Reservé un masaje después del trabajo en menos de un minuto. Dejé la valoración al terminar."
+      }
+    },
+    "closing": {
+      "title": "GDN Style",
+      "supporting": "La app para quien reserva belleza y para quien vive de hacerla.",
+      "primaryCta": "Ver para clientes",
+      "secondaryCta": "Hablar con nosotros"
+    },
+    "contact": {
+      "eyebrow": "Contacto",
+      "title": "¿Hablamos?",
+      "subtitle": "Estamos para ayudarte con tu cuenta, tus reservas o tu perfil profesional.",
+      "emailLabel": "Correo",
+      "phoneLabel": "Teléfono",
+      "hoursLabel": "Horario",
+      "hours": "Lunes a viernes, 9:00 a 18:00",
+      "addressLabel": "Ubicación",
+      "address": "Santo Domingo, República Dominicana",
+      "formTitle": "Envíanos un mensaje",
+      "formNote": "Te respondemos en un día laborable.",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "subject": "Asunto",
+      "message": "Mensaje",
+      "messagePlaceholder": "Cuéntanos en qué podemos ayudarte",
+      "submit": "Enviar mensaje",
+      "note": "Al enviar se abrirá tu aplicación de correo con el mensaje listo para enviar a {{email}}."
+    },
+    "footer": {
+      "tagline": "Tu belleza, nuestra prioridad. Reserva con profesionales cerca de ti.",
+      "explore": "Explora",
+      "help": "Ayuda y legal",
+      "payments": "Pagos presenciales",
+      "contactTitle": "Contacto",
+      "howItWorks": "Cómo funciona",
+      "faq": "Preguntas",
+      "contact": "Contacto",
+      "privacy": "Privacidad",
+      "terms": "Términos",
+      "rights": "Todos los derechos reservados."
+    }
+  },
+  "categories": {
+    "barberia": "Barbería",
+    "cejasPestanas": "Cejas y pestañas",
+    "cuidadoPiel": "Cuidado de la piel",
+    "depilacion": "Depilación",
+    "maquillaje": "Maquillaje",
+    "masaje": "Masaje"
+  },
+  "auth": {
+    "shell": {
+      "eyebrow": "Bienvenido a GDN Style",
+      "supporting": "Tu belleza, nuestra prioridad. Reserva con profesionales cerca de ti.",
+      "trust": "Conexión segura con Supabase Auth."
+    },
+    "roleSwitch": {
+      "label": "Entrar como",
+      "customer": "Quiero reservar",
+      "customerShort": "Cliente",
+      "customerHint": "Buscar y reservar servicios de belleza.",
+      "professional": "Soy profesional",
+      "professionalShort": "Profesional",
+      "professionalHint": "Gestionar agenda, servicios y cobros."
+    },
+    "login": {
+      "title": "Inicia sesión",
+      "subtitleCustomer": "Entra para reservar con profesionales cerca de ti.",
+      "subtitleProfessional": "Entra para gestionar tu agenda y tus servicios.",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@email.com",
+      "password": "Contraseña",
+      "forgot": "¿Olvidaste tu contraseña?",
+      "submit": "Iniciar sesión",
+      "noAccount": "¿No tienes cuenta?",
+      "signUpLink": "Regístrate",
+      "success": "Sesión iniciada. Te llevamos a tu panel…"
+    },
+    "signup": {
+      "title": "Crea tu cuenta",
+      "subtitleCustomer": "Guarda tus citas, favoritos y pagos en un solo lugar.",
+      "subtitleProfessional": "Crea tu perfil y empieza a recibir clientes.",
+      "fullName": "Nombre completo",
+      "fullNamePlaceholder": "Tu nombre",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@email.com",
+      "password": "Contraseña",
+      "confirmPassword": "Confirma la contraseña",
+      "passwordHint": "Mínimo 8 caracteres, con al menos una letra y un número.",
+      "terms": "Acepto los <terms>términos</terms> y la <privacy>política de privacidad</privacy>.",
+      "submit": "Crear cuenta",
+      "hasAccount": "¿Ya tienes cuenta?",
+      "signInLink": "Inicia sesión",
+      "successTitle": "Revisa tu correo",
+      "successBody": "Te enviamos un enlace de confirmación a {{email}}. Ábrelo para activar tu cuenta y continuar.",
+      "resend": "Reenviar correo de confirmación",
+      "resent": "Correo reenviado. Revisa tu bandeja."
+    },
+    "forgot": {
+      "title": "Recupera tu contraseña",
+      "subtitle": "Escribe tu correo y te enviaremos un enlace para crear una contraseña nueva.",
+      "submit": "Enviar enlace",
+      "successTitle": "Enlace enviado",
+      "successBody": "Si existe una cuenta con {{email}}, recibirás un correo con las instrucciones.",
+      "backToLogin": "Volver a iniciar sesión"
+    },
+    "reset": {
+      "title": "Nueva contraseña",
+      "subtitle": "Elige una contraseña nueva y segura para tu cuenta.",
+      "password": "Nueva contraseña",
+      "confirmPassword": "Confirma la contraseña",
+      "submit": "Guardar contraseña",
+      "success": "Contraseña actualizada. Ya puedes iniciar sesión.",
+      "invalidSession": "El enlace no es válido o expiró. Solicita uno nuevo."
+    },
+    "verify": {
+      "title": "Confirma tu correo",
+      "body": "Revisa tu bandeja de entrada y abre el enlace de confirmación para activar tu cuenta.",
+      "backToLogin": "Volver a iniciar sesión"
+    },
+    "fields": {
+      "showPassword": "Mostrar contraseña",
+      "hidePassword": "Ocultar contraseña"
+    },
+    "status": {
+      "sending": "Enviando…",
+      "signingIn": "Iniciando sesión…",
+      "creating": "Creando cuenta…"
+    },
+    "unavailable": {
+      "title": "Autenticación no configurada",
+      "body": "Falta conectar Supabase en este entorno. Define NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY para activar el registro y el inicio de sesión."
+    }
+  },
+  "validation": {
+    "required": "Este campo es obligatorio.",
+    "email": "Escribe un correo electrónico válido.",
+    "emailRequired": "El correo electrónico es obligatorio.",
+    "passwordRequired": "La contraseña es obligatoria.",
+    "passwordMin": "La contraseña debe tener al menos 8 caracteres.",
+    "passwordComplexity": "La contraseña debe incluir al menos una letra y un número.",
+    "passwordMismatch": "Las contraseñas no coinciden.",
+    "fullNameMin": "Escribe tu nombre completo.",
+    "termsRequired": "Debes aceptar los términos y la política de privacidad.",
+    "messageRequired": "Escribe tu mensaje.",
+    "messageMax": "El mensaje no puede superar los 500 caracteres.",
+    "subjectRequired": "Escribe un asunto."
+  },
+  "errors": {
+    "auth": {
+      "invalidCredentials": "El correo o la contraseña no son correctos.",
+      "emailNotConfirmed": "Confirma tu correo antes de iniciar sesión. Revisa tu bandeja de entrada.",
+      "userExists": "Ya existe una cuenta con este correo. Intenta iniciar sesión.",
+      "weakPassword": "La contraseña es demasiado débil. Usa al menos 8 caracteres.",
+      "rateLimit": "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
+      "sessionExpired": "Tu sesión expiró. Inicia sesión otra vez.",
+      "unavailable": "La autenticación no está disponible en este momento.",
+      "unknown": "No pudimos completar la operación. Inténtalo de nuevo."
+    },
+    "network": "Problema de conexión. Revisa tu internet e inténtalo de nuevo.",
+    "notFound": "La página que buscas no existe o se movió de lugar.",
+    "generic": "Algo salió mal. Inténtalo de nuevo."
+  },
+  "dashboard": {
+    "title": "Tu panel",
+    "greeting": "Hola, {{name}}",
+    "customer": {
+      "role": "Cliente",
+      "subtitle": "Aquí verás tus próximas citas, favoritos e historial.",
+      "appointments": "Mis citas",
+      "appointmentsBody": "Las reservas se conectarán cuando el módulo de citas esté disponible.",
+      "favorites": "Favoritos",
+      "favoritesBody": "Guarda profesionales y servicios para reservar más rápido.",
+      "history": "Historial",
+      "historyBody": "Revisa tus reservas anteriores y vuelve a reservar."
+    },
+    "professional": {
+      "role": "Profesional",
+      "subtitle": "Aquí gestionarás tu agenda, servicios, portafolio y cobros.",
+      "agenda": "Agenda",
+      "agendaBody": "Tus citas del día, disponibilidad y calendario.",
+      "services": "Servicios",
+      "servicesBody": "Publica tus servicios con duración y precio.",
+      "portfolio": "Portafolio",
+      "portfolioBody": "Muestra tu trabajo a quien quiere reservar.",
+      "wallet": "Billetera",
+      "walletBody": "Consulta tus cobros y pagos."
+    },
+    "signOut": "Cerrar sesión",
+    "signingOut": "Cerrando sesión…",
+    "loading": "Cargando tu panel…",
+    "noSession": "Necesitas iniciar sesión para ver esta página."
+  },
+  "legal": {
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "subtitle": "Lo esencial sobre reservar y ofrecer servicios en GDN Style.",
+      "items": {
+        "book": {
+          "q": "¿Cómo reservo una cita?",
+          "a": "Busca por categoría o profesional, elige el servicio, selecciona el horario y confirma el pago desde la app. La reserva queda registrada en tu cuenta."
+        },
+        "cancel": {
+          "q": "¿Puedo cancelar o reprogramar mi cita?",
+          "a": "Sí. Desde el detalle de cada cita puedes cancelar o reprogramar según la disponibilidad del profesional y las políticas del local."
+        },
+        "pay": {
+          "q": "¿Qué métodos de pago aceptan?",
+          "a": "La app admite pago con tarjeta dentro de la aplicación y, cuando el local lo permite, pago directo en el establecimiento."
+        },
+        "refund": {
+          "q": "¿Cómo funcionan los reembolsos?",
+          "a": "Si una cita se cancela conforme a las políticas del local, el reembolso se procesa al método de pago original. Los tiempos dependen de tu banco."
+        },
+        "profile": {
+          "q": "¿Cómo actualizo mi información personal?",
+          "a": "Entra a tu perfil desde la app para editar tu nombre, contacto, ubicación y preferencias de notificaciones."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+      "placeholderNotice": "Este documento es un marcador de posición. El texto legal definitivo será publicado antes del lanzamiento público.",
+      "sections": {
+        "data": {
+          "title": "Qué datos tratamos",
+          "body": "Tratamos los datos necesarios para crear tu cuenta, gestionar reservas y conectar clientes con profesionales: nombre, contacto, ubicación aproximada e historial de citas."
+        },
+        "use": {
+          "title": "Cómo los usamos",
+          "body": "Usamos tus datos para operar la plataforma, mostrarte profesionales relevantes, procesar pagos y enviarte avisos sobre tus citas."
+        },
+        "rights": {
+          "title": "Tus derechos",
+          "body": "Puedes solicitar acceso, corrección o eliminación de tus datos escribiendo a {{email}}."
+        }
+      }
+    },
+    "terms": {
+      "title": "Términos y condiciones",
+      "placeholderNotice": "Este documento es un marcador de posición. El texto legal definitivo será publicado antes del lanzamiento público.",
+      "sections": {
+        "use": {
+          "title": "Uso del servicio",
+          "body": "GDN Style conecta a clientes con profesionales de belleza. Debes usar la plataforma de forma lícita y respetar los horarios y políticas de cada profesional."
+        },
+        "accounts": {
+          "title": "Cuentas",
+          "body": "Eres responsable de la información de tu cuenta y de mantener la confidencialidad de tus credenciales."
+        },
+        "payments": {
+          "title": "Pagos",
+          "body": "Los precios, la disponibilidad y las políticas de cancelación los define cada profesional. GDN Style facilita el proceso de pago dentro de la app."
+        }
+      }
+    }
+  }
+}

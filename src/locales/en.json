@@ -1,0 +1,466 @@
+{
+  "meta": {
+    "title": "GDN Style — Book beauty near you",
+    "description": "GDN Style is the app to find and book beauty, wellness and personal-care professionals. Search, book, pay and review in one place.",
+    "ogAlt": "GDN Style"
+  },
+  "common": {
+    "brand": "GDN Style",
+    "tagline": "Your beauty, our priority",
+    "skipToContent": "Skip to content",
+    "loading": "Loading…",
+    "back": "Back",
+    "backHome": "Back to home",
+    "continue": "Continue",
+    "save": "Save",
+    "send": "Send",
+    "cancel": "Cancel",
+    "optional": "optional",
+    "soon": "Coming soon",
+    "language": "Language",
+    "changeLanguage": "Change language",
+    "opensInMailClient": "Your email app will open",
+    "close": "Close",
+    "backToTop": "Back to top"
+  },
+  "nav": {
+    "clients": "Clients",
+    "professionals": "Professionals",
+    "howItWorks": "How it works",
+    "app": "The app",
+    "contact": "Contact",
+    "book": "Book",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "main": "Main navigation"
+  },
+  "landing": {
+    "hero": {
+      "eyebrow": "Your beauty, our priority",
+      "titleLine1": "Book",
+      "titleLine2": "beauty",
+      "titleLine3": "near you.",
+      "supporting": "Barbering, brows, skin, waxing, makeup and massage. Find the professional, pick a time and pay from GDN Style.",
+      "primaryCta": "I want to book",
+      "secondaryCta": "I'm a professional",
+      "screens": {
+        "label": "GDN Style app screens",
+        "home": "App home with categories, featured picks and professionals near you",
+        "profile": "Professional public profile with reviews, portfolio and services",
+        "booking": "Booking screen with calendar, time slots and payment summary",
+        "previous": "Previous screen",
+        "next": "Next screen",
+        "view": "View {{name}}",
+        "goTo": "Go to screen {{name}}"
+      },
+      "trust": {
+        "rating": "4.9",
+        "starsLabel": "4.9 out of 5 average rating",
+        "reviewsCount": "+2,000 reviews",
+        "secure": "Secure payment",
+        "cancel": "Free cancellation",
+        "reminders": "Appointment reminders"
+      }
+    },
+    "strip": {
+      "label": "Service categories available on GDN Style"
+    },
+    "clients": {
+      "eyebrow": "For clients",
+      "title": "Your appointment, effortlessly.",
+      "supporting": "The same idea as the app: search, book and review. Favorites, reminders, appointment history and the product store live in one place.",
+      "features": {
+        "search": {
+          "title": "Search",
+          "description": "By category, salon or professional near you."
+        },
+        "portfolio": {
+          "title": "See the work",
+          "description": "Profile, portfolio and reviews before you choose."
+        },
+        "booking": {
+          "title": "Book and pay",
+          "description": "Time, card and confirmation in the same app."
+        }
+      },
+      "categoriesLabel": "Service categories",
+      "bookAction": "Book"
+    },
+    "professionals": {
+      "eyebrow": "For professionals",
+      "title": "Your schedule, your work, your payments.",
+      "supporting": "Whether you work in a studio or a shop, GDN Style brings together what you use every day: calendar, services, portfolio and payments.",
+      "features": {
+        "agenda": {
+          "title": "Schedule",
+          "description": "Today's appointments, availability and calendar."
+        },
+        "services": {
+          "title": "Services",
+          "description": "What you offer, with duration and price."
+        },
+        "portfolio": {
+          "title": "Portfolio",
+          "description": "Your work visible to those who book."
+        },
+        "locations": {
+          "title": "Locations",
+          "description": "Your studio or the shop where you work."
+        },
+        "wallet": {
+          "title": "Wallet",
+          "description": "Charges and payouts gathered in one place."
+        },
+        "verified": {
+          "title": "Verified account",
+          "description": "A profile ready to receive clients."
+        }
+      }
+    },
+    "howItWorks": {
+      "eyebrow": "How it works",
+      "title": "Three steps. Just like the app.",
+      "steps": {
+        "search": {
+          "title": "Search",
+          "description": "Pick barbering, skin, makeup or massage and find who does it nearby."
+        },
+        "book": {
+          "title": "Book",
+          "description": "Choose the service, the time and pay. Your appointment is confirmed."
+        },
+        "rate": {
+          "title": "Review",
+          "description": "After your visit you leave a review. The next person books with more clarity."
+        }
+      }
+    },
+    "stats": {
+      "title": "GDN Style in numbers",
+      "items": {
+        "professionals": "professionals",
+        "bookings": "completed bookings",
+        "rating": "average rating",
+        "cities": "cities and neighborhoods"
+      }
+    },
+    "app": {
+      "eyebrow": "The app",
+      "title": "All of GDN Style, in your pocket.",
+      "supporting": "The same screens as the app: search, book, pay and manage your appointments from your phone.",
+      "bullets": {
+        "payments": {
+          "title": "Protected payments",
+          "description": "Cards saved with encryption and secure payments inside the app."
+        },
+        "reviews": {
+          "title": "Verified reviews",
+          "description": "Real ratings for every service and professional."
+        },
+        "support": {
+          "title": "Close support",
+          "description": "Help by email, phone or chat whenever you need it."
+        }
+      },
+      "cta": "Create account",
+      "download": "Download the app",
+      "screens": {
+        "welcome": "GDN Style app welcome screen",
+        "payments": "Saved payment methods screen in the app",
+        "support": "Help and support screen in the app"
+      }
+    },
+    "terminals": {
+      "eyebrow": "In-person payments",
+      "title": "Charge at your shop, without the fuss.",
+      "supporting": "Besides in-app payments, GDN Style works with terminals for in-person payments. You choose how to charge and the money lands in your wallet.",
+      "items": {
+        "counter": {
+          "name": "Countertop terminal",
+          "description": "Touchscreen at your shop: pick the service, the amount and charge in seconds.",
+          "alt": "Countertop payment terminal with a touchscreen showing a haircut charge"
+        },
+        "tap": {
+          "name": "Contactless payment",
+          "description": "Card or phone: your clients pay with a tap, no friction.",
+          "alt": "Payment terminal showing the Tap to Pay contactless screen"
+        },
+        "phone": {
+          "name": "Tap to Pay on your phone",
+          "description": "No terminal yet? Turn your phone into a reader and charge wherever you are.",
+          "alt": "Payment terminal next to a phone showing the Hold Near Reader screen"
+        }
+      }
+    },
+    "testimonials": {
+      "eyebrow": "Reviews",
+      "title": "What our clients say.",
+      "supporting": "Real in-app reviews: after every appointment, each rating helps the next person choose better.",
+      "listLabel": "Reviews from GDN Style clients",
+      "aggregate": "4.9 out of 5 · over 2,000 reviews",
+      "starsLabel": "{{count}} out of 5 stars",
+      "items": {
+        "lucia": "I booked on a Sunday night and was seen on Monday. The whole thing took two minutes.",
+        "carla": "I've been going to the same brows place for years and now I book from my phone without calling anyone.",
+        "andrea": "I love checking the portfolio and reviews before choosing. I nailed it with the facial.",
+        "valentina": "I pay from the app and the day-before reminder always saves me.",
+        "marta": "I found my wedding makeup artist in one afternoon. Price and duration, crystal clear.",
+        "sofia": "Booked a massage after work in under a minute. I left my review as soon as I finished."
+      }
+    },
+    "closing": {
+      "title": "GDN Style",
+      "supporting": "The app for those who book beauty and for those who make a living from it.",
+      "primaryCta": "See for clients",
+      "secondaryCta": "Talk to us"
+    },
+    "contact": {
+      "eyebrow": "Contact",
+      "title": "Let's talk",
+      "subtitle": "We're here to help with your account, your bookings or your professional profile.",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "hoursLabel": "Hours",
+      "hours": "Monday to Friday, 9:00 to 18:00",
+      "addressLabel": "Location",
+      "address": "Santo Domingo, Dominican Republic",
+      "formTitle": "Send us a message",
+      "formNote": "We reply within one business day.",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "messagePlaceholder": "Tell us how we can help",
+      "submit": "Send message",
+      "note": "Submitting will open your email app with the message ready to send to {{email}}."
+    },
+    "footer": {
+      "tagline": "Your beauty, our priority. Book with professionals near you.",
+      "explore": "Explore",
+      "help": "Help & legal",
+      "payments": "In-person payments",
+      "contactTitle": "Contact",
+      "howItWorks": "How it works",
+      "faq": "FAQ",
+      "contact": "Contact",
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "rights": "All rights reserved."
+    }
+  },
+  "categories": {
+    "barberia": "Barbering",
+    "cejasPestanas": "Brows and lashes",
+    "cuidadoPiel": "Skincare",
+    "depilacion": "Waxing",
+    "maquillaje": "Makeup",
+    "masaje": "Massage"
+  },
+  "auth": {
+    "shell": {
+      "eyebrow": "Welcome to GDN Style",
+      "supporting": "Your beauty, our priority. Book with professionals near you.",
+      "trust": "Secure connection with Supabase Auth."
+    },
+    "roleSwitch": {
+      "label": "Enter as",
+      "customer": "I want to book",
+      "customerShort": "Client",
+      "customerHint": "Find and book beauty services.",
+      "professional": "I'm a professional",
+      "professionalShort": "Professional",
+      "professionalHint": "Manage schedule, services and payments."
+    },
+    "login": {
+      "title": "Sign in",
+      "subtitleCustomer": "Sign in to book with professionals near you.",
+      "subtitleProfessional": "Sign in to manage your schedule and services.",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "forgot": "Forgot your password?",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up",
+      "success": "Signed in. Taking you to your dashboard…"
+    },
+    "signup": {
+      "title": "Create your account",
+      "subtitleCustomer": "Keep your appointments, favorites and payments in one place.",
+      "subtitleProfessional": "Create your profile and start receiving clients.",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "confirmPassword": "Confirm password",
+      "passwordHint": "At least 8 characters, with one letter and one number.",
+      "terms": "I accept the <terms>terms</terms> and the <privacy>privacy policy</privacy>.",
+      "submit": "Create account",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "successTitle": "Check your inbox",
+      "successBody": "We sent a confirmation link to {{email}}. Open it to activate your account and continue.",
+      "resend": "Resend confirmation email",
+      "resent": "Email resent. Check your inbox."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a link to create a new password.",
+      "submit": "Send link",
+      "successTitle": "Link sent",
+      "successBody": "If an account exists for {{email}}, you'll receive an email with instructions.",
+      "backToLogin": "Back to sign in"
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Choose a new, secure password for your account.",
+      "password": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Save password",
+      "success": "Password updated. You can sign in now.",
+      "invalidSession": "The link is invalid or expired. Request a new one."
+    },
+    "verify": {
+      "title": "Confirm your email",
+      "body": "Check your inbox and open the confirmation link to activate your account.",
+      "backToLogin": "Back to sign in"
+    },
+    "fields": {
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    },
+    "status": {
+      "sending": "Sending…",
+      "signingIn": "Signing in…",
+      "creating": "Creating account…"
+    },
+    "unavailable": {
+      "title": "Authentication not configured",
+      "body": "Supabase is not connected in this environment. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable sign-up and sign-in."
+    }
+  },
+  "validation": {
+    "required": "This field is required.",
+    "email": "Enter a valid email address.",
+    "emailRequired": "Email is required.",
+    "passwordRequired": "Password is required.",
+    "passwordMin": "Password must be at least 8 characters.",
+    "passwordComplexity": "Password must include at least one letter and one number.",
+    "passwordMismatch": "Passwords do not match.",
+    "fullNameMin": "Enter your full name.",
+    "termsRequired": "You must accept the terms and privacy policy.",
+    "messageRequired": "Enter your message.",
+    "messageMax": "The message cannot exceed 500 characters.",
+    "subjectRequired": "Enter a subject."
+  },
+  "errors": {
+    "auth": {
+      "invalidCredentials": "The email or password is incorrect.",
+      "emailNotConfirmed": "Confirm your email before signing in. Check your inbox.",
+      "userExists": "An account already exists with this email. Try signing in.",
+      "weakPassword": "The password is too weak. Use at least 8 characters.",
+      "rateLimit": "Too many attempts. Wait a moment and try again.",
+      "sessionExpired": "Your session expired. Please sign in again.",
+      "unavailable": "Authentication is not available right now.",
+      "unknown": "We couldn't complete the operation. Please try again."
+    },
+    "network": "Connection problem. Check your internet and try again.",
+    "notFound": "The page you're looking for doesn't exist or has moved.",
+    "generic": "Something went wrong. Please try again."
+  },
+  "dashboard": {
+    "title": "Your dashboard",
+    "greeting": "Hi, {{name}}",
+    "customer": {
+      "role": "Client",
+      "subtitle": "Here you'll see your upcoming appointments, favorites and history.",
+      "appointments": "My appointments",
+      "appointmentsBody": "Bookings will connect once the appointments module is available.",
+      "favorites": "Favorites",
+      "favoritesBody": "Save professionals and services to book faster.",
+      "history": "History",
+      "historyBody": "Review your past bookings and book again."
+    },
+    "professional": {
+      "role": "Professional",
+      "subtitle": "Here you'll manage your schedule, services, portfolio and payments.",
+      "agenda": "Schedule",
+      "agendaBody": "Your appointments for the day, availability and calendar.",
+      "services": "Services",
+      "servicesBody": "Publish your services with duration and price.",
+      "portfolio": "Portfolio",
+      "portfolioBody": "Show your work to those who want to book.",
+      "wallet": "Wallet",
+      "walletBody": "Check your charges and payouts."
+    },
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "loading": "Loading your dashboard…",
+    "noSession": "You need to sign in to view this page."
+  },
+  "legal": {
+    "faq": {
+      "title": "Frequently asked questions",
+      "subtitle": "The essentials about booking and offering services on GDN Style.",
+      "items": {
+        "book": {
+          "q": "How do I book an appointment?",
+          "a": "Search by category or professional, choose the service, pick a time and confirm payment in the app. The booking is saved to your account."
+        },
+        "cancel": {
+          "q": "Can I cancel or reschedule my appointment?",
+          "a": "Yes. From each appointment's detail you can cancel or reschedule based on the professional's availability and the shop's policies."
+        },
+        "pay": {
+          "q": "Which payment methods are accepted?",
+          "a": "The app supports card payment inside the app and, when the shop allows it, direct payment on site."
+        },
+        "refund": {
+          "q": "How do refunds work?",
+          "a": "If an appointment is canceled per the shop's policies, the refund is processed to the original payment method. Timing depends on your bank."
+        },
+        "profile": {
+          "q": "How do I update my personal information?",
+          "a": "Open your profile in the app to edit your name, contact details, location and notification preferences."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "placeholderNotice": "This document is a placeholder. The final legal text will be published before public launch.",
+      "sections": {
+        "data": {
+          "title": "What data we process",
+          "body": "We process the data needed to create your account, manage bookings and connect clients with professionals: name, contact, approximate location and appointment history."
+        },
+        "use": {
+          "title": "How we use it",
+          "body": "We use your data to operate the platform, show you relevant professionals, process payments and send you notices about your appointments."
+        },
+        "rights": {
+          "title": "Your rights",
+          "body": "You can request access, correction or deletion of your data by writing to {{email}}."
+        }
+      }
+    },
+    "terms": {
+      "title": "Terms and conditions",
+      "placeholderNotice": "This document is a placeholder. The final legal text will be published before public launch.",
+      "sections": {
+        "use": {
+          "title": "Use of the service",
+          "body": "GDN Style connects clients with beauty professionals. You must use the platform lawfully and respect each professional's schedule and policies."
+        },
+        "accounts": {
+          "title": "Accounts",
+          "body": "You are responsible for your account information and for keeping your credentials confidential."
+        },
+        "payments": {
+          "title": "Payments",
+          "body": "Prices, availability and cancellation policies are set by each professional. GDN Style facilitates the payment process inside the app."
+        }
+      }
+    }
+  }
+}

@@ -62,7 +62,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           </ul>
 
           <p className="text-cream/40 mt-8 inline-flex items-center gap-2 text-xs">
-            <Icon name="badge-check" className="text-gold h-4 w-4" />
+            <Icon name="badge-check" className="text-gold size-4" />
             {t("auth.shell.trust")}
           </p>
         </div>

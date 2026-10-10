@@ -15,7 +15,7 @@ export function LanguageSwitcher({ className }: { className?: string }) {
 
   return (
     <div className={cn("relative inline-flex items-center", className)}>
-      <Icon name="globe" className="text-cream/50 pointer-events-none h-4 w-4" />
+      <Icon name="globe" className="text-cream/50 pointer-events-none size-4" />
       <span className="visually-hidden">{t("common.changeLanguage")}</span>
       <select
         value={locale}

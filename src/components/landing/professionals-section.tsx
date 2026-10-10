@@ -41,7 +41,7 @@ export function ProfessionalsSection() {
               <article className="border-cream/10 hover:border-gold/40 h-full rounded-3xl border bg-black/40 p-6 transition duration-300 hover:-translate-y-1 hover:bg-black/60">
                 <div className="flex items-center justify-between">
                   <p className="font-display text-gold text-xs">{feature.index}</p>
-                  <Icon name={feature.icon} className="text-cream/40 h-5 w-5" />
+                  <Icon name={feature.icon} className="text-cream/40 size-5" />
                 </div>
                 <h3 className="mt-3 text-lg font-medium">{t(feature.titleKey)}</h3>
                 <p className="text-cream/55 mt-2 text-sm leading-relaxed">

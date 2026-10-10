@@ -59,7 +59,7 @@ export function SiteHeader() {
           aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
           onClick={() => setOpen((value) => !value)}
         >
-          <Icon name={open ? "close" : "menu"} className="h-6 w-6" />
+          <Icon name={open ? "close" : "menu"} className="size-6" />
         </button>
       </div>
 

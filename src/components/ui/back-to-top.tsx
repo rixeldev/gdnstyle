@@ -28,7 +28,7 @@ export function BackToTop() {
       title={t("common.backToTop")}
       className="border-gold/40 bg-ink-card/90 text-gold hover:bg-gold hover:text-gold-ink shadow-luxe motion-safe:animate-fade-in-up animate-duration-fast fixed right-5 bottom-5 z-40 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border backdrop-blur-md transition-colors md:right-8 md:bottom-8"
     >
-      <Icon name="arrow-up" className="h-5 w-5" />
+      <Icon name="arrow-up" className="size-5" />
     </button>
   )
 }

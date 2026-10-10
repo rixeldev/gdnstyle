@@ -50,7 +50,7 @@ export function RoleSwitch({ value, onChange }: RoleSwitchProps) {
             )}
           >
             <span className="flex items-center gap-2 text-sm font-semibold">
-              <Icon name={option.icon} className="h-4 w-4" />
+              <Icon name={option.icon} className="size-4" />
               {option.label}
             </span>
             <span

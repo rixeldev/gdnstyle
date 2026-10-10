@@ -35,7 +35,7 @@ export function SiteFooter() {
       {/* Gold hairline instead of a flat border. */}
       <div
         aria-hidden="true"
-        className="via-gold/60 h-px bg-gradient-to-r from-transparent to-transparent"
+        className="via-gold/60 h-px bg-linear-to-r from-transparent to-transparent"
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <div className="bg-royal/40 absolute -bottom-32 -left-24 h-80 w-80 rounded-full blur-3xl" />
@@ -84,8 +84,8 @@ export function SiteFooter() {
                     rel={item.external ? "noreferrer" : undefined}
                     className="text-cream/55 hover:text-cream inline-flex items-start gap-2.5 transition"
                   >
-                    <Icon name={item.icon} className="text-gold mt-0.5 h-4 w-4 shrink-0" />
-                    <span className="break-words">{item.value}</span>
+                    <Icon name={item.icon} className="text-gold mt-0.5 size-4 shrink-0" />
+                    <span className="wrap-break-words">{item.value}</span>
                   </a>
                 </li>
               ))}
@@ -99,7 +99,7 @@ export function SiteFooter() {
         {/* Oversized brand wordmark fading into the background. */}
         <p
           aria-hidden="true"
-          className="font-display from-cream/10 pointer-events-none mt-16 bg-gradient-to-b to-transparent bg-clip-text text-center text-[clamp(2.8rem,11vw,8.5rem)] leading-none font-semibold tracking-[0.08em] text-transparent uppercase select-none"
+          className="font-display from-cream/10 pointer-events-none mt-16 bg-linear-to-b to-transparent bg-clip-text text-center text-[clamp(2.8rem,11vw,8.5rem)] leading-none font-semibold tracking-[0.08em] text-transparent uppercase select-none"
         >
           {SITE.name}
         </p>

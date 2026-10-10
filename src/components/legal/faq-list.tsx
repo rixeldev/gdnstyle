@@ -20,7 +20,7 @@ export function FaqList() {
             <span className="text-cream text-sm font-medium sm:text-base">
               {t(`legal.faq.items.${key}.q`)}
             </span>
-            <span className="border-cream/15 text-cream/50 group-open:border-gold/50 group-open:text-gold flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-transform duration-300 group-open:rotate-45">
+            <span className="border-cream/15 text-cream/50 group-open:border-gold/50 group-open:text-gold flex size-7 shrink-0 items-center justify-center rounded-full border transition-transform duration-300 group-open:rotate-45">
               <Icon name="close" className="h-3.5 w-3.5" />
             </span>
           </summary>

@@ -55,7 +55,7 @@ export function AppShowcase() {
           <div className="mt-8 space-y-5">
             {BULLETS.map((bullet) => (
               <div key={bullet.id} className="border-cream/10 flex gap-4 border-t pt-5">
-                <Icon name={bullet.icon} className="text-gold mt-0.5 h-5 w-5 shrink-0" />
+                <Icon name={bullet.icon} className="text-gold mt-0.5 size-5 shrink-0" />
                 <div>
                   <p className="text-cream text-sm font-semibold">
                     {t(`landing.app.bullets.${bullet.id}.title`)}
@@ -85,7 +85,7 @@ export function AppShowcase() {
                   rel="noreferrer"
                   className="border-cream/15 bg-cream/5 text-cream hover:border-gold/50 hover:text-gold inline-flex h-11 items-center gap-2.5 rounded-full border px-5 text-sm font-semibold transition"
                 >
-                  <Icon name={store.icon} className="h-4 w-4" />
+                  <Icon name={store.icon} className="size-4" />
                   {store.label}
                 </a>
               ))}

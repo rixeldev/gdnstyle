@@ -129,7 +129,7 @@ export function DashboardPanel() {
   } else if (loading || (!session && !loading)) {
     content = (
       <div className="text-cream/50 flex h-64 items-center justify-center">
-        <Spinner className="h-6 w-6" />
+        <Spinner className="size-6" />
       </div>
     )
   } else if (session) {
@@ -173,7 +173,7 @@ export function DashboardPanel() {
               key={module.key}
               className="border-cream/10 bg-ink-card hover:border-gold/40 rounded-3xl border p-6 transition duration-300 hover:-translate-y-1"
             >
-              <Icon name={module.icon} className="text-gold h-6 w-6" />
+              <Icon name={module.icon} className="text-gold size-6" />
               <h2 className="font-display mt-4 text-xl">{t(module.titleKey)}</h2>
               <p className="text-cream/55 mt-2 text-sm leading-relaxed">{t(module.bodyKey)}</p>
               <span className="text-cream/30 mt-4 inline-flex items-center gap-1.5 text-xs tracking-[0.16em] uppercase">

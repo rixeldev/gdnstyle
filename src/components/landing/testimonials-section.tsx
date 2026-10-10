@@ -39,7 +39,7 @@ function ReviewCard({ testimonial }: { testimonial: Testimonial }) {
   const { t } = useTranslation()
 
   return (
-    <article className="border-cream/10 bg-ink-card flex h-full w-[19rem] shrink-0 flex-col rounded-3xl border p-6">
+    <article className="border-cream/10 bg-ink-card flex h-full w-76 shrink-0 flex-col rounded-3xl border p-6">
       <Stars rating={testimonial.rating} />
       <blockquote className="font-accent text-cream/75 mt-4 text-lg leading-relaxed italic">
         “{t(`landing.testimonials.items.${testimonial.id}`)}”
@@ -47,7 +47,7 @@ function ReviewCard({ testimonial }: { testimonial: Testimonial }) {
       <footer className="border-cream/10 mt-auto flex items-center gap-3 border-t pt-4">
         <span
           aria-hidden="true"
-          className="from-royal to-gold-soft text-cream grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br text-xs font-semibold"
+          className="from-royal to-gold-soft text-cream grid size-9 place-items-center rounded-full bg-linear-to-br text-xs font-semibold"
         >
           {testimonial.initials}
         </span>
@@ -89,7 +89,7 @@ export function TestimonialsSection() {
 
           <Reveal delay={120}>
             <span className="border-gold/25 bg-gold/10 text-gold inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold">
-              <Icon name="star" className="fill-gold h-4 w-4" />
+              <Icon name="star" className="fill-gold size-4" />
               {t("landing.testimonials.aggregate")}
             </span>
           </Reveal>
@@ -99,15 +99,15 @@ export function TestimonialsSection() {
       <div className="relative mt-12">
         <div
           aria-hidden="true"
-          className="from-ink pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r to-transparent"
+          className="from-ink pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-linear-to-r to-transparent"
         />
         <div
           aria-hidden="true"
-          className="from-ink pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l to-transparent"
+          className="from-ink pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-linear-to-l to-transparent"
         />
 
         <div className="overflow-hidden py-2">
-          <div className="motion-safe:animate-marquee-reviews flex w-max items-stretch will-change-transform hover:[animation-play-state:paused]">
+          <div className="motion-safe:animate-marquee-reviews hover:animate-play-paused flex w-max items-stretch will-change-transform">
             {[...Array(COPIES).keys()].map((copy) => (
               <ul
                 key={copy}

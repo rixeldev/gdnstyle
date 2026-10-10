@@ -196,7 +196,7 @@ export function Icon({ name, className, ...props }: IconProps) {
       strokeLinejoin="round"
       aria-hidden="true"
       focusable="false"
-      className={cn("h-5 w-5", className)}
+      className={cn("size-5", className)}
       {...props}
     >
       {paths[name]}

@@ -125,7 +125,7 @@ export function SignUpForm() {
     return (
       <div className="space-y-5 text-center">
         <div className="border-gold/40 bg-gold/10 text-gold mx-auto flex h-12 w-12 items-center justify-center rounded-full border">
-          <Icon name="mail" className="h-6 w-6" />
+          <Icon name="mail" className="size-6" />
         </div>
         <h1 className="font-display text-2xl font-semibold">{t("auth.signup.successTitle")}</h1>
         <p className="text-cream/60 text-sm leading-relaxed">
@@ -229,7 +229,7 @@ export function SignUpForm() {
               checked={values.terms}
               onChange={handleChange("terms")}
               aria-invalid={errors.terms ? true : undefined}
-              className="border-cream/30 accent-gold mt-0.5 h-4 w-4 shrink-0 rounded bg-transparent"
+              className="border-cream/30 accent-gold mt-0.5 size-4 shrink-0 rounded bg-transparent"
             />
             <span className="leading-relaxed">
               <Trans

@@ -81,7 +81,7 @@ export function ContactSection() {
                 key={item.label}
                 className="border-cream/10 bg-cream/3 flex flex-1 flex-col justify-center rounded-3xl border p-6"
               >
-                <Icon name={item.icon} className="text-gold h-5 w-5" />
+                <Icon name={item.icon} className="text-gold size-5" />
                 <p className="text-cream/40 mt-3 text-xs tracking-[0.16em] uppercase">
                   {item.label}
                 </p>
@@ -90,7 +90,7 @@ export function ContactSection() {
                     href={item.href}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noreferrer" : undefined}
-                    className="text-cream hover:text-gold mt-1 inline-block text-sm font-medium break-words transition"
+                    className="text-cream hover:text-gold wrap-break-words mt-1 inline-block text-sm font-medium transition"
                   >
                     {item.value}
                   </a>

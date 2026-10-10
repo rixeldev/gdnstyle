@@ -45,7 +45,7 @@ function StatValue({ stat, animate, locale }: StatValueProps) {
         {formatted}
         {stat.suffix}
       </span>
-      {stat.star && <Icon name="star" className="fill-gold h-5 w-5 md:h-6 md:w-6" />}
+      {stat.star && <Icon name="star" className="fill-gold size-5 md:h-6 md:w-6" />}
     </dd>
   )
 }

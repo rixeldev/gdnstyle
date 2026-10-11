@@ -30,6 +30,7 @@
     "app": "La app",
     "contact": "Contacto",
     "book": "Reservar",
+    "signIn": "Iniciar sesión",
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú",
     "main": "Navegación principal"
@@ -64,6 +65,11 @@
       "chips": {
         "confirmed": "Cita confirmada",
         "instant": "Reserva en 2 minutos"
+      },
+      "search": {
+        "label": "Buscar locales",
+        "placeholder": "Salón, barbería, servicio o ciudad…",
+        "submit": "Buscar"
       }
     },
     "strip": {
@@ -259,6 +265,45 @@
     "depilacion": "Depilación",
     "maquillaje": "Maquillaje",
     "masaje": "Masaje"
+  },
+  "venues": {
+    "services": {
+      "corte": "Corte",
+      "corteYBarba": "Corte y barba",
+      "afeitado": "Afeitado",
+      "cejas": "Diseño de cejas",
+      "pestanas": "Extensiones de pestañas",
+      "laminado": "Laminado de cejas",
+      "facial": "Facial",
+      "limpiezaFacial": "Limpieza facial",
+      "peeling": "Peeling",
+      "cera": "Depilación con cera",
+      "laser": "Depilación láser",
+      "maquillajeSocial": "Maquillaje social",
+      "maquillajeNovia": "Maquillaje de novia",
+      "masajeRelajante": "Masaje relajante",
+      "descontracturante": "Masaje descontracturante",
+      "piedras": "Masaje con piedras"
+    }
+  },
+  "directory": {
+    "eyebrow": "Directorio",
+    "title": "Encuentra tu local de belleza.",
+    "supporting": "Explora salones, barberías y estudios cerca de ti. Cuando lo tengas claro, reserva en segundos.",
+    "searchLabel": "Buscar locales",
+    "searchPlaceholder": "Busca por nombre, servicio o ciudad…",
+    "search": "Buscar",
+    "filtersLabel": "Filtrar por categoría",
+    "all": "Todos",
+    "results": "{{count}} locales",
+    "empty": "No encontramos locales para «{{query}}».",
+    "emptyAction": "Ver todos",
+    "book": "Reservar",
+    "featured": "Destacado",
+    "priceFrom": "Desde {{price}}",
+    "accountTitle": "¿Listo para reservar?",
+    "accountBody": "Entra a tu cuenta o crea una nueva para guardar tus citas.",
+    "createAccount": "Crear cuenta"
   },
   "auth": {
     "shell": {

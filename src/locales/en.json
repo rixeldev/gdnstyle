@@ -30,6 +30,7 @@
     "app": "The app",
     "contact": "Contact",
     "book": "Book",
+    "signIn": "Sign in",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "main": "Main navigation"
@@ -64,6 +65,11 @@
       "chips": {
         "confirmed": "Booking confirmed",
         "instant": "Book in 2 minutes"
+      },
+      "search": {
+        "label": "Search venues",
+        "placeholder": "Salon, barbershop, service or city…",
+        "submit": "Search"
       }
     },
     "strip": {
@@ -259,6 +265,45 @@
     "depilacion": "Waxing",
     "maquillaje": "Makeup",
     "masaje": "Massage"
+  },
+  "venues": {
+    "services": {
+      "corte": "Cut",
+      "corteYBarba": "Cut and beard",
+      "afeitado": "Shave",
+      "cejas": "Brow design",
+      "pestanas": "Lash extensions",
+      "laminado": "Brow lamination",
+      "facial": "Facial",
+      "limpiezaFacial": "Facial cleansing",
+      "peeling": "Peel",
+      "cera": "Waxing",
+      "laser": "Laser hair removal",
+      "maquillajeSocial": "Event makeup",
+      "maquillajeNovia": "Bridal makeup",
+      "masajeRelajante": "Relaxing massage",
+      "descontracturante": "Deep tissue massage",
+      "piedras": "Hot stone massage"
+    }
+  },
+  "directory": {
+    "eyebrow": "Directory",
+    "title": "Find your beauty spot.",
+    "supporting": "Browse salons, barbershops and studios near you. When you've found the one, book in seconds.",
+    "searchLabel": "Search venues",
+    "searchPlaceholder": "Search by name, service or city…",
+    "search": "Search",
+    "filtersLabel": "Filter by category",
+    "all": "All",
+    "results": "{{count}} venues",
+    "empty": "We couldn't find any venues for “{{query}}”.",
+    "emptyAction": "Show all",
+    "book": "Book",
+    "featured": "Featured",
+    "priceFrom": "From {{price}}",
+    "accountTitle": "Ready to book?",
+    "accountBody": "Sign in or create an account to keep your appointments.",
+    "createAccount": "Create account"
   },
   "auth": {
     "shell": {

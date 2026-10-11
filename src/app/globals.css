@@ -155,6 +155,51 @@ body {
   transition: opacity 0.5s ease;
 }
 
+/* Subtle blueprint grid behind the hero, faded out with a mask. */
+.hero-grid {
+  background-image:
+    linear-gradient(to right, rgba(244, 241, 234, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 241, 234, 0.04) 1px, transparent 1px);
+  background-size: 54px 54px;
+  -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 38%, black, transparent);
+  mask-image: radial-gradient(ellipse 65% 60% at 50% 38%, black, transparent);
+}
+
+/* Slow orbit ring decorating the hero carousel. */
+@keyframes orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.orbit-ring {
+  animation: orbit 90s linear infinite;
+}
+
+/* Gentle, continuous bob for the hero phone and its floating chips. */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+.bob {
+  animation: bob 6s ease-in-out infinite;
+}
+
+/*
+ * Chips share the same motion but start a third of a cycle ahead, so they
+ * visually trail the phone by ~2s (a subtle floating parallax).
+ */
+.bob-delayed {
+  animation: bob 4s ease-in-out infinite;
+  animation-delay: -.5s;
+}
+
 /* Gold shine sweep for primary buttons. */
 .btn-shine {
   position: relative;

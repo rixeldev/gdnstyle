@@ -29,7 +29,7 @@ export function PhoneCarousel() {
     <div
       role="group"
       aria-label={t("landing.hero.screens.label")}
-      className="motion-safe:animate-float relative mx-auto w-[min(320px,82vw)]"
+      className="bob relative mx-auto w-[min(320px,82vw)]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -47,6 +47,7 @@ export function PhoneCarousel() {
               fill
               sizes="(max-width: 768px) 82vw, 320px"
               priority={i === 0}
+              loading="eager"
               className={cn(
                 "object-contain object-top transition-opacity duration-700 motion-reduce:transition-none",
                 i === index ? "opacity-100" : "opacity-0",

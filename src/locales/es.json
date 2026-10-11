@@ -60,6 +60,10 @@
         "secure": "Pago seguro",
         "cancel": "Cancelación gratuita",
         "reminders": "Recordatorios de cita"
+      },
+      "chips": {
+        "confirmed": "Cita confirmada",
+        "instant": "Reserva en 2 minutos"
       }
     },
     "strip": {
@@ -223,7 +227,7 @@
       "hoursLabel": "Horario",
       "hours": "Lunes a viernes, 9:00 a 18:00",
       "addressLabel": "Ubicación",
-      "address": "Santo Domingo, República Dominicana",
+      "address": "New Jersey, USA",
       "formTitle": "Envíanos un mensaje",
       "formNote": "Te respondemos en un día laborable.",
       "name": "Nombre",

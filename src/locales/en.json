@@ -60,6 +60,10 @@
         "secure": "Secure payment",
         "cancel": "Free cancellation",
         "reminders": "Appointment reminders"
+      },
+      "chips": {
+        "confirmed": "Booking confirmed",
+        "instant": "Book in 2 minutes"
       }
     },
     "strip": {
@@ -223,7 +227,7 @@
       "hoursLabel": "Hours",
       "hours": "Monday to Friday, 9:00 to 18:00",
       "addressLabel": "Location",
-      "address": "Santo Domingo, Dominican Republic",
+      "address": "New Jersey, USA",
       "formTitle": "Send us a message",
       "formNote": "We reply within one business day.",
       "name": "Name",

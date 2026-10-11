@@ -13,7 +13,16 @@ import { NAV_LINKS } from "@/constants/site"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { cn } from "@/utils/cn"
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  /** Overrides the header CTA (the venue directory uses "Sign in"). */
+  ctaKey?: string
+  ctaHref?: string
+}
+
+export function SiteHeader({
+  ctaKey = "nav.book",
+  ctaHref = "/auth/login?role=customer",
+}: SiteHeaderProps) {
   const { t } = useTranslation()
   const scrolled = useScrolled()
   const [open, setOpen] = useState(false)
@@ -46,8 +55,8 @@ export function SiteHeader() {
 
         <div className="hidden items-center gap-4 md:flex">
           <LanguageSwitcher />
-          <ButtonLink href="/auth/login?role=customer" size="sm">
-            {t("nav.book")}
+          <ButtonLink href={ctaHref} size="sm">
+            {t(ctaKey)}
           </ButtonLink>
         </div>
 
@@ -88,11 +97,11 @@ export function SiteHeader() {
             </div>
 
             <div className="mt-3 flex flex-col gap-2.5">
-              <ButtonLink href="/auth/login?role=customer" onClick={() => setOpen(false)}>
+              <ButtonLink href="/auth/login" onClick={() => setOpen(false)}>
                 {t("auth.roleSwitch.customer")}
               </ButtonLink>
               <ButtonLink
-                href="/auth/login?role=professional"
+                href="/auth/login?auth=1&role=professional"
                 variant="outline"
                 onClick={() => setOpen(false)}
               >

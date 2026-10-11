@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 
+import { AuthShell } from "@/components/auth/auth-shell"
 import { VerifyEmailNotice } from "@/components/auth/verify-email-notice"
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 }
 
 export default function VerifyEmailPage() {
-  return <VerifyEmailNotice />
+  return (
+    <AuthShell>
+      <VerifyEmailNotice />
+    </AuthShell>
+  )
 }

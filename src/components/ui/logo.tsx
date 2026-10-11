@@ -20,7 +20,7 @@ export function Logo({ className, size = "md", markOnly = false }: LogoProps) {
         alt=""
         width={markSize}
         height={markSize}
-        className="object-contain"
+        className={cn("object-contain", size === "sm" ? "size-8" : "size-9")}
         priority
       />
       {!markOnly && (

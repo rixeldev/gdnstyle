@@ -54,6 +54,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${geist.variable} ${cinzel.variable} ${cormorant.variable}`}
     >
       <body className="bg-ink text-cream min-h-dvh antialiased">

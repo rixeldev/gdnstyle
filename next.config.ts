@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  /** Allow the dev-only HMR socket when previewing through an ngrok tunnel. */
+  allowedDevOrigins: ["*.ngrok-free.dev"],
   turbopack: {
     rules: {
       "*.css": {

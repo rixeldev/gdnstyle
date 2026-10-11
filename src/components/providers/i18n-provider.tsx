@@ -54,15 +54,10 @@ export function persistLocale(locale: Locale) {
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   // Always boot in the language of the served document (`<html lang>`), so the
   // very first client render matches the server HTML byte-for-byte; the stored
-  // preference is applied afterwards, in an effect, never during hydration.
+  // preference is applied afterwards, never during hydration.
   const i18n = useMemo(() => createI18n(readBootLocale()), [])
 
   useEffect(() => {
-    const stored = readStoredLocale()
-    if (stored !== i18n.language) {
-      void i18n.changeLanguage(stored)
-    }
-
     const syncDocumentLang = (lng: string) => {
       document.documentElement.lang = lng
     }
@@ -70,7 +65,48 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     syncDocumentLang(i18n.language)
     i18n.on("languageChanged", syncDocumentLang)
 
+    let cancelled = false
+    let idleHandle: number | null = null
+
+    const applyStoredLocale = () => {
+      if (cancelled) return
+      const stored = readStoredLocale()
+      if (stored !== i18n.language) {
+        void i18n.changeLanguage(stored)
+      }
+    }
+
+    // Apply the persisted preference only once the document has finished
+    // loading and the browser goes idle. With PPR/Suspense, hydration runs in
+    // several passes after the first commit; switching the language between
+    // passes makes later passes render text that differs from the served HTML
+    // (hydration mismatch). Once hydration is done, re-rendering in another
+    // language is a normal, safe client update.
+    const schedule = () => {
+      if (cancelled) return
+      if (typeof window.requestIdleCallback === "function") {
+        idleHandle = window.requestIdleCallback(applyStoredLocale, { timeout: 1500 })
+      } else {
+        idleHandle = window.setTimeout(applyStoredLocale, 120)
+      }
+    }
+
+    if (document.readyState === "complete") {
+      schedule()
+    } else {
+      window.addEventListener("load", schedule, { once: true })
+    }
+
     return () => {
+      cancelled = true
+      window.removeEventListener("load", schedule)
+      if (idleHandle !== null) {
+        if (typeof window.cancelIdleCallback === "function") {
+          window.cancelIdleCallback(idleHandle)
+        } else {
+          window.clearTimeout(idleHandle)
+        }
+      }
       i18n.off("languageChanged", syncDocumentLang)
     }
   }, [i18n])

@@ -26,6 +26,10 @@ export function LoginForm() {
   const searchParams = useSearchParams()
   const role = parseRole(searchParams.get("role"))
   const linkError = searchParams.get("error") ? t("errors.auth.sessionExpired") : ""
+  // `next` carries the place the visitor was heading to (e.g. a venue page),
+  // so login returns them there instead of the dashboard.
+  const nextParam = searchParams.get("next")
+  const nextAfterLogin = nextParam && nextParam.startsWith("/") ? nextParam : "/dashboard"
 
   const schema = useMemo(() => createSignInSchema((key) => t(key)), [t])
   const [values, setValues] = useState<SignInValues>({ email: "", password: "" })
@@ -36,7 +40,9 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false)
 
   function handleRoleChange(next: UserRole) {
-    router.replace(`/auth/login?role=${next}`, { scroll: false })
+    const preserveNext =
+      nextParam && nextParam.startsWith("/") ? `&next=${encodeURIComponent(nextParam)}` : ""
+    router.replace(`/auth/login?role=${next}${preserveNext}`, { scroll: false })
   }
 
   function handleChange(field: keyof SignInValues) {
@@ -76,7 +82,7 @@ export function LoginForm() {
     }
 
     setSuccess(t("auth.login.success"))
-    router.replace("/dashboard")
+    router.replace(nextAfterLogin)
     router.refresh()
   }
 

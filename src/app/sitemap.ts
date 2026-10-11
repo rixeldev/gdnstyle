@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes = [
     { url: SITE.url, priority: 1 },
+    { url: `${SITE.url}/locales`, priority: 0.8 },
     { url: `${SITE.url}/faq`, priority: 0.6 },
     { url: `${SITE.url}/policies`, priority: 0.3 },
     { url: `${SITE.url}/terms`, priority: 0.3 },

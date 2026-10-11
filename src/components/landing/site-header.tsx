@@ -19,10 +19,7 @@ interface SiteHeaderProps {
   ctaHref?: string
 }
 
-export function SiteHeader({
-  ctaKey = "nav.book",
-  ctaHref = "/auth/login?role=customer",
-}: SiteHeaderProps) {
+export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHeaderProps) {
   const { t } = useTranslation()
   const scrolled = useScrolled()
   const [open, setOpen] = useState(false)
@@ -97,11 +94,11 @@ export function SiteHeader({
             </div>
 
             <div className="mt-3 flex flex-col gap-2.5">
-              <ButtonLink href="/auth/login" onClick={() => setOpen(false)}>
+              <ButtonLink href="/locales" onClick={() => setOpen(false)}>
                 {t("auth.roleSwitch.customer")}
               </ButtonLink>
               <ButtonLink
-                href="/auth/login?auth=1&role=professional"
+                href="/auth/login?role=professional"
                 variant="outline"
                 onClick={() => setOpen(false)}
               >

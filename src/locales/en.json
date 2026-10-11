@@ -69,7 +69,8 @@
       "search": {
         "label": "Search venues",
         "placeholder": "Salon, barbershop, service or city…",
-        "submit": "Search"
+        "submit": "Search",
+        "suggestions": "Venue suggestions"
       }
     },
     "strip": {
@@ -284,6 +285,14 @@
       "masajeRelajante": "Relaxing massage",
       "descontracturante": "Deep tissue massage",
       "piedras": "Hot stone massage"
+    },
+    "detail": {
+      "back": "Back to all venues",
+      "bookTitle": "Book your appointment",
+      "bookSupporting": "Pick a service and time. Online booking is coming to our database very soon.",
+      "servicesTitle": "Services",
+      "signInHint": "Sign in to start booking.",
+      "comingSoon": "Booking will be available once we connect the database."
     }
   },
   "directory": {

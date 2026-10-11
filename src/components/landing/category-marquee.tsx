@@ -29,11 +29,11 @@ export function CategoryMarquee() {
       {/* Edge fades hide any remaining seam of the loop and ease entries/exits. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#0d0712] to-transparent"
+        className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-linear-to-r from-[#0d0712] to-transparent"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#0d0712] to-transparent"
+        className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-linear-to-l from-[#0d0712] to-transparent"
       />
 
       <div className="overflow-hidden">

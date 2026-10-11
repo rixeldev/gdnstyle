@@ -69,7 +69,8 @@
       "search": {
         "label": "Buscar locales",
         "placeholder": "Salón, barbería, servicio o ciudad…",
-        "submit": "Buscar"
+        "submit": "Buscar",
+        "suggestions": "Sugerencias de locales"
       }
     },
     "strip": {
@@ -284,6 +285,14 @@
       "masajeRelajante": "Masaje relajante",
       "descontracturante": "Masaje descontracturante",
       "piedras": "Masaje con piedras"
+    },
+    "detail": {
+      "back": "Ver todos los locales",
+      "bookTitle": "Agenda tu cita",
+      "bookSupporting": "Elige servicio y horario. La reserva se conectará muy pronto a nuestra base de datos.",
+      "servicesTitle": "Servicios",
+      "signInHint": "Inicia sesión para poder reservar.",
+      "comingSoon": "La reserva estará disponible cuando conectemos la base de datos."
     }
   },
   "directory": {

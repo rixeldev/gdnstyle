@@ -1,27 +1,19 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-import { useRef, useState, type FormEvent, type PointerEvent } from "react"
+import { useRef, useState, type PointerEvent } from "react"
 import { useTranslation } from "react-i18next"
 
-import { Button, ButtonLink } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { TRUST_ITEMS } from "@/constants/site"
 
+import { HeroSearch } from "./hero-search"
 import { PhoneCarousel } from "./phone-carousel"
 
 export function Hero() {
   const { t } = useTranslation()
-  const router = useRouter()
   const spotRef = useRef<HTMLDivElement>(null)
   const reducedMotionRef = useRef<boolean | null>(null)
-  const [query, setQuery] = useState("")
-
-  function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const trimmed = query.trim()
-    router.push(trimmed ? `/auth/login?q=${encodeURIComponent(trimmed)}` : "/auth/login")
-  }
 
   function handlePointerMove(event: PointerEvent<HTMLElement>) {
     if (event.pointerType !== "mouse") return
@@ -47,30 +39,20 @@ export function Hero() {
     <section
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
-      className="relative overflow-hidden px-5 pt-28 pb-16 md:px-8 md:pt-36 md:pb-24"
+      className="relative px-5 pt-28 pb-16 md:px-8 md:pt-36 md:pb-24"
     >
-      <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(224,176,68,0.16),transparent_46%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(55,10,91,0.5),transparent_52%)]"
-      />
-      <div
-        ref={spotRef}
-        aria-hidden="true"
-        className="spotlight pointer-events-none absolute inset-0"
-      />
-      <div
-        aria-hidden="true"
-        className="bg-royal/60 motion-safe:animate-drift pointer-events-none absolute top-24 -left-24 h-72 w-72 rounded-full blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="bg-gold/15 motion-safe:animate-drift animate-delay-500 pointer-events-none absolute -right-16 bottom-8 h-64 w-64 rounded-full blur-3xl"
-      />
+      {/* Decorative layers keep their horizontal overflow clipped (the blurred
+          blobs overhang the edges), but the section itself must not clip
+          vertically: a long suggestion list extends below the section's bottom
+          edge over the category marquee, and overflow-hidden would cut it off. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="hero-grid pointer-events-none absolute inset-0" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(224,176,68,0.16),transparent_46%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(55,10,91,0.5),transparent_52%)]" />
+        <div ref={spotRef} className="spotlight pointer-events-none absolute inset-0" />
+        <div className="bg-royal/60 motion-safe:animate-drift pointer-events-none absolute top-24 -left-24 h-72 w-72 rounded-full blur-3xl" />
+        <div className="bg-gold/15 motion-safe:animate-drift animate-delay-500 pointer-events-none absolute -right-16 bottom-8 h-64 w-64 rounded-full blur-3xl" />
+      </div>
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]">
         <div>
@@ -98,30 +80,13 @@ export function Hero() {
             {t("landing.hero.supporting")}
           </p>
 
-          <form
-            role="search"
-            onSubmit={handleSearch}
-            className="animate-fade-in-up animate-delay-400 animate-fill-mode-both border-cream/15 bg-cream/5 focus-within:border-gold/50 mt-8 flex w-full max-w-xl items-center gap-2 rounded-full border p-1.5 pl-5 backdrop-blur-md transition"
-          >
-            <Icon name="search" className="text-cream/40 size-4 shrink-0" />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("landing.hero.search.placeholder")}
-              aria-label={t("landing.hero.search.label")}
-              className="text-cream placeholder:text-cream/40 h-10 min-w-0 flex-1 bg-transparent text-sm outline-none"
-            />
-            <Button type="submit" size="sm" className="shrink-0">
-              {t("landing.hero.search.submit")}
-            </Button>
-          </form>
+          <HeroSearch />
 
           <div className="animate-fade-in-up animate-delay-500 animate-fill-mode-both mt-6 flex flex-wrap gap-3">
-            <ButtonLink href="/auth/login?role=customer" size="lg" className="shadow-gold">
+            <ButtonLink href="/locales" size="lg" className="shadow-gold">
               {t("landing.hero.primaryCta")}
             </ButtonLink>
-            <ButtonLink href="/auth/login?auth=1&role=professional" variant="outline" size="lg">
+            <ButtonLink href="/auth/login?role=professional" variant="outline" size="lg">
               {t("landing.hero.secondaryCta")}
             </ButtonLink>
           </div>

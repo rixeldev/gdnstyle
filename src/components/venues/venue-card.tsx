@@ -2,14 +2,17 @@
 
 import { useTranslation } from "react-i18next"
 
-import { ButtonLink } from "@/components/ui/button"
+import { BookButton } from "@/components/venues/book-button"
 import { Icon } from "@/components/ui/icon"
 import { CATEGORIES } from "@/constants/categories"
 import type { Venue } from "@/constants/venues"
 import { cn } from "@/utils/cn"
 import { formatCurrency, formatNumber } from "@/utils/format"
 
-/** Category-tinted cover gradients (kept in the brand's gold/royal range). */
+/**
+ * Category-tinted cover gradients (kept in the brand's gold/royal range).
+ * NOTE: this comment is a cache-invalidation nudge for the dev server.
+ */
 const COVER_GRADIENTS: Record<string, string> = {
   barberia: "from-royal/70",
   cejasPestanas: "from-gold/30",
@@ -103,9 +106,7 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
 
         <div className="border-cream/10 mt-auto flex items-center justify-between gap-3 border-t pt-4">
           <span className="text-cream/45 text-xs">{t("directory.priceFrom", { price })}</span>
-          <ButtonLink href="/auth/login?auth=1&role=customer" size="sm">
-            {t("directory.book")}
-          </ButtonLink>
+          <BookButton venueId={venue.id} />
         </div>
       </div>
     </article>

@@ -43,8 +43,15 @@
   color-scheme: dark;
 }
 
-* {
-  border-color: color-mix(in oklab, var(--color-cream) 10%, transparent);
+/* Neutral default border color (Tailwind v4's `border` utility sets only
+   width + style, so bare borders would otherwise use currentcolor). This must
+   live in the base layer: an unlayered `*` selector would outrank every
+   border-color utility in the utilities layer and silently break borders
+   like `border-gold` / `focus-within:border-gold`. */
+@layer base {
+  * {
+    border-color: color-mix(in oklab, var(--color-cream) 10%, transparent);
+  }
 }
 
 html {
@@ -60,6 +67,14 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Tailwind v4's preflight resets buttons to the default cursor; restore the
+   pointer for every enabled interactive control so actions feel clickable. */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+select:not(:disabled) {
+  cursor: pointer;
 }
 
 ::selection {
@@ -92,6 +107,12 @@ body {
   outline: 2px solid var(--color-gold);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Search pills: the whole pill is the focus target (the gold ring lives on the
+   form), so the inner input must not draw its own focus-visible outline. */
+form[role="search"] input:focus-visible {
+  outline: none;
 }
 
 /* Decorative brand accents */

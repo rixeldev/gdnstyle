@@ -11,6 +11,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
 import { Alert } from "@/components/ui/alert"
 import { Icon, type IconProps } from "@/components/ui/icon"
+import { AppointmentsSection } from "@/components/dashboard/appointments-section"
 import type { Profile } from "@/interfaces/auth"
 import { isSupabaseConfigured } from "@/libs/supabase/env"
 import { fetchProfile, signOut } from "@/services/auth.service"
@@ -110,29 +111,17 @@ export function DashboardPanel() {
 
   let content
 
-  if (!configured) {
-    content = (
-      <div className="space-y-5">
-        <Alert tone="info">
-          <span className="font-semibold">{t("auth.unavailable.title")}</span>
-          <br />
-          {t("auth.unavailable.body")}
-        </Alert>
-        <Link
-          href="/"
-          className="text-gold inline-block text-sm font-semibold underline-offset-4 hover:underline"
-        >
-          {t("common.backHome")}
-        </Link>
-      </div>
-    )
-  } else if (loading || (!session && !loading)) {
+  if (configured && !session) {
+    // Auth is wired up but there is no session: the effect above is redirecting
+    // to the sign-in page, so show the spinner meanwhile.
     content = (
       <div className="text-cream/50 flex h-64 items-center justify-center">
         <Spinner className="size-6" />
       </div>
     )
-  } else if (session) {
+  } else {
+    // Signed-in session, or test-data mode (Supabase not configured) where the
+    // locally-saved bookings still make the panel useful.
     const role = profile?.role ?? "customer"
     const modules = role === "professional" ? professionalModules : customerModules
     const firstName =
@@ -140,6 +129,16 @@ export function DashboardPanel() {
 
     content = (
       <div className="space-y-8">
+        {!configured && (
+          <div className="space-y-5">
+            <Alert tone="info">
+              <span className="font-semibold">{t("auth.unavailable.title")}</span>
+              <br />
+              {t("auth.unavailable.body")}
+            </Alert>
+          </div>
+        )}
+
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-cream/55 text-sm">{t("dashboard.title")}</p>
@@ -161,11 +160,15 @@ export function DashboardPanel() {
 
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <Button variant="outline" onClick={handleSignOut} loading={signingOut}>
-              {signingOut ? t("dashboard.signingOut") : t("dashboard.signOut")}
-            </Button>
+            {configured && (
+              <Button variant="outline" onClick={handleSignOut} loading={signingOut}>
+                {signingOut ? t("dashboard.signingOut") : t("dashboard.signOut")}
+              </Button>
+            )}
           </div>
         </div>
+
+        {role === "customer" && <AppointmentsSection />}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map((module) => (
@@ -182,6 +185,15 @@ export function DashboardPanel() {
             </div>
           ))}
         </div>
+
+        {!configured && (
+          <Link
+            href="/"
+            className="text-gold inline-block text-sm font-semibold underline-offset-4 hover:underline"
+          >
+            {t("common.backHome")}
+          </Link>
+        )}
       </div>
     )
   }

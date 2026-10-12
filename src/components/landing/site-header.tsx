@@ -10,6 +10,7 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { Logo } from "@/components/ui/logo"
 import { SectionLink } from "@/components/ui/section-link"
 import { NAV_LINKS } from "@/constants/site"
+import { useFavorites } from "@/hooks/use-favorites"
 import { useScrolled } from "@/hooks/use-scrolled"
 import { cn } from "@/utils/cn"
 
@@ -23,6 +24,7 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
   const { t } = useTranslation()
   const scrolled = useScrolled()
   const [open, setOpen] = useState(false)
+  const { count: favoritesCount } = useFavorites()
 
   return (
     <header
@@ -51,6 +53,21 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
         </nav>
 
         <div className="hidden items-center gap-4 md:flex">
+          <Link
+            href="/favoritos"
+            aria-label={t("favorites.title")}
+            className="text-cream/70 hover:text-gold relative inline-flex items-center transition"
+          >
+            <Icon
+              name="heart"
+              className={cn("size-5", favoritesCount > 0 && "fill-gold text-gold")}
+            />
+            {favoritesCount > 0 && (
+              <span className="bg-gold text-gold-ink absolute -top-1.5 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
+                {favoritesCount}
+              </span>
+            )}
+          </Link>
           <LanguageSwitcher />
           <ButtonLink href={ctaHref} size="sm">
             {t(ctaKey)}
@@ -88,6 +105,23 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
                 {t(link.key)}
               </SectionLink>
             ))}
+
+            <Link
+              href="/favoritos"
+              onClick={() => setOpen(false)}
+              className="text-cream/80 hover:bg-cream/5 hover:text-cream inline-flex items-center gap-2 rounded-lg px-2 py-3 text-base transition"
+            >
+              <Icon
+                name="heart"
+                className={cn("size-5", favoritesCount > 0 && "fill-gold text-gold")}
+              />
+              {t("favorites.title")}
+              {favoritesCount > 0 && (
+                <span className="bg-gold text-gold-ink inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold">
+                  {favoritesCount}
+                </span>
+              )}
+            </Link>
 
             <div className="border-cream/10 mt-3 flex items-center justify-between border-t pt-4">
               <LanguageSwitcher />

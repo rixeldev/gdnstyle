@@ -1,26 +1,16 @@
 "use client"
 
+import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
 import { BookButton } from "@/components/venues/book-button"
+import { FavoriteButton } from "@/components/venues/favorite-button"
 import { Icon } from "@/components/ui/icon"
 import { CATEGORIES } from "@/constants/categories"
+import { categoryCover } from "@/constants/covers"
 import type { Venue } from "@/constants/venues"
 import { cn } from "@/utils/cn"
 import { formatCurrency, formatNumber } from "@/utils/format"
-
-/**
- * Category-tinted cover gradients (kept in the brand's gold/royal range).
- * NOTE: this comment is a cache-invalidation nudge for the dev server.
- */
-const COVER_GRADIENTS: Record<string, string> = {
-  barberia: "from-royal/70",
-  cejasPestanas: "from-gold/30",
-  cuidadoPiel: "from-royal/45",
-  depilacion: "from-gold/20",
-  maquillaje: "from-royal/55",
-  masaje: "from-gold/25",
-}
 
 interface VenueCardProps {
   venue: Venue
@@ -39,16 +29,27 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
 
   return (
     <article className="border-cream/10 bg-ink-card group hover:border-gold/40 flex h-full flex-col overflow-hidden rounded-3xl border transition duration-300 hover:-translate-y-1">
-      <div
-        className={cn(
-          "via-ink-card to-ink-card relative h-32 bg-gradient-to-br",
-          COVER_GRADIENTS[venue.categoryId] ?? "from-royal/50",
-        )}
-      >
-        <Icon
-          name={category?.icon ?? "sparkles"}
-          className="text-cream/15 absolute right-5 bottom-2 size-14"
+      <div className="relative h-40 overflow-hidden">
+        <div
+          aria-hidden="true"
+          className={cn(
+            "via-ink-card to-ink-card absolute inset-0 bg-linear-to-br",
+            categoryCover(venue.categoryId),
+          )}
         />
+        <Image
+          src={venue.image}
+          alt={t("directory.venueImageAlt", { name: venue.name })}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className="object-cover transition duration-500 group-hover:scale-105"
+        />
+        <div
+          aria-hidden="true"
+          className="from-ink-card via-ink-card/20 absolute inset-0 bg-linear-to-t to-transparent"
+        />
+
+        <FavoriteButton venueId={venue.id} className="absolute top-3 left-3 z-10" />
 
         {venue.featured && (
           <span className="bg-gold text-gold-ink absolute top-3 right-3 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] uppercase">

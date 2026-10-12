@@ -1,33 +1,53 @@
 "use client"
 
-import Link from "next/link"
+import Image from "next/image"
 import { useTranslation } from "react-i18next"
 
-import { BookButton } from "@/components/venues/book-button"
+import { BookingForm } from "@/components/venues/booking-form"
+import { FavoriteButton } from "@/components/venues/favorite-button"
+import { ReviewSection } from "@/components/venues/review-section"
+import { VenueMap } from "@/components/venues/venue-map"
+import { Breadcrumbs, type Crumb } from "@/components/ui/breadcrumbs"
 import { Icon } from "@/components/ui/icon"
-import { CATEGORIES } from "@/constants/categories"
+import { getCategoryById } from "@/constants/categories"
+import { categoryCover } from "@/constants/covers"
+import { getVenueProfessionals } from "@/constants/professionals"
+import { serviceDurationMin, servicePrice } from "@/constants/services"
 import type { Venue } from "@/constants/venues"
 import { cn } from "@/utils/cn"
 import { formatCurrency, formatNumber, toIntlLocale } from "@/utils/format"
+import { initials } from "@/utils/initials"
 
 interface VenueDetailProps {
   venue: Venue
 }
 
-/** Single venue page: full info plus the session-gated booking card. */
+/** Single venue page: gallery, services, team, reviews, map and booking card. */
 export function VenueDetail({ venue }: VenueDetailProps) {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language ?? "es")
-  const category = CATEGORIES.find((item) => item.id === venue.categoryId)
+  const category = getCategoryById(venue.categoryId)
+  const professionals = getVenueProfessionals(venue)
   const rating = formatNumber(venue.rating, locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
-  const price = formatCurrency(venue.priceFrom, locale, "DOP", { maximumFractionDigits: 0 })
+  const priceFrom = formatCurrency(venue.priceFrom, locale, "DOP", { maximumFractionDigits: 0 })
+  const mapPoints = [{ id: venue.id, name: venue.name, lat: venue.lat, lon: venue.lon }]
+  const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lon}`
+
+  const crumbs: Crumb[] = [
+    { label: t("breadcrumbs.home"), href: "/" },
+    { label: t("breadcrumbs.directory"), href: "/locales" },
+    { label: venue.name },
+  ]
+
+  const metaChip =
+    "border-cream/12 bg-cream/4 text-cream/70 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium"
 
   return (
     <main id="main">
-      <section className="relative overflow-hidden px-5 pt-28 pb-20 md:px-8 md:pt-32">
+      <section className="relative overflow-hidden px-5 pt-24 pb-20 md:px-8 md:pt-28">
         <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
         <div
           aria-hidden="true"
@@ -39,77 +59,225 @@ export function VenueDetail({ venue }: VenueDetailProps) {
         />
 
         <div className="relative mx-auto max-w-6xl">
-          <Link
-            href="/locales"
-            className="text-cream/55 hover:text-gold inline-flex items-center gap-2 text-sm underline-offset-4 transition hover:underline"
-          >
-            <Icon name="arrow-left" className="size-4" />
-            {t("venues.detail.back")}
-          </Link>
+          <Breadcrumbs items={crumbs} className="mb-8" />
 
-          <div className="mt-8 grid gap-12 lg:grid-cols-[1fr_minmax(0,24rem)] lg:items-start">
-            <div>
-              {category && (
-                <span className="border-gold/25 bg-ink/70 text-gold inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase backdrop-blur-sm">
-                  <Icon name={category.icon} className="size-3.5" />
-                  {t(category.labelKey)}
-                </span>
-              )}
-
-              <h1 className="font-display mt-4 text-4xl leading-tight font-semibold md:text-5xl">
-                {venue.name}
-              </h1>
-
-              <p className="text-cream/60 mt-3 flex items-center gap-2 text-sm">
-                <Icon name="map-pin" className="text-gold size-4 shrink-0" />
-                {venue.area}, {venue.city}
-              </p>
-
-              <div className="mt-5 flex items-center gap-2 text-sm">
-                <span
-                  role="img"
-                  aria-label={t("landing.testimonials.starsLabel", {
-                    count: Math.round(venue.rating),
-                  })}
-                  className="flex items-center gap-0.5"
-                >
-                  {[0, 1, 2, 3, 4].map((index) => (
-                    <Icon
-                      key={index}
-                      name="star"
+          <div className="grid gap-12 lg:grid-cols-[1fr_minmax(0,24rem)] lg:items-start">
+            <div className="space-y-10">
+              {/* Gallery */}
+              <div>
+                <p className="text-cream/40 mb-3 text-[11px] tracking-[0.2em] uppercase">
+                  {t("venues.detail.galleryTitle")}
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {venue.gallery.map((photo, index) => (
+                    <div
+                      key={photo}
                       className={cn(
-                        "size-4",
-                        index < Math.round(venue.rating) ? "fill-gold text-gold" : "text-cream/20",
+                        "border-cream/10 relative h-32 overflow-hidden rounded-2xl border sm:h-36",
+                        index === 0 && "col-span-2 sm:col-span-1",
                       )}
-                    />
+                    >
+                      <div
+                        aria-hidden="true"
+                        className={cn(
+                          "via-ink-card to-ink-card absolute inset-0 bg-linear-to-br",
+                          categoryCover(venue.categoryId),
+                        )}
+                      />
+                      <Image
+                        src={photo}
+                        alt={t("venues.detail.galleryPhotoAlt", {
+                          name: venue.name,
+                          index: index + 1,
+                        })}
+                        fill
+                        sizes="(max-width: 640px) 100vw, 33vw"
+                        className="object-cover"
+                      />
+                    </div>
                   ))}
-                </span>
-                <span className="text-cream font-semibold">{rating}</span>
-                <span className="text-cream/45">({formatNumber(venue.reviews, locale)})</span>
+                </div>
               </div>
 
-              <p className="text-cream/75 mt-5 text-base font-medium">
-                {t("directory.priceFrom", { price })}
-              </p>
+              {/* Header */}
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {category && (
+                    <span className="border-gold/25 bg-ink/70 text-gold inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase backdrop-blur-sm">
+                      <Icon name={category.icon} className="size-3.5" />
+                      {t(category.labelKey)}
+                    </span>
+                  )}
+                  <span className="text-gold border-gold/25 bg-gold/10 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase">
+                    <Icon name="badge-check" className="size-3.5" />
+                    {t("venues.detail.verified")}
+                  </span>
+                  <span className="border-cream/15 bg-cream/3 text-cream/55 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] tracking-[0.16em] uppercase">
+                    <Icon name="clock" className="size-3.5" />
+                    {t("venues.detail.respondsIn")}
+                  </span>
+                </div>
 
-              <div className="mt-8">
-                <p className="font-display text-lg font-semibold">
-                  {t("venues.detail.servicesTitle")}
+                <h1 className="font-display mt-4 text-4xl leading-tight font-semibold md:text-5xl">
+                  {venue.name}
+                </h1>
+
+                <p className="text-cream/60 mt-3 flex items-center gap-2 text-sm">
+                  <Icon name="map-pin" className="text-gold size-4 shrink-0" />
+                  {venue.area}, {venue.city}
                 </p>
-                <ul className="mt-4 flex flex-wrap gap-2">
+
+                <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <span className="flex items-center gap-2 text-sm">
+                    <span
+                      role="img"
+                      aria-label={t("landing.testimonials.starsLabel", {
+                        count: Math.round(venue.rating),
+                      })}
+                      className="flex items-center gap-0.5"
+                    >
+                      {[0, 1, 2, 3, 4].map((index) => (
+                        <Icon
+                          key={index}
+                          name="star"
+                          className={cn(
+                            "size-4",
+                            index < Math.round(venue.rating)
+                              ? "fill-gold text-gold"
+                              : "text-cream/20",
+                          )}
+                        />
+                      ))}
+                    </span>
+                    <span className="text-cream font-semibold">{rating}</span>
+                    <span className="text-cream/45">({formatNumber(venue.reviews, locale)})</span>
+                  </span>
+
+                  <span className="text-cream/75 text-sm font-medium">
+                    {t("directory.priceFrom", { price: priceFrom })}
+                  </span>
+                </div>
+
+                <div className="mt-5">
+                  <FavoriteButton venueId={venue.id} variant="inline" />
+                </div>
+              </div>
+
+              {/* Services */}
+              <div>
+                <h2 className="font-display text-xl font-semibold">
+                  {t("venues.detail.servicesTitle")}
+                </h2>
+                <ul className="border-cream/10 bg-cream/2 divide-cream/10 mt-4 divide-y rounded-3xl border">
                   {venue.services.map((service) => (
                     <li
                       key={service}
-                      className="border-cream/10 bg-cream/3 text-cream/80 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm"
+                      className="flex items-center justify-between gap-4 px-5 py-3.5"
                     >
-                      <Icon name="check" className="text-gold size-3.5" />
-                      {t(`venues.services.${service}`)}
+                      <span className="text-cream/85 flex items-center gap-2.5 text-sm">
+                        <Icon name="check" className="text-gold size-4 shrink-0" />
+                        {t(`venues.services.${service}`)}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-4 text-sm">
+                        <span className="text-cream/40 text-xs">
+                          {t("venues.booking.duration", { count: serviceDurationMin(service) })}
+                        </span>
+                        <span className="text-cream font-semibold">
+                          {formatCurrency(servicePrice(venue, service), locale, "DOP", {
+                            maximumFractionDigits: 0,
+                          })}
+                        </span>
+                      </span>
                     </li>
                   ))}
                 </ul>
               </div>
+
+              {/* Professionals */}
+              <div>
+                <h2 className="font-display text-xl font-semibold">
+                  {t("venues.professionals.title")}
+                </h2>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {professionals.map((professional) => (
+                    <div
+                      key={professional.id}
+                      className="border-cream/10 bg-cream/2 flex min-w-60 items-center gap-3 rounded-2xl border px-4 py-3"
+                    >
+                      <span className="border-gold/30 bg-gold/10 text-gold flex size-11 shrink-0 items-center justify-center rounded-full border text-sm font-semibold">
+                        {initials(professional.name)}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="text-cream block text-sm font-semibold">
+                          {professional.name}
+                        </span>
+                        <span className="text-cream/50 block text-xs">
+                          {t(professional.specialtyKey)} ·{" "}
+                          {t("venues.professionals.experienceYears", {
+                            count: professional.experience,
+                          })}
+                        </span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Schedule */}
+              <div>
+                <h2 className="font-display text-xl font-semibold">
+                  {t("venues.detail.scheduleTitle")}
+                </h2>
+                <p className="text-cream/50 mt-1 text-sm">{t("venues.detail.scheduleHint")}</p>
+                <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="border-cream/10 bg-cream/2 rounded-2xl border px-5 py-4">
+                    <dt className="text-cream/45 text-xs tracking-[0.14em] uppercase">
+                      {t("venues.detail.scheduleWeekLabel")}
+                    </dt>
+                    <dd className="text-cream mt-1.5 text-sm font-medium">
+                      {t("venues.detail.scheduleHours")}
+                    </dd>
+                  </div>
+                  <div className="border-cream/10 bg-cream/2 rounded-2xl border px-4 py-3">
+                    <dt className="text-cream/45 text-xs tracking-[0.16em] uppercase">
+                      {t("venues.detail.scheduleClosedLabel")}
+                    </dt>
+                    <dd className="text-cream/70 mt-1.5 text-sm font-medium">
+                      {t("venues.detail.scheduleClosed")}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="text-cream/40 mt-3 text-xs">{t("venues.detail.scheduleNote")}</p>
+              </div>
+
+              {/* Reviews */}
+              <ReviewSection venue={venue} locale={locale} />
+
+              {/* Map */}
+              <div>
+                <div className="flex flex-wrap items-end justify-between gap-3">
+                  <h2 className="font-display text-xl font-semibold">
+                    {t("venues.detail.mapTitle")}
+                  </h2>
+                  <a
+                    href={directionsHref}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-gold inline-flex items-center gap-1.5 text-sm underline-offset-4 transition hover:underline"
+                  >
+                    {t("venues.detail.mapDirections")}
+                    <Icon name="arrow-up-right" className="size-4" />
+                  </a>
+                </div>
+                <VenueMap
+                  points={mapPoints}
+                  label={t("venues.detail.mapHint", { name: venue.name })}
+                  className="border-cream/10 mt-4 h-75 w-full overflow-hidden rounded-4xl border"
+                />
+              </div>
             </div>
 
+            {/* Booking card */}
             <aside className="lg:sticky lg:top-24">
               <div className="border-gold/25 bg-ink-card/85 shadow-luxe rounded-4xl border p-6 sm:p-8">
                 <p className="font-display text-2xl font-semibold">
@@ -118,10 +286,8 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                 <p className="text-cream/60 mt-2 text-sm leading-relaxed">
                   {t("venues.detail.bookSupporting")}
                 </p>
-                <p className="text-cream/45 mt-5 text-xs">{t("venues.detail.signInHint")}</p>
-                <div className="mt-3">
-                  <BookButton venueId={venue.id} venuePage size="lg" fullWidth />
-                </div>
+
+                <BookingForm venue={venue} locale={locale} />
 
                 <ul className="text-cream/55 border-cream/10 mt-6 space-y-2.5 border-t pt-5 text-xs">
                   <li className="flex items-center gap-2.5">
@@ -130,7 +296,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Icon name="calendar" className="text-gold size-4 shrink-0" />
-                    {t("landing.hero.trust.cancel")}
+                    {t("venues.detail.cancelPolicy")}
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Icon name="bell" className="text-gold size-4 shrink-0" />

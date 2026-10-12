@@ -26,7 +26,7 @@ export default async function LocalesPage({ searchParams }: LocalesPageProps) {
 
   return (
     <VenueShell>
-      <VenueDirectory initialQuery={query} />
+      <VenueDirectory initialQuery={query} syncUrl />
     </VenueShell>
   )
 }

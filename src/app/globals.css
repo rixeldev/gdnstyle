@@ -316,6 +316,134 @@ form[role="search"] input:focus-visible {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Modal dialog — native <dialog> portaled to <body> and centered by a
+   full-viewport grid wrapper (see ui/modal.tsx). Tailwind Preflight zeroes the
+   UA `margin: auto`, so centering is done here explicitly; the card lives in
+   `.gdn-dialog__card` so utilities (width) still win over these component
+   styles.
+--------------------------------------------------------------------------- */
+.gdn-dialog {
+  position: fixed;
+  inset: 0;
+  display: none;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--color-cream);
+}
+
+.gdn-dialog[open] {
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.gdn-dialog__card {
+  max-height: calc(100dvh - 2.5rem);
+  overflow-y: auto;
+  color: var(--color-cream);
+  background: var(--color-ink-card);
+  border: 1px solid color-mix(in oklab, var(--color-gold) 22%, transparent);
+  border-radius: 1.5rem;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  animation: dialog-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.gdn-dialog::backdrop {
+  background: rgba(7, 7, 7, 0.74);
+  backdrop-filter: blur(6px);
+  animation: overlay-in 0.28s ease both;
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(1rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Leaflet map — dark brand skin + gold pins (see venue-map.tsx).
+   `!important` is needed because leaflet.css is imported by the component and
+   cascade order against globals.css is not guaranteed.
+--------------------------------------------------------------------------- */
+.leaflet-container {
+  background: var(--color-ink-card);
+  font-family: var(--font-sans);
+  color: var(--color-cream);
+}
+
+.leaflet-control-attribution {
+  background: rgba(7, 7, 7, 0.72) !important;
+  color: color-mix(in oklab, var(--color-cream) 55%, transparent) !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-gold) !important;
+}
+
+.leaflet-bar a {
+  background: var(--color-ink-card) !important;
+  color: var(--color-cream) !important;
+  border-color: rgba(244, 241, 234, 0.12) !important;
+}
+
+.leaflet-bar a:hover {
+  background: #171717 !important;
+}
+
+.gdn-pin {
+  background: transparent;
+  border: 0;
+}
+
+.gdn-pin__dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--color-gold);
+  border: 2px solid var(--color-ink);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-gold) 35%, transparent);
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--color-ink-card);
+  color: var(--color-cream);
+  border: 1px solid color-mix(in oklab, var(--color-gold) 30%, transparent);
+}
+
+.gdn-popup__link {
+  color: var(--color-gold);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.gdn-popup__link:hover {
+  text-decoration: underline;
+}
+
 /* Respect the user's reduced-motion preference everywhere. */
 @media (prefers-reduced-motion: reduce) {
   html {

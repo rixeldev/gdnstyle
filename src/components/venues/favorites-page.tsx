@@ -7,7 +7,7 @@ import { Breadcrumbs, type Crumb } from "@/components/ui/breadcrumbs"
 import { ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { VenueCard } from "@/components/venues/venue-card"
-import { VENUES } from "@/constants/venues"
+import { usePublicVenues } from "@/hooks/use-venues"
 import { useFavorites } from "@/hooks/use-favorites"
 import { toIntlLocale } from "@/utils/format"
 
@@ -16,14 +16,15 @@ export function FavoritesPage() {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language ?? "es")
   const { favorites, ready, count } = useFavorites()
+  const allVenues = usePublicVenues()
 
   const venues = useMemo(
     () =>
-      [...VENUES]
+      [...allVenues]
         .filter((venue) => favorites.includes(venue.id))
         // Keep the order the user saved them in.
         .sort((a, b) => favorites.indexOf(a.id) - favorites.indexOf(b.id)),
-    [favorites],
+    [allVenues, favorites],
   )
 
   const crumbs: Crumb[] = [

@@ -25,6 +25,20 @@ export interface Venue {
   lat: number
   lon: number
   featured?: boolean
+  /**
+   * Professional account that owns the venue. Static records can be claimed by
+   * the demo professional; venues created from the professional dashboard store
+   * this too (see `@/libs/venue-store`).
+   */
+  ownerId?: string
+  /** Short editable description shown on the venue page. */
+  description?: string
+  /** Contact details, editable by the owner. */
+  phone?: string
+  whatsapp?: string
+  instagram?: string
+  /** When `true` the venue is hidden from the public directory. */
+  hidden?: boolean
 }
 
 export const VENUES: Venue[] = [
@@ -47,6 +61,12 @@ export const VENUES: Venue[] = [
     lat: 18.4766,
     lon: -69.9278,
     featured: true,
+    ownerId: "demo-professional",
+    description:
+      "Barbería de barrio con aires modernos: cortes clásicos, fades y arreglo de barba con toalla caliente.",
+    phone: "+1 809 555 0142",
+    whatsapp: "+1 809 555 0142",
+    instagram: "@salonaurora",
   },
   {
     id: "estudio-lulu",
@@ -121,6 +141,12 @@ export const VENUES: Venue[] = [
     lat: 18.4738,
     lon: -69.8844,
     featured: true,
+    ownerId: "demo-professional",
+    description:
+      "Estudio de maquillaje para novias, sesiones y eventos. Prueba previa y acompañamiento el día de la boda.",
+    phone: "+1 809 555 0198",
+    whatsapp: "+1 809 555 0198",
+    instagram: "@musemakeup",
   },
   {
     id: "templo-masaje",

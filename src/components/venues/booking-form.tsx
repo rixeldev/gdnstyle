@@ -7,11 +7,12 @@ import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { toast } from "@/components/ui/toast"
 import { DatePicker } from "@/components/venues/date-picker"
+import { PaymentForm } from "@/components/venues/payment-form"
 import { getVenueProfessionals } from "@/constants/professionals"
 import { serviceDurationMin, servicePrice } from "@/constants/services"
 import type { Venue } from "@/constants/venues"
 import { useBookings } from "@/hooks/use-bookings"
-import { useBookingAccess } from "@/libs/session"
+import { useBookingAccess, useSession } from "@/libs/session"
 import { createId } from "@/libs/storage"
 import { cn } from "@/utils/cn"
 import { addDays, dayNumber, parseDateKey, timeslotEpoch } from "@/utils/date"
@@ -72,6 +73,7 @@ interface BookingFormProps {
 export function BookingForm({ venue, locale }: BookingFormProps) {
   const { t } = useTranslation()
   const { ready: accessReady, allowed } = useBookingAccess()
+  const { user } = useSession()
   const { add } = useBookings()
   const professionals = getVenueProfessionals(venue)
 
@@ -103,6 +105,22 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     )
   }
 
+  // Professionals manage venues; they do not book appointments.
+  if (user?.role === "professional") {
+    return (
+      <div className="border-gold/25 bg-gold/5 mt-5 rounded-2xl border p-5 text-center">
+        <Icon name="badge-check" className="text-gold mx-auto size-6" />
+        <p className="text-cream/85 mt-3 text-sm font-medium">{t("venues.booking.proOnlyTitle")}</p>
+        <p className="text-cream/55 mt-1.5 text-xs leading-relaxed">
+          {t("venues.booking.proOnlyBody")}
+        </p>
+        <ButtonLink href="/dashboard" variant="outline" size="sm" className="mt-4">
+          {t("venues.booking.proOnlyCta")}
+        </ButtonLink>
+      </div>
+    )
+  }
+
   // Built after the session gate so no clock reads happen during prerender.
   const today = new Date()
   const lastBookableDay = addDays(today, DAYS_AHEAD - 1)
@@ -118,7 +136,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     setConfirmed(null)
   }
 
-  function handleConfirm() {
+  function handlePaid() {
     if (!serviceId || !dateKey || !time) return
     const booking = {
       id: createId(venue.id),
@@ -184,7 +202,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
         {[
           t("venues.booking.stepService"),
           t("venues.booking.stepWhen"),
-          t("venues.booking.stepConfirm"),
+          t("venues.booking.stepPayment"),
         ].map((label, index) => (
           <li
             key={label}
@@ -367,6 +385,13 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
           <p className="text-cream/45 mt-3 text-xs leading-relaxed">
             {t("venues.booking.summaryNote")}
           </p>
+
+          {/* Step through the payment gateway before the booking is created. */}
+          <PaymentForm
+            amount={price}
+            amountLabel={formatCurrency(price, locale, "DOP", { maximumFractionDigits: 0 })}
+            onPaid={handlePaid}
+          />
         </div>
       )}
 
@@ -386,11 +411,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
           <Button size="sm" disabled={!canContinue} onClick={() => setStep((value) => value + 1)}>
             {t("venues.booking.next")}
           </Button>
-        ) : (
-          <Button size="sm" onClick={handleConfirm}>
-            {t("venues.booking.confirm")}
-          </Button>
-        )}
+        ) : null}
       </div>
     </div>
   )

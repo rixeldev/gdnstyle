@@ -37,6 +37,7 @@ export type IconName =
   | "sliders"
   | "trash"
   | "apple"
+  | "google"
   | "play"
 
 export interface Category {

@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { CATEGORIES } from "@/constants/categories"
-import { VENUES } from "@/constants/venues"
+import { usePublicVenues } from "@/hooks/use-venues"
 import { cn } from "@/utils/cn"
 import { normalize } from "@/utils/normalize"
 
@@ -21,6 +21,7 @@ const MAX_SUGGESTIONS = 6
 export function HeroSearch() {
   const { t } = useTranslation()
   const router = useRouter()
+  const venues = usePublicVenues()
   const rootRef = useRef<HTMLDivElement>(null)
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
@@ -30,23 +31,24 @@ export function HeroSearch() {
     const needle = normalize(query)
     if (!needle) return []
 
-    return VENUES.filter((venue) => {
-      const haystack = normalize(
-        [
-          venue.name,
-          venue.city,
-          venue.area,
-          t(`categories.${venue.categoryId}`),
-          ...venue.services.map((service) => t(`venues.services.${service}`)),
-        ].join(" "),
-      )
-      return haystack.includes(needle)
-    })
+    return venues
+      .filter((venue) => {
+        const haystack = normalize(
+          [
+            venue.name,
+            venue.city,
+            venue.area,
+            t(`categories.${venue.categoryId}`),
+            ...venue.services.map((service) => t(`venues.services.${service}`)),
+          ].join(" "),
+        )
+        return haystack.includes(needle)
+      })
       .sort(
         (a, b) => Number(b.featured ?? false) - Number(a.featured ?? false) || b.rating - a.rating,
       )
       .slice(0, MAX_SUGGESTIONS)
-  }, [query, t])
+  }, [query, venues, t])
 
   const visible = open && query.trim().length > 0 && suggestions.length > 0
 

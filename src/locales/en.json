@@ -21,7 +21,8 @@
     "changeLanguage": "Change language",
     "opensInMailClient": "Your email app will open",
     "close": "Close",
-    "backToTop": "Back to top"
+    "backToTop": "Back to top",
+    "confirm": "Confirm"
   },
   "nav": {
     "clients": "Clients",
@@ -33,7 +34,9 @@
     "signIn": "Sign in",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "main": "Main navigation"
+    "main": "Main navigation",
+    "dashboard": "My panel",
+    "explore": "Explore venues"
   },
   "landing": {
     "hero": {
@@ -375,7 +378,27 @@
       "successCode": "Code",
       "viewBookings": "View my appointments",
       "bookAnother": "Book another appointment",
-      "toast": "Booking for {{date}} at {{time}}"
+      "toast": "Booking for {{date}} at {{time}}",
+      "stepPayment": "Payment",
+      "paymentTotal": "Total due",
+      "cardName": "Name on card",
+      "cardNamePlaceholder": "As shown on the card",
+      "cardNumber": "Card number",
+      "cardNumberPlaceholder": "4242 4242 4242 4242",
+      "cardExpiry": "Expiry",
+      "cardExpiryPlaceholder": "MM/YY",
+      "cardCvc": "CVC",
+      "cardCvcPlaceholder": "123",
+      "paymentSecure": "Encrypted, secure payment",
+      "paymentTestMode": "Payment gateway in test mode",
+      "paymentStripe": "Secure payment with Stripe",
+      "paymentTestHint": "Test environment: use card 4242 4242 4242 4242 with any future date and CVC 123.",
+      "paymentDescription": "GDN Style appointment",
+      "pay": "Pay and confirm booking",
+      "paying": "Processing payment…",
+      "proOnlyTitle": "This is a professional account",
+      "proOnlyBody": "Professional accounts manage venues and don't book appointments. Open your dashboard to edit your venues.",
+      "proOnlyCta": "Go to my panel"
     },
     "reviews": {
       "pool": {
@@ -392,6 +415,38 @@
         "clearPrice": "Clear price in the app and the {{service}} had an excellent finish.",
         "anotherLevel": "I'll book here again. The {{service}} and the service were next level."
       }
+    },
+    "viewVenue": "View venue",
+    "notFound": {
+      "title": "Venue not found",
+      "body": "This venue doesn't exist or is no longer available.",
+      "cta": "See all venues"
+    },
+    "form": {
+      "createTitle": "New venue",
+      "editTitle": "Edit venue",
+      "createSubtitle": "Fill in the details and publish it to the directory.",
+      "editSubtitle": "Update the information your clients see.",
+      "name": "Venue name",
+      "namePlaceholder": "e.g. Aurora Salon",
+      "category": "Category",
+      "city": "City",
+      "area": "Area or neighborhood",
+      "areaPlaceholder": "e.g. Naco",
+      "phone": "Phone",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "priceFrom": "Price from (DOP)",
+      "services": "Services",
+      "servicesHint": "Pick at least one service.",
+      "description": "Description",
+      "descriptionPlaceholder": "Tell your clients what makes your venue special.",
+      "photos": "Photos",
+      "photosHint": "Pick a photo set for the cover and gallery.",
+      "photoOption": "Photo set {{index}}",
+      "create": "Publish venue",
+      "saved": "Venue updated",
+      "created": "Venue published"
     }
   },
   "directory": {
@@ -447,7 +502,11 @@
     "remove": "Remove from favorites",
     "added": "Added to favorites",
     "removed": "Removed from favorites",
-    "count": "{{count}} saved"
+    "count": "{{count}} saved",
+    "loginRequired": "Sign in to save your favorites.",
+    "removeConfirmTitle": "Remove from favorites",
+    "removeConfirmBody": "Remove this venue from your favorites?",
+    "removeConfirm": "Remove"
   },
   "auth": {
     "shell": {
@@ -531,6 +590,21 @@
     "unavailable": {
       "title": "Authentication not configured",
       "body": "Supabase is not connected in this environment. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable sign-up and sign-in."
+    },
+    "demo": {
+      "title": "Test mode",
+      "body": "Supabase isn't connected, so we use local test accounts. Tap “Use” to fill in the details.",
+      "signupBody": "Supabase isn't connected. Your account will be created in this browser and you'll go straight to your dashboard.",
+      "credentialsTitle": "Test credentials",
+      "client": "Client",
+      "professional": "Professional",
+      "use": "Use",
+      "filled": "Test details filled in",
+      "accountCreated": "Test account created. Welcome to your dashboard."
+    },
+    "google": {
+      "button": "Continue with Google",
+      "or": "or"
     }
   },
   "validation": {
@@ -545,7 +619,19 @@
     "termsRequired": "You must accept the terms and privacy policy.",
     "messageRequired": "Enter your message.",
     "messageMax": "The message cannot exceed 500 characters.",
-    "subjectRequired": "Enter a subject."
+    "subjectRequired": "Enter a subject.",
+    "cardNameRequired": "Enter the name shown on the card.",
+    "cardNumberInvalid": "Enter a valid 16-digit card number.",
+    "cardExpiryInvalid": "Use a valid expiry date (MM/YY).",
+    "cardCvcInvalid": "CVC must be 3 or 4 digits.",
+    "venueNameMin": "The name must be at least 2 characters.",
+    "venueCategoryRequired": "Choose a category.",
+    "venueCityRequired": "Enter the city.",
+    "venueAreaRequired": "Enter the area or neighborhood.",
+    "venuePriceMin": "The price can't be negative.",
+    "venueServicesRequired": "Pick at least one service.",
+    "venueDescriptionMax": "The description can't exceed 400 characters.",
+    "venuePhotoRequired": "Choose a photo set."
   },
   "errors": {
     "auth": {
@@ -584,19 +670,57 @@
       "atTime": "at {{time}}",
       "exploreVenues": "Explore venues",
       "manageFavorites": "View favorites",
-      "quickLinks": "Shortcuts"
+      "quickLinks": "Shortcuts",
+      "cancelConfirmTitle": "Cancel appointment",
+      "cancelConfirmBody": "Cancel your {{service}} appointment on {{date}}? This action cannot be undone.",
+      "cancelConfirm": "Yes, cancel",
+      "cancelKeep": "Keep appointment"
     },
     "professional": {
       "role": "Professional",
-      "subtitle": "Here you'll manage your schedule, services, portfolio and payments.",
-      "agenda": "Schedule",
-      "agendaBody": "Your appointments for the day, availability and calendar.",
-      "services": "Services",
-      "servicesBody": "Publish your services with duration and price.",
-      "portfolio": "Portfolio",
-      "portfolioBody": "Show your work to those who want to book.",
-      "wallet": "Wallet",
-      "walletBody": "Check your charges and payouts."
+      "subtitle": "Manage your venues, your info and what you offer.",
+      "editProfile": "Edit profile",
+      "editProfileSubtitle": "Update your contact information.",
+      "phone": "Phone",
+      "bio": "About you",
+      "bioPlaceholder": "Tell your clients about your experience and your style.",
+      "profileSaved": "Profile updated",
+      "noPhone": "No phone",
+      "noBio": "Add a short description so clients can get to know you.",
+      "statVenues": "Venues",
+      "statServices": "Services",
+      "statRating": "Rating",
+      "statHidden": "Hidden",
+      "venuesTitle": "My venues",
+      "venuesSubtitle": "Create and edit your venues. Changes show up in the directory.",
+      "newVenue": "New venue",
+      "emptyTitle": "No venues yet",
+      "emptyBody": "Create your first venue to appear in the GDN Style directory.",
+      "activeBadge": "Live",
+      "hiddenBadge": "Hidden",
+      "fromPrice": "From {{price}}",
+      "serviceCount": "{{count}} services",
+      "editVenue": "Edit",
+      "viewVenue": "View",
+      "hideVenue": "Hide",
+      "showVenue": "Show",
+      "deleteVenue": "Delete",
+      "releaseVenue": "Remove",
+      "venueShown": "Venue visible in the directory",
+      "venueHiddenToast": "Venue hidden from the directory",
+      "venueDeleted": "Venue deleted",
+      "venueReleased": "Venue removed from your list",
+      "venueClaimed": "Venue added to your list",
+      "claimTitle": "Link existing venues ({{count}})",
+      "claimBody": "Already have a venue on GDN Style? Add it to your list to edit it.",
+      "claim": "Add",
+      "claimAction": "Add {{name}} to my venues",
+      "removeTitle": "Delete venue",
+      "removeBody": "Delete “{{name}}”? This action can't be undone.",
+      "removeConfirm": "Delete",
+      "releaseTitle": "Remove from my venues",
+      "releaseBody": "“{{name}}” will stay published but will no longer appear in your list. Continue?",
+      "releaseConfirm": "Remove"
     },
     "signOut": "Sign out",
     "signingOut": "Signing out…",

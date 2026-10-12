@@ -73,7 +73,7 @@ export function Modal({ open, onClose, labelledBy, children, className }: ModalP
         if (event.target === dialogRef.current) onClose()
       }}
     >
-      <div className={cn("gdn-dialog__card w-full max-w-[28rem]", className)}>{children}</div>
+      <div className={cn("gdn-dialog__card w-full max-w-md", className)}>{children}</div>
     </dialog>,
     document.body,
   )

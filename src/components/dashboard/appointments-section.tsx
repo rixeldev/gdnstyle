@@ -1,13 +1,15 @@
 "use client"
 
 import Link from "next/link"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button, ButtonLink } from "@/components/ui/button"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Icon } from "@/components/ui/icon"
 import { toast } from "@/components/ui/toast"
 import { getProfessionalById } from "@/constants/professionals"
-import { VENUES } from "@/constants/venues"
+import { useAllVenues } from "@/hooks/use-venues"
 import { type Booking, useBookings } from "@/hooks/use-bookings"
 import { parseDateKey } from "@/utils/date"
 import { formatCurrency, formatDate, formatTime, toIntlLocale } from "@/utils/format"
@@ -16,15 +18,19 @@ import { formatCurrency, formatDate, formatTime, toIntlLocale } from "@/utils/fo
 export function AppointmentsSection() {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language ?? "es")
+  const venues = useAllVenues()
   const { upcoming, past, ready, cancel } = useBookings()
+  const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
 
-  function handleCancel(booking: Booking) {
-    cancel(booking.id)
+  function handleConfirmCancel() {
+    if (!pendingCancel) return
+    cancel(pendingCancel.id)
+    setPendingCancel(null)
     toast(t("dashboard.customer.cancelled"))
   }
 
   function renderBooking(booking: Booking, isUpcoming: boolean) {
-    const venue = VENUES.find((item) => item.id === booking.venueId)
+    const venue = venues.find((item) => item.id === booking.venueId)
     const professional = booking.professionalId
       ? getProfessionalById(booking.professionalId)
       : undefined
@@ -72,7 +78,7 @@ export function AppointmentsSection() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => handleCancel(booking)}
+            onClick={() => setPendingCancel(booking)}
             iconLeft={<Icon name="trash" className="size-4" />}
           >
             {t("dashboard.customer.cancel")}
@@ -146,6 +152,28 @@ export function AppointmentsSection() {
           {t("dashboard.customer.manageFavorites")}
         </ButtonLink>
       </div>
+
+      <ConfirmDialog
+        open={pendingCancel !== null}
+        title={t("dashboard.customer.cancelConfirmTitle")}
+        body={
+          pendingCancel
+            ? t("dashboard.customer.cancelConfirmBody", {
+                service: t(`venues.services.${pendingCancel.serviceId}`),
+                date: formatDate(parseDateKey(pendingCancel.date), locale, {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "long",
+                }),
+              })
+            : undefined
+        }
+        confirmLabel={t("dashboard.customer.cancelConfirm")}
+        cancelLabel={t("dashboard.customer.cancelKeep")}
+        tone="danger"
+        onConfirm={handleConfirmCancel}
+        onClose={() => setPendingCancel(null)}
+      />
     </section>
   )
 }

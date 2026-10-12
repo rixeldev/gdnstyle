@@ -1,10 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
-import { ButtonLink } from "@/components/ui/button"
+import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { Logo } from "@/components/ui/logo"
@@ -12,6 +13,8 @@ import { SectionLink } from "@/components/ui/section-link"
 import { NAV_LINKS } from "@/constants/site"
 import { useFavorites } from "@/hooks/use-favorites"
 import { useScrolled } from "@/hooks/use-scrolled"
+import { useSession } from "@/libs/session"
+import { signOut } from "@/services/auth.service"
 import { cn } from "@/utils/cn"
 
 interface SiteHeaderProps {
@@ -22,9 +25,22 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHeaderProps) {
   const { t } = useTranslation()
+  const router = useRouter()
   const scrolled = useScrolled()
+  const { authenticated, user } = useSession()
+  const professional = user?.role === "professional"
   const [open, setOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const { count: favoritesCount } = useFavorites()
+
+  async function handleSignOut() {
+    setSigningOut(true)
+    await signOut()
+    setSigningOut(false)
+    setOpen(false)
+    router.replace("/")
+    router.refresh()
+  }
 
   return (
     <header
@@ -40,7 +56,7 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
           <Logo />
         </Link>
 
-        <nav aria-label={t("nav.main")} className="hidden items-center gap-8 md:flex">
+        <nav aria-label={t("nav.main")} className="hidden items-center gap-6 md:flex lg:gap-8">
           {NAV_LINKS.map((link) => (
             <SectionLink
               key={link.href}
@@ -52,25 +68,36 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
           ))}
         </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
-          <Link
-            href="/favoritos"
-            aria-label={t("favorites.title")}
-            className="text-cream/70 hover:text-gold relative inline-flex items-center transition"
-          >
-            <Icon
-              name="heart"
-              className={cn("size-5", favoritesCount > 0 && "fill-gold text-gold")}
-            />
-            {favoritesCount > 0 && (
-              <span className="bg-gold text-gold-ink absolute -top-1.5 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
-                {favoritesCount}
-              </span>
-            )}
-          </Link>
+        <div className="hidden items-center gap-3 md:flex lg:gap-4">
+          {!professional && (
+            <Link
+              href="/favoritos"
+              aria-label={t("favorites.title")}
+              className="text-cream/70 hover:text-gold relative inline-flex items-center transition"
+            >
+              <Icon
+                name="heart"
+                className={cn("size-5", favoritesCount > 0 && "fill-gold text-gold")}
+              />
+              {favoritesCount > 0 && (
+                <span className="bg-gold text-gold-ink absolute -top-1.5 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
+                  {favoritesCount}
+                </span>
+              )}
+            </Link>
+          )}
+          {authenticated ? (
+            <ButtonLink href="/dashboard" variant="outline" size="sm">
+              {t("nav.dashboard")}
+            </ButtonLink>
+          ) : (
+            <ButtonLink href="/auth/login?role=customer" variant="ghost" size="sm">
+              {t("nav.signIn")}
+            </ButtonLink>
+          )}
           <LanguageSwitcher />
-          <ButtonLink href={ctaHref} size="sm">
-            {t(ctaKey)}
+          <ButtonLink href={professional ? "/locales" : ctaHref} size="sm">
+            {professional ? t("nav.explore") : t(ctaKey)}
           </ButtonLink>
         </div>
 
@@ -106,38 +133,53 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
               </SectionLink>
             ))}
 
-            <Link
-              href="/favoritos"
-              onClick={() => setOpen(false)}
-              className="text-cream/80 hover:bg-cream/5 hover:text-cream inline-flex items-center gap-2 rounded-lg px-2 py-3 text-base transition"
-            >
-              <Icon
-                name="heart"
-                className={cn("size-5", favoritesCount > 0 && "fill-gold text-gold")}
-              />
-              {t("favorites.title")}
-              {favoritesCount > 0 && (
-                <span className="bg-gold text-gold-ink inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold">
-                  {favoritesCount}
-                </span>
-              )}
-            </Link>
+            {!professional && (
+              <Link
+                href="/favoritos"
+                onClick={() => setOpen(false)}
+                className="text-cream/80 hover:bg-cream/5 hover:text-cream inline-flex items-center gap-2 rounded-lg px-2 py-3 text-base transition"
+              >
+                <Icon
+                  name="heart"
+                  className={cn("size-5", favoritesCount > 0 && "fill-gold text-gold")}
+                />
+                {t("favorites.title")}
+                {favoritesCount > 0 && (
+                  <span className="bg-gold text-gold-ink inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold">
+                    {favoritesCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             <div className="border-cream/10 mt-3 flex items-center justify-between border-t pt-4">
               <LanguageSwitcher />
             </div>
 
             <div className="mt-3 flex flex-col gap-2.5">
-              <ButtonLink href="/locales" onClick={() => setOpen(false)}>
-                {t("auth.roleSwitch.customer")}
-              </ButtonLink>
-              <ButtonLink
-                href="/auth/login?role=professional"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                {t("auth.roleSwitch.professional")}
-              </ButtonLink>
+              {authenticated ? (
+                <>
+                  <ButtonLink href="/dashboard" onClick={() => setOpen(false)}>
+                    {t("nav.dashboard")}
+                  </ButtonLink>
+                  <Button variant="outline" onClick={handleSignOut} loading={signingOut}>
+                    {t("dashboard.signOut")}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <ButtonLink href="/auth/login?role=customer" onClick={() => setOpen(false)}>
+                    {t("nav.signIn")}
+                  </ButtonLink>
+                  <ButtonLink
+                    href="/auth/signup?role=customer"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
+                    {t("auth.login.signUpLink")}
+                  </ButtonLink>
+                </>
+              )}
             </div>
           </nav>
         </div>

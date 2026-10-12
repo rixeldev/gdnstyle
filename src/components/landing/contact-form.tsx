@@ -64,7 +64,7 @@ export function ContactForm() {
   }
 
   return (
-    <div className="border-glow border-cream/10 bg-ink-card rounded-[2rem] border p-6 sm:p-8">
+    <div className="border-glow border-cream/10 bg-ink-card rounded-4xl border p-6 sm:p-8">
       <h3 className="font-display text-2xl font-semibold">{t("landing.contact.formTitle")}</h3>
       <p className="text-cream/55 mt-2 text-sm">{t("landing.contact.formNote")}</p>
 
@@ -119,7 +119,7 @@ export function ContactForm() {
             onChange={handleChange("message")}
             aria-invalid={errors.message ? true : undefined}
             aria-describedby={errors.message ? "landing-contact-message-error" : undefined}
-            className="border-cream/15 bg-cream/[0.03] text-cream placeholder:text-cream/35 focus:border-gold/60 focus:bg-cream/[0.05] w-full resize-y rounded-xl border px-3.5 py-3 text-sm transition outline-none"
+            className="border-cream/15 bg-cream/3 text-cream placeholder:text-cream/35 focus:border-gold/60 focus:bg-cream/5 w-full resize-y rounded-xl border px-3.5 py-3 text-sm transition outline-none"
             required
           />
           {errors.message && (

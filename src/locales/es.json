@@ -21,7 +21,8 @@
     "changeLanguage": "Cambiar idioma",
     "opensInMailClient": "Se abrirá tu aplicación de correo",
     "close": "Cerrar",
-    "backToTop": "Volver arriba"
+    "backToTop": "Volver arriba",
+    "confirm": "Confirmar"
   },
   "nav": {
     "clients": "Clientes",
@@ -33,7 +34,9 @@
     "signIn": "Iniciar sesión",
     "openMenu": "Abrir menú",
     "closeMenu": "Cerrar menú",
-    "main": "Navegación principal"
+    "main": "Navegación principal",
+    "dashboard": "Mi panel",
+    "explore": "Explorar locales"
   },
   "landing": {
     "hero": {
@@ -375,7 +378,27 @@
       "successCode": "Código",
       "viewBookings": "Ver mis citas",
       "bookAnother": "Reservar otra cita",
-      "toast": "Cita para el {{date}} a las {{time}}"
+      "toast": "Cita para el {{date}} a las {{time}}",
+      "stepPayment": "Pago",
+      "paymentTotal": "Total a pagar",
+      "cardName": "Nombre en la tarjeta",
+      "cardNamePlaceholder": "Como aparece en la tarjeta",
+      "cardNumber": "Número de tarjeta",
+      "cardNumberPlaceholder": "4242 4242 4242 4242",
+      "cardExpiry": "Caducidad",
+      "cardExpiryPlaceholder": "MM/AA",
+      "cardCvc": "CVC",
+      "cardCvcPlaceholder": "123",
+      "paymentSecure": "Pago cifrado y seguro",
+      "paymentTestMode": "Pasarela de pago en modo de prueba",
+      "paymentStripe": "Pago seguro con Stripe",
+      "paymentTestHint": "Entorno de prueba: usa la tarjeta 4242 4242 4242 4242 con cualquier fecha futura y CVC 123.",
+      "paymentDescription": "Cita en GDN Style",
+      "pay": "Pagar y confirmar cita",
+      "paying": "Procesando el pago…",
+      "proOnlyTitle": "Esta cuenta es profesional",
+      "proOnlyBody": "Las cuentas profesionales gestionan locales y no agendan citas. Entra a tu panel para editar tus locales.",
+      "proOnlyCta": "Ir a mi panel"
     },
     "reviews": {
       "pool": {
@@ -392,6 +415,38 @@
         "clearPrice": "Precio claro desde la app y el {{service}} con un acabado excelente.",
         "anotherLevel": "Volveré a reservar aquí. El {{service}} y la atención fueron de otro nivel."
       }
+    },
+    "viewVenue": "Ver local",
+    "notFound": {
+      "title": "Local no encontrado",
+      "body": "Este local no existe o ya no está disponible.",
+      "cta": "Ver todos los locales"
+    },
+    "form": {
+      "createTitle": "Nuevo local",
+      "editTitle": "Editar local",
+      "createSubtitle": "Completa los datos y publícalo en el directorio.",
+      "editSubtitle": "Actualiza la información visible para tus clientas.",
+      "name": "Nombre del local",
+      "namePlaceholder": "Ej. Salón Aurora",
+      "category": "Categoría",
+      "city": "Ciudad",
+      "area": "Zona o barrio",
+      "areaPlaceholder": "Ej. Naco",
+      "phone": "Teléfono",
+      "whatsapp": "WhatsApp",
+      "instagram": "Instagram",
+      "priceFrom": "Precio desde (RD$)",
+      "services": "Servicios",
+      "servicesHint": "Elige al menos un servicio.",
+      "description": "Descripción",
+      "descriptionPlaceholder": "Cuéntale a tus clientas qué hace especial a tu local.",
+      "photos": "Fotos",
+      "photosHint": "Elige un conjunto de fotos para la portada y la galería.",
+      "photoOption": "Conjunto de fotos {{index}}",
+      "create": "Publicar local",
+      "saved": "Local actualizado",
+      "created": "Local publicado"
     }
   },
   "directory": {
@@ -447,7 +502,11 @@
     "remove": "Quitar de favoritos",
     "added": "Añadido a favoritos",
     "removed": "Quitado de favoritos",
-    "count": "{{count}} guardados"
+    "count": "{{count}} guardados",
+    "loginRequired": "Inicia sesión para guardar tus favoritos.",
+    "removeConfirmTitle": "Quitar de favoritos",
+    "removeConfirmBody": "¿Seguro que quieres quitar este local de tus favoritos?",
+    "removeConfirm": "Quitar"
   },
   "auth": {
     "shell": {
@@ -531,6 +590,21 @@
     "unavailable": {
       "title": "Autenticación no configurada",
       "body": "Falta conectar Supabase en este entorno. Define NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY para activar el registro y el inicio de sesión."
+    },
+    "demo": {
+      "title": "Modo de prueba",
+      "body": "Supabase no está conectado, así que usamos cuentas de prueba locales. Toca «Usar» para rellenar los datos.",
+      "signupBody": "Supabase no está conectado. Tu cuenta se creará en este navegador y entrarás directo al panel.",
+      "credentialsTitle": "Credenciales de prueba",
+      "client": "Cliente",
+      "professional": "Profesional",
+      "use": "Usar",
+      "filled": "Datos de prueba cargados",
+      "accountCreated": "Cuenta de prueba creada. Bienvenido a tu panel."
+    },
+    "google": {
+      "button": "Continuar con Google",
+      "or": "o"
     }
   },
   "validation": {
@@ -545,7 +619,19 @@
     "termsRequired": "Debes aceptar los términos y la política de privacidad.",
     "messageRequired": "Escribe tu mensaje.",
     "messageMax": "El mensaje no puede superar los 500 caracteres.",
-    "subjectRequired": "Escribe un asunto."
+    "subjectRequired": "Escribe un asunto.",
+    "cardNameRequired": "Escribe el nombre que aparece en la tarjeta.",
+    "cardNumberInvalid": "Escribe un número de tarjeta válido de 16 dígitos.",
+    "cardExpiryInvalid": "Usa una fecha de caducidad válida (MM/AA).",
+    "cardCvcInvalid": "El CVC debe tener 3 o 4 dígitos.",
+    "venueNameMin": "El nombre debe tener al menos 2 caracteres.",
+    "venueCategoryRequired": "Elige una categoría.",
+    "venueCityRequired": "Indica la ciudad.",
+    "venueAreaRequired": "Indica la zona o barrio.",
+    "venuePriceMin": "El precio no puede ser negativo.",
+    "venueServicesRequired": "Elige al menos un servicio.",
+    "venueDescriptionMax": "La descripción no puede superar los 400 caracteres.",
+    "venuePhotoRequired": "Elige un conjunto de fotos."
   },
   "errors": {
     "auth": {
@@ -584,19 +670,57 @@
       "atTime": "a las {{time}}",
       "exploreVenues": "Explorar locales",
       "manageFavorites": "Ver favoritos",
-      "quickLinks": "Atajos"
+      "quickLinks": "Atajos",
+      "cancelConfirmTitle": "Cancelar cita",
+      "cancelConfirmBody": "¿Seguro que quieres cancelar tu cita de {{service}} el {{date}}? Esta acción no se puede deshacer.",
+      "cancelConfirm": "Sí, cancelar",
+      "cancelKeep": "Mantener cita"
     },
     "professional": {
       "role": "Profesional",
-      "subtitle": "Aquí gestionarás tu agenda, servicios, portafolio y cobros.",
-      "agenda": "Agenda",
-      "agendaBody": "Tus citas del día, disponibilidad y calendario.",
-      "services": "Servicios",
-      "servicesBody": "Publica tus servicios con duración y precio.",
-      "portfolio": "Portafolio",
-      "portfolioBody": "Muestra tu trabajo a quien quiere reservar.",
-      "wallet": "Billetera",
-      "walletBody": "Consulta tus cobros y pagos."
+      "subtitle": "Gestiona tus locales, tu información y lo que ofreces.",
+      "editProfile": "Editar perfil",
+      "editProfileSubtitle": "Actualiza tu información de contacto.",
+      "phone": "Teléfono",
+      "bio": "Sobre ti",
+      "bioPlaceholder": "Cuéntale a tus clientas sobre tu experiencia y tu estilo.",
+      "profileSaved": "Perfil actualizado",
+      "noPhone": "Sin teléfono",
+      "noBio": "Añade una descripción breve para que tus clientas te conozcan.",
+      "statVenues": "Locales",
+      "statServices": "Servicios",
+      "statRating": "Valoración",
+      "statHidden": "Ocultos",
+      "venuesTitle": "Mis locales",
+      "venuesSubtitle": "Crea y edita tus locales. Los cambios se reflejan en el directorio.",
+      "newVenue": "Nuevo local",
+      "emptyTitle": "Aún no tienes locales",
+      "emptyBody": "Crea tu primer local para aparecer en el directorio de GDN Style.",
+      "activeBadge": "Activo",
+      "hiddenBadge": "Oculto",
+      "fromPrice": "Desde {{price}}",
+      "serviceCount": "{{count}} servicios",
+      "editVenue": "Editar",
+      "viewVenue": "Ver",
+      "hideVenue": "Ocultar",
+      "showVenue": "Mostrar",
+      "deleteVenue": "Eliminar",
+      "releaseVenue": "Quitar",
+      "venueShown": "Local visible en el directorio",
+      "venueHiddenToast": "Local oculto del directorio",
+      "venueDeleted": "Local eliminado",
+      "venueReleased": "Local quitado de tu lista",
+      "venueClaimed": "Local añadido a tu lista",
+      "claimTitle": "Vincular locales existentes ({{count}})",
+      "claimBody": "¿Ya tienes un local en GDN Style? Añádelo a tu lista para editarlo.",
+      "claim": "Añadir",
+      "claimAction": "Añadir {{name}} a mis locales",
+      "removeTitle": "Eliminar local",
+      "removeBody": "¿Seguro que quieres eliminar «{{name}}»? Esta acción no se puede deshacer.",
+      "removeConfirm": "Eliminar",
+      "releaseTitle": "Quitar de mis locales",
+      "releaseBody": "«{{name}}» seguirá publicado, pero dejará de aparecer en tu lista. ¿Continuar?",
+      "releaseConfirm": "Quitar"
     },
     "signOut": "Cerrar sesión",
     "signingOut": "Cerrando sesión…",

@@ -7,7 +7,7 @@ import { cn } from "@/utils/cn"
 
 import { Spinner } from "./spinner"
 
-export type ButtonVariant = "primary" | "outline" | "ghost" | "subtle" | "link"
+export type ButtonVariant = "primary" | "outline" | "ghost" | "subtle" | "link" | "danger"
 export type ButtonSize = "sm" | "md" | "lg"
 
 const base =
@@ -19,6 +19,7 @@ const variants: Record<ButtonVariant, string> = {
   ghost: "text-cream/70 hover:bg-cream/5 hover:text-cream",
   subtle: "border border-cream/10 bg-cream/5 text-cream hover:border-gold/40",
   link: "rounded-none p-0 text-gold underline-offset-4 hover:underline",
+  danger: "bg-red-500 text-white hover:bg-red-400",
 }
 
 const sizes: Record<ButtonSize, string> = {

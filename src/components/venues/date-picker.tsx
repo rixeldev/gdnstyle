@@ -157,7 +157,7 @@ export function DatePicker({ value, onChange, minDate, maxDate, locale }: DatePi
             ))}
           </div>
 
-          <div className="mt-1 grid auto-rows-[2.25rem] grid-cols-7 gap-1">
+          <div className="mt-1 grid auto-rows-9 grid-cols-7 gap-1">
             {cells.map((date, index) => {
               if (!date) return <span key={`blank-${index}`} aria-hidden="true" />
               const dateKey = toDateKey(date)

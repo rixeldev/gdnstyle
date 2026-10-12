@@ -14,7 +14,7 @@ export function AuthCardSkeleton() {
       <span className="visually-hidden">{t("common.loading")}</span>
       <div className="space-y-3">
         <div className="bg-cream/10 h-7 w-40 animate-pulse rounded-full" />
-        <div className="bg-cream/[0.07] h-4 w-64 animate-pulse rounded-full" />
+        <div className="bg-cream/7 h-4 w-64 animate-pulse rounded-full" />
       </div>
       <div className="bg-cream/5 h-20 animate-pulse rounded-2xl" />
       <div className="space-y-4">
@@ -22,7 +22,7 @@ export function AuthCardSkeleton() {
           <div key={row} className="bg-cream/5 h-11 animate-pulse rounded-xl" />
         ))}
       </div>
-      <div className="bg-cream/[0.07] h-11 animate-pulse rounded-full" />
+      <div className="bg-cream/7 h-11 animate-pulse rounded-full" />
     </div>
   )
 }

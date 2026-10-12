@@ -8,11 +8,14 @@ import { useTranslation } from "react-i18next"
 import { RoleSwitch } from "@/components/auth/role-switch"
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
+import { Icon } from "@/components/ui/icon"
 import { PasswordField, TextField } from "@/components/ui/text-field"
+import { toast } from "@/components/ui/toast"
 import type { UserRole } from "@/interfaces/auth"
+import { DEMO_USERS, type DemoUser } from "@/libs/auth/demo"
 import { isSupabaseConfigured } from "@/libs/supabase/env"
 import { createSignInSchema, type SignInValues } from "@/libs/validation/auth"
-import { signInWithPassword } from "@/services/auth.service"
+import { signInWithGoogle, signInWithPassword } from "@/services/auth.service"
 import { translateAuthError } from "@/utils/auth-error"
 import { fieldErrorsFrom } from "@/utils/zod"
 
@@ -38,6 +41,7 @@ export function LoginForm() {
   const [success, setSuccess] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
 
   function handleRoleChange(next: UserRole) {
     const preserveNext =
@@ -54,6 +58,16 @@ export function LoginForm() {
         setErrors(parsed.success ? {} : fieldErrorsFrom(parsed.error))
       }
     }
+  }
+
+  /** Load one of the documented demo accounts into the form. */
+  function fillDemo(account: DemoUser) {
+    setValues({ email: account.email, password: account.password })
+    setErrors({})
+    setFormError("")
+    setSuccess("")
+    if (account.role !== role) handleRoleChange(account.role)
+    toast(t("auth.demo.filled"), "neutral")
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -86,6 +100,28 @@ export function LoginForm() {
     router.refresh()
   }
 
+  async function handleGoogle() {
+    setFormError("")
+    setSuccess("")
+    setGoogleLoading(true)
+    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextAfterLogin)}`
+    const result = await signInWithGoogle(role, redirectTo)
+    setGoogleLoading(false)
+
+    if (!result.ok) {
+      setFormError(translateAuthError(result, t))
+      return
+    }
+
+    // With Supabase configured the browser is redirected to Google; the demo
+    // layer signs in immediately, so continue here.
+    if (!isSupabaseConfigured) {
+      setSuccess(t("auth.login.success"))
+      router.replace(nextAfterLogin)
+      router.refresh()
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -100,11 +136,42 @@ export function LoginForm() {
       <RoleSwitch value={role} onChange={handleRoleChange} />
 
       {!isSupabaseConfigured && (
-        <Alert tone="info">
-          <span className="font-semibold">{t("auth.unavailable.title")}</span>
-          <br />
-          {t("auth.unavailable.body")}
-        </Alert>
+        <div className="border-cream/10 bg-cream/3 rounded-2xl border p-4">
+          <p className="text-cream/60 text-[11px] font-semibold tracking-[0.16em] uppercase">
+            {t("auth.demo.credentialsTitle")}
+          </p>
+          <p className="text-cream/45 mt-1 text-xs">{t("auth.demo.body")}</p>
+          <div className="mt-3 space-y-2">
+            {DEMO_USERS.map((account) => (
+              <div
+                key={account.id}
+                className="border-cream/10 bg-ink/40 flex items-center justify-between gap-3 rounded-xl border px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-cream text-xs font-semibold">
+                    {t(
+                      account.role === "professional"
+                        ? "auth.demo.professional"
+                        : "auth.demo.client",
+                    )}
+                  </p>
+                  <p className="text-cream/45 truncate text-[11px]">
+                    {account.email} · {account.password}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0"
+                  onClick={() => fillDemo(account)}
+                >
+                  {t("auth.demo.use")}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {(formError || linkError) && <Alert tone="error">{formError || linkError}</Alert>}
@@ -145,10 +212,27 @@ export function LoginForm() {
           </div>
         </div>
 
-        <Button type="submit" loading={loading} disabled={!isSupabaseConfigured} className="w-full">
+        <Button type="submit" loading={loading} className="w-full">
           {loading ? t("auth.status.signingIn") : t("auth.login.submit")}
         </Button>
       </form>
+
+      <div className="flex items-center gap-3">
+        <span className="bg-cream/10 h-px flex-1" />
+        <span className="text-cream/40 text-xs uppercase">{t("auth.google.or")}</span>
+        <span className="bg-cream/10 h-px flex-1" />
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        loading={googleLoading}
+        onClick={handleGoogle}
+        iconLeft={<Icon name="google" className="size-4" />}
+      >
+        {t("auth.google.button")}
+      </Button>
 
       <p className="text-cream/55 text-center text-sm">
         {t("auth.login.noAccount")}{" "}

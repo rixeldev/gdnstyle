@@ -9,8 +9,9 @@ import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { VenueCard } from "@/components/venues/venue-card"
 import { VenueMap } from "@/components/venues/venue-map"
+import { usePublicVenues } from "@/hooks/use-venues"
 import { CATEGORIES, getCategoryById } from "@/constants/categories"
-import { VENUES, VENUE_ZONES } from "@/constants/venues"
+import { VENUE_ZONES } from "@/constants/venues"
 import { useFavorites } from "@/hooks/use-favorites"
 import { useIsClient } from "@/hooks/use-is-client"
 import { cn } from "@/utils/cn"
@@ -48,11 +49,21 @@ export function VenueDirectory({
 }: VenueDirectoryProps) {
   const { t, i18n } = useTranslation()
   const [query, setQuery] = useState(initialQuery)
+  // Keep the search box in sync when the route hands a new `?q=` (e.g. the
+  // visitor searches from the home hero while this page is already mounted).
+  // Adjusting state during render is the recommended prop-change pattern and
+  // avoids the extra render pass of an effect.
+  const [syncedQuery, setSyncedQuery] = useState(initialQuery)
+  if (initialQuery !== syncedQuery) {
+    setSyncedQuery(initialQuery)
+    setQuery(initialQuery)
+  }
   const [category, setCategory] = useState(initialCategory)
   const [zone, setZone] = useState("all")
   const [sort, setSort] = useState<SortKey>("relevance")
   const [showMap, setShowMap] = useState(false)
   const { count: favoritesCount } = useFavorites()
+  const venues = usePublicVenues()
   const isClient = useIsClient()
   const locale = toIntlLocale(i18n.language ?? "es")
 
@@ -64,7 +75,7 @@ export function VenueDirectory({
   const results = useMemo(() => {
     const needle = normalize(query)
 
-    const filtered = VENUES.filter((venue) => {
+    const filtered = venues.filter((venue) => {
       if (initialCity && venue.city !== initialCity) return false
       if (category !== "all" && venue.categoryId !== category) return false
       if (zone !== "all" && venue.area !== zone) return false
@@ -93,7 +104,7 @@ export function VenueDirectory({
       )
 
     return sorted
-  }, [query, category, zone, sort, initialCity, t])
+  }, [query, category, zone, sort, initialCity, venues, t])
 
   const mapPoints = useMemo(
     () =>

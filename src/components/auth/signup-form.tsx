@@ -10,6 +10,7 @@ import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { PasswordField, TextField } from "@/components/ui/text-field"
+import { toast } from "@/components/ui/toast"
 import type { UserRole } from "@/interfaces/auth"
 import { isSupabaseConfigured } from "@/libs/supabase/env"
 import { createSignUpSchema } from "@/libs/validation/auth"
@@ -108,6 +109,14 @@ export function SignUpForm() {
       return
     }
 
+    // Demo mode signs the new account in immediately: skip the inbox step.
+    if (!isSupabaseConfigured) {
+      toast(t("auth.demo.accountCreated"), "neutral")
+      router.replace("/dashboard")
+      router.refresh()
+      return
+    }
+
     setCreatedEmail(parsed.data.email)
   }
 
@@ -164,9 +173,9 @@ export function SignUpForm() {
 
       {!isSupabaseConfigured && (
         <Alert tone="info">
-          <span className="font-semibold">{t("auth.unavailable.title")}</span>
+          <span className="font-semibold">{t("auth.demo.title")}</span>
           <br />
-          {t("auth.unavailable.body")}
+          {t("auth.demo.signupBody")}
         </Alert>
       )}
 
@@ -229,7 +238,7 @@ export function SignUpForm() {
               checked={values.terms}
               onChange={handleChange("terms")}
               aria-invalid={errors.terms ? true : undefined}
-              className="border-cream/30 accent-gold mt-0.5 size-4 shrink-0 rounded bg-transparent"
+              className="border-cream/30 accent-gold mt-0.5 size-4 shrink-0 rounded-sm bg-transparent"
             />
             <span className="leading-relaxed">
               <Trans
@@ -259,7 +268,7 @@ export function SignUpForm() {
           )}
         </div>
 
-        <Button type="submit" loading={loading} disabled={!isSupabaseConfigured} className="w-full">
+        <Button type="submit" loading={loading} className="w-full">
           {loading ? t("auth.status.creating") : t("auth.signup.submit")}
         </Button>
       </form>

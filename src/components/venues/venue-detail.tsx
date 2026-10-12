@@ -161,6 +161,50 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                 <div className="mt-5">
                   <FavoriteButton venueId={venue.id} variant="inline" />
                 </div>
+
+                {(venue.description || venue.phone || venue.whatsapp || venue.instagram) && (
+                  <div className="mt-6 space-y-4">
+                    {venue.description && (
+                      <p className="text-cream/70 max-w-2xl text-sm leading-relaxed">
+                        {venue.description}
+                      </p>
+                    )}
+                    {(venue.phone || venue.whatsapp || venue.instagram) && (
+                      <div className="flex flex-wrap gap-2">
+                        {venue.phone && (
+                          <a href={`tel:${venue.phone}`} className={metaChip}>
+                            <Icon name="phone" className="text-gold size-3.5" />
+                            {venue.phone}
+                          </a>
+                        )}
+                        {venue.whatsapp && (
+                          <a
+                            href={`https://wa.me/${venue.whatsapp.replace(/[^\d]/g, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={metaChip}
+                          >
+                            <Icon name="phone" className="text-gold size-3.5" />
+                            WhatsApp
+                          </a>
+                        )}
+                        {venue.instagram && (
+                          <a
+                            href={`https://instagram.com/${venue.instagram.replace(/^@/, "")}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={metaChip}
+                          >
+                            <Icon name="globe" className="text-gold size-3.5" />
+                            {venue.instagram.startsWith("@")
+                              ? venue.instagram
+                              : `@${venue.instagram}`}
+                          </a>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Services */}

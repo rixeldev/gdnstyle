@@ -9,13 +9,11 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { Logo } from "@/components/ui/logo"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
-import { Alert } from "@/components/ui/alert"
 import { Icon, type IconProps } from "@/components/ui/icon"
 import { AppointmentsSection } from "@/components/dashboard/appointments-section"
-import type { Profile } from "@/interfaces/auth"
-import { isSupabaseConfigured } from "@/libs/supabase/env"
-import { fetchProfile, signOut } from "@/services/auth.service"
-import { useAuth } from "@/hooks/use-auth"
+import { ProfessionalWorkspace } from "@/components/dashboard/professional-workspace"
+import { useSession } from "@/libs/session"
+import { signOut } from "@/services/auth.service"
 
 interface Module {
   key: string
@@ -45,34 +43,7 @@ const customerModules: Module[] = [
   },
 ]
 
-const professionalModules: Module[] = [
-  {
-    key: "agenda",
-    titleKey: "dashboard.professional.agenda",
-    bodyKey: "dashboard.professional.agendaBody",
-    icon: "calendar",
-  },
-  {
-    key: "services",
-    titleKey: "dashboard.professional.services",
-    bodyKey: "dashboard.professional.servicesBody",
-    icon: "list",
-  },
-  {
-    key: "portfolio",
-    titleKey: "dashboard.professional.portfolio",
-    bodyKey: "dashboard.professional.portfolioBody",
-    icon: "images",
-  },
-  {
-    key: "wallet",
-    titleKey: "dashboard.professional.wallet",
-    bodyKey: "dashboard.professional.walletBody",
-    icon: "wallet",
-  },
-]
-
-function displayName(userName?: string): string {
+function displayName(userName: string | null): string {
   if (!userName) return ""
   return userName.split(" ").filter(Boolean).slice(0, 2).join(" ")
 }
@@ -80,65 +51,33 @@ function displayName(userName?: string): string {
 export function DashboardPanel() {
   const { t } = useTranslation()
   const router = useRouter()
-  const { session, user, loading, configured } = useAuth()
-  const [profile, setProfile] = useState<Profile | null>(null)
+  const { ready, user } = useSession()
   const [signingOut, setSigningOut] = useState(false)
 
+  // No session: send the visitor to the entry point, whatever the backend.
   useEffect(() => {
-    if (!session?.user) return
-    let active = true
-    void fetchProfile(session.user.id).then((result) => {
-      if (active) setProfile(result)
-    })
-    return () => {
-      active = false
-    }
-  }, [session?.user])
-
-  // No session: redirect to the customer entry and let the login form decide.
-  useEffect(() => {
-    if (!loading && configured && !session) {
+    if (ready && !user) {
       router.replace("/auth/login?role=customer")
     }
-  }, [loading, configured, session, router])
+  }, [ready, user, router])
 
   async function handleSignOut() {
     setSigningOut(true)
     await signOut()
-    router.replace("/auth/login?role=customer")
+    router.replace(`/auth/login?role=${role}`)
     router.refresh()
   }
 
-  let content
+  const role = user?.role ?? "customer"
+  const firstName = displayName(user?.fullName ?? null)
 
-  if (configured && !session) {
-    // Auth is wired up but there is no session: the effect above is redirecting
-    // to the sign-in page, so show the spinner meanwhile.
-    content = (
+  const content =
+    !ready || !user ? (
       <div className="text-cream/50 flex h-64 items-center justify-center">
         <Spinner className="size-6" />
       </div>
-    )
-  } else {
-    // Signed-in session, or test-data mode (Supabase not configured) where the
-    // locally-saved bookings still make the panel useful.
-    const role = profile?.role ?? "customer"
-    const modules = role === "professional" ? professionalModules : customerModules
-    const firstName =
-      displayName(profile?.fullName ?? (user?.user_metadata?.full_name as string | undefined)) || ""
-
-    content = (
+    ) : (
       <div className="space-y-8">
-        {!configured && (
-          <div className="space-y-5">
-            <Alert tone="info">
-              <span className="font-semibold">{t("auth.unavailable.title")}</span>
-              <br />
-              {t("auth.unavailable.body")}
-            </Alert>
-          </div>
-        )}
-
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-cream/55 text-sm">{t("dashboard.title")}</p>
@@ -160,43 +99,44 @@ export function DashboardPanel() {
 
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            {configured && (
-              <Button variant="outline" onClick={handleSignOut} loading={signingOut}>
-                {signingOut ? t("dashboard.signingOut") : t("dashboard.signOut")}
-              </Button>
-            )}
+            <Button variant="outline" onClick={handleSignOut} loading={signingOut}>
+              {signingOut ? t("dashboard.signingOut") : t("dashboard.signOut")}
+            </Button>
           </div>
         </div>
 
-        {role === "customer" && <AppointmentsSection />}
+        {user.role === "professional" ? (
+          <ProfessionalWorkspace user={user} />
+        ) : (
+          <>
+            <AppointmentsSection />
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map((module) => (
-            <div
-              key={module.key}
-              className="border-cream/10 bg-ink-card hover:border-gold/40 rounded-3xl border p-6 transition duration-300 hover:-translate-y-1"
-            >
-              <Icon name={module.icon} className="text-gold size-6" />
-              <h2 className="font-display mt-4 text-xl">{t(module.titleKey)}</h2>
-              <p className="text-cream/55 mt-2 text-sm leading-relaxed">{t(module.bodyKey)}</p>
-              <span className="text-cream/30 mt-4 inline-flex items-center gap-1.5 text-xs tracking-[0.16em] uppercase">
-                {t("common.soon")}
-              </span>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {customerModules.map((module) => (
+                <div
+                  key={module.key}
+                  className="border-cream/10 bg-ink-card hover:border-gold/40 rounded-3xl border p-6 transition duration-300 hover:-translate-y-1"
+                >
+                  <Icon name={module.icon} className="text-gold size-6" />
+                  <h2 className="font-display mt-4 text-xl">{t(module.titleKey)}</h2>
+                  <p className="text-cream/55 mt-2 text-sm leading-relaxed">{t(module.bodyKey)}</p>
+                  <span className="text-cream/30 mt-4 inline-flex items-center gap-1.5 text-xs tracking-[0.16em] uppercase">
+                    {t("common.soon")}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {!configured && (
-          <Link
-            href="/"
-            className="text-gold inline-block text-sm font-semibold underline-offset-4 hover:underline"
-          >
-            {t("common.backHome")}
-          </Link>
+          </>
         )}
+
+        <Link
+          href="/"
+          className="text-gold inline-block text-sm font-semibold underline-offset-4 hover:underline"
+        >
+          {t("common.backHome")}
+        </Link>
       </div>
     )
-  }
 
   return (
     <div className="grain bg-ink text-cream relative min-h-dvh overflow-hidden">

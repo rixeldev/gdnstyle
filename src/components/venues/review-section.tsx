@@ -10,7 +10,7 @@ import { toast } from "@/components/ui/toast"
 import { getVenueReviews } from "@/constants/reviews"
 import type { Venue } from "@/constants/venues"
 import { useStoredList } from "@/hooks/use-stored-list"
-import { useBookingAccess } from "@/libs/session"
+import { useBookingAccess, useSession } from "@/libs/session"
 import { createId } from "@/libs/storage"
 import { cn } from "@/utils/cn"
 import { formatNumber } from "@/utils/format"
@@ -54,6 +54,7 @@ export function ReviewSection({ venue, locale }: ReviewSectionProps) {
     mutate,
   } = useStoredList<LocalReview>(`gdn.reviews.${venue.id}`)
   const { ready: accessReady, allowed } = useBookingAccess()
+  const { user } = useSession()
   const [name, setName] = useState("")
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState("")
@@ -73,7 +74,7 @@ export function ReviewSection({ venue, locale }: ReviewSectionProps) {
     mutate((previous) => [
       {
         id: createId("review"),
-        author: name.trim() || t("venues.detail.reviewsAnonymous"),
+        author: name.trim() || user?.fullName || t("venues.detail.reviewsAnonymous"),
         rating,
         text,
       },

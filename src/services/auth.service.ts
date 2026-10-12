@@ -1,4 +1,11 @@
-import type { AuthResult, Credentials, Profile, SignUpInput } from "@/interfaces/auth"
+import type { AuthResult, Credentials, Profile, SignUpInput, UserRole } from "@/interfaces/auth"
+import {
+  authenticateDemo,
+  clearDemoSession,
+  googleDemoSession,
+  registerDemoUser,
+  saveDemoProfile,
+} from "@/libs/auth/demo"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 
 type SupabaseError = { message?: string; code?: string; status?: number } | null
@@ -12,9 +19,34 @@ const unavailable: AuthResult = { ok: false, errorCode: "unavailable" }
 
 export async function signInWithPassword({ email, password }: Credentials): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
-  if (!supabase) return unavailable
+
+  if (!supabase) {
+    return authenticateDemo(email, password)
+      ? { ok: true }
+      : { ok: false, errorCode: "invalid_credentials" }
+  }
 
   const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+  return normalize(error)
+}
+
+/**
+ * Google OAuth. Falls back to the built-in demo session when Supabase is not
+ * configured so the button works during review.
+ */
+export async function signInWithGoogle(role: UserRole, redirectTo: string): Promise<AuthResult> {
+  const supabase = getSupabaseBrowserClient()
+
+  if (!supabase) {
+    googleDemoSession(role)
+    return { ok: true }
+  }
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo },
+  })
+
   return normalize(error)
 }
 
@@ -23,7 +55,16 @@ export async function signUpWithPassword(
   emailRedirectTo?: string,
 ): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
-  if (!supabase) return unavailable
+
+  if (!supabase) {
+    const result = registerDemoUser({
+      email: input.email,
+      password: input.password,
+      fullName: input.fullName,
+      role: input.role,
+    })
+    return result.ok ? { ok: true } : { ok: false, errorCode: result.errorCode }
+  }
 
   const { error } = await supabase.auth.signUp({
     email: input.email.trim(),
@@ -71,9 +112,35 @@ export async function updatePassword(password: string): Promise<AuthResult> {
 
 export async function signOut(): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
-  if (!supabase) return unavailable
+  if (supabase) await supabase.auth.signOut()
+  clearDemoSession()
+  return { ok: true }
+}
 
-  const { error } = await supabase.auth.signOut()
+/** Fields a signed-in professional can edit from their dashboard. */
+export interface ProfileUpdate {
+  fullName?: string
+  phone?: string | null
+  bio?: string | null
+}
+
+/**
+ * Update the current user's profile. Uses the local demo profile store without
+ * Supabase (so the professional dashboard is editable end to end), and the
+ * `profiles` table when configured. `bio` is demo-only for now.
+ */
+export async function updateProfile(userId: string, patch: ProfileUpdate): Promise<AuthResult> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) {
+    saveDemoProfile(userId, patch)
+    return { ok: true }
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ full_name: patch.fullName, phone: patch.phone })
+    .eq("id", userId)
+
   return normalize(error)
 }
 

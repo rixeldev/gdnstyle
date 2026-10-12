@@ -2,9 +2,10 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { VenueShell } from "@/components/venues/venue-shell"
-import { VenueDetail } from "@/components/venues/venue-detail"
+import { VenueDetailRoute } from "@/components/venues/venue-detail-route"
 import { SITE } from "@/constants/site"
 import { VENUES } from "@/constants/venues"
+import { isCustomVenueId } from "@/libs/venue-store"
 
 interface VenuePageProps {
   params: Promise<{ id: string }>
@@ -28,7 +29,8 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
   const venue = VENUES.find((item) => item.id === id)
 
   if (!venue) {
-    return { title: "Local no encontrado" }
+    // Locally-created venues are unknown to the server; keep them out of search.
+    return { title: "Local", robots: { index: false, follow: false } }
   }
 
   const title = `${venue.name} · ${venue.area}, ${venue.city}`
@@ -50,44 +52,49 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
 /** Single venue page with `BeautySalon` structured data for rich results. */
 export default async function VenuePage({ params }: VenuePageProps) {
   const { id } = await params
-  const venue = VENUES.find((item) => item.id === id)
-  if (!venue) notFound()
+  const venue = VENUES.find((item) => item.id === id) ?? null
+  // Locally-created records are client-only; the wrapper resolves or 404s them.
+  if (!venue && !isCustomVenueId(id)) notFound()
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BeautySalon",
-    name: venue.name,
-    url: `${SITE.url}/locales/${venue.id}`,
-    image: venue.gallery.map((photo) => `${SITE.url}${photo}`),
-    priceRange: `RD$${venue.priceFrom}+`,
-    currenciesAccepted: SITE.currency,
-    address: {
-      "@type": "PostalAddress",
-      addressLocality: venue.city,
-      addressRegion: venue.area,
-      addressCountry: "DO",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: venue.lat,
-      longitude: venue.lon,
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: venue.rating,
-      reviewCount: venue.reviews,
-      bestRating: 5,
-    },
-  }
+  const jsonLd = venue
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BeautySalon",
+        name: venue.name,
+        url: `${SITE.url}/locales/${venue.id}`,
+        image: venue.gallery.map((photo) => `${SITE.url}${photo}`),
+        priceRange: `RD$${venue.priceFrom}+`,
+        currenciesAccepted: SITE.currency,
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: venue.city,
+          addressRegion: venue.area,
+          addressCountry: "DO",
+        },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: venue.lat,
+          longitude: venue.lon,
+        },
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: venue.rating,
+          reviewCount: venue.reviews,
+          bestRating: 5,
+        },
+      }
+    : null
 
   return (
     <VenueShell>
-      <script
-        type="application/ld+json"
-        // Structured data is generated from our own constants (no user input).
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-      <VenueDetail venue={venue} />
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          // Structured data is generated from our own constants (no user input).
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <VenueDetailRoute id={id} initialVenue={venue} />
     </VenueShell>
   )
 }

@@ -24,10 +24,6 @@ function supabaseImageHosts(): NonNullable<NextConfig["images"]>["remotePatterns
 }
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  experimental: {
-    agentFeedback: true,
-  },
   images: {
     remotePatterns: supabaseImageHosts(),
   },

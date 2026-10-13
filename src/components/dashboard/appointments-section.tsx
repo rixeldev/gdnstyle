@@ -54,7 +54,7 @@ export function AppointmentsSection() {
         <span className="min-w-0 flex-1">
           {venue ? (
             <Link
-              href={`/locales/${venue.id}`}
+              href={`/venues/${venue.id}`}
               className="text-cream hover:text-gold block truncate text-sm font-semibold transition"
             >
               {venue.name}
@@ -104,7 +104,7 @@ export function AppointmentsSection() {
             <p className="text-cream/50 mt-1 text-sm">{t("dashboard.customer.appointmentsBody")}</p>
           </div>
           <Link
-            href="/locales"
+            href="/venues"
             className="text-gold inline-flex items-center gap-1.5 text-sm underline-offset-4 transition hover:underline"
           >
             {t("dashboard.customer.exploreVenues")}
@@ -126,7 +126,7 @@ export function AppointmentsSection() {
           <div className="border-cream/10 mt-5 flex flex-col items-center gap-4 rounded-3xl border border-dashed px-6 py-8 text-center">
             <Icon name="calendar" className="text-cream/25 size-7" />
             <p className="text-cream/55 text-sm">{t("dashboard.customer.upcomingEmpty")}</p>
-            <ButtonLink href="/locales" size="sm">
+            <ButtonLink href="/venues" size="sm">
               {t("dashboard.customer.exploreVenues")}
             </ButtonLink>
           </div>
@@ -147,7 +147,7 @@ export function AppointmentsSection() {
           {t("dashboard.customer.quickLinks")}
         </span>
         <ButtonLink
-          href="/favoritos"
+          href="/favorites"
           variant="outline"
           size="sm"
           iconLeft={<Icon name="heart" className="size-4" />}

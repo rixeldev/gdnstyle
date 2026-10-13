@@ -9,17 +9,20 @@ import { Icon } from "@/components/ui/icon"
 import { VenueCard } from "@/components/venues/venue-card"
 import { useCatalogReady, usePublicVenues } from "@/hooks/use-venues"
 import { useFavorites } from "@/hooks/use-favorites"
+import { useSession } from "@/libs/session"
 import { toIntlLocale } from "@/utils/format"
 
 /** Saved venues page: the account's favourited records, in the saved order. */
 export function FavoritesPage() {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language ?? "es")
+  const { ready: sessionReady, authenticated } = useSession()
   const { favorites, ready, count } = useFavorites()
   const allVenues = usePublicVenues()
   const catalogReady = useCatalogReady()
-  // Wait for both the saved ids and the catalog the cards come from.
-  const loading = !ready || !catalogReady
+  // Only wait for the saved ids and the catalog once there is a session to read
+  // them for; signed-out visitors go straight to the sign-in prompt.
+  const loading = !sessionReady || (authenticated && (!ready || !catalogReady))
 
   const venues = useMemo(
     () =>
@@ -59,7 +62,7 @@ export function FavoritesPage() {
           </h1>
           <p className="text-cream/60 mt-3 max-w-2xl text-base">{t("favorites.supporting")}</p>
 
-          {ready && count > 0 && (
+          {authenticated && ready && count > 0 && (
             <p className="border-gold/25 bg-gold/10 text-gold mt-5 inline-flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-medium">
               <Icon name="heart" className="fill-gold text-gold size-3.5" />
               {t("favorites.count", { count })}
@@ -70,11 +73,26 @@ export function FavoritesPage() {
 
       <section className="px-5 pb-24 md:px-8">
         <div className="mx-auto max-w-6xl">
-          {!loading ? (
+          {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[0, 1, 2].map((index) => (
                 <div key={index} className="bg-cream/5 h-80 animate-pulse rounded-3xl" />
               ))}
+            </div>
+          ) : !authenticated ? (
+            <div className="border-cream/10 flex flex-col items-center gap-4 rounded-4xl border border-dashed px-6 py-16 text-center">
+              <Icon name="heart" className="text-cream/20 size-9" />
+              <h2 className="font-display text-xl font-semibold">{t("favorites.signInTitle")}</h2>
+              <p className="text-cream/55 max-w-md text-sm leading-relaxed">
+                {t("favorites.signInBody")}
+              </p>
+              <ButtonLink
+                href={`/auth/login?next=${encodeURIComponent("/favorites")}`}
+                size="sm"
+                className="mt-2"
+              >
+                {t("favorites.signInCta")}
+              </ButtonLink>
             </div>
           ) : venues.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -89,7 +107,7 @@ export function FavoritesPage() {
               <p className="text-cream/55 max-w-md text-sm leading-relaxed">
                 {t("favorites.emptyBody")}
               </p>
-              <ButtonLink href="/locales" size="sm" className="mt-2">
+              <ButtonLink href="/venues" size="sm" className="mt-2">
                 {t("favorites.explore")}
               </ButtonLink>
             </div>

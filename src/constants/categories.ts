@@ -3,7 +3,7 @@ import type { Category } from "@/interfaces/common"
 /**
  * Marketing categories shown on the landing page. `id` is the canonical key and
  * matches `Venue["categoryId"]` (camelCase); `slug` is only used for the SEO
- * pages under `/locales/categoria/[slug]`.
+ * pages under `/venues/category/[slug]`.
  */
 export const CATEGORIES: Category[] = [
   { id: "barberia", slug: "barberia", labelKey: "categories.barberia", icon: "scissors" },

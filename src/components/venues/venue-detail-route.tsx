@@ -45,7 +45,7 @@ export function VenueDetailRoute({ id, initialVenue }: VenueDetailRouteProps) {
         <Icon name="search" className="text-gold mx-auto size-7" />
         <h1 className="font-display mt-4 text-2xl">{t("venues.notFound.title")}</h1>
         <p className="text-cream/55 mt-2 text-sm">{t("venues.notFound.body")}</p>
-        <ButtonLink href="/locales" className="mt-6">
+        <ButtonLink href="/venues" className="mt-6">
           {t("venues.notFound.cta")}
         </ButtonLink>
       </div>

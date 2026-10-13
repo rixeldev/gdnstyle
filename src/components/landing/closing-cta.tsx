@@ -27,7 +27,7 @@ export function ClosingCta() {
             <ButtonLink href="/auth/login?role=customer">
               {t("landing.closing.primaryCta")}
             </ButtonLink>
-            <SectionLink href="/#contacto" className={buttonClasses({ variant: "outline" })}>
+            <SectionLink href="/#contact" className={buttonClasses({ variant: "outline" })}>
               {t("landing.closing.secondaryCta")}
             </SectionLink>
           </div>

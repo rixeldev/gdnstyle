@@ -16,12 +16,12 @@ export const metadata: Metadata = {
  */
 export const instant = false
 
-interface LocalesPageProps {
+interface VenuesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 /** Marketplace venue directory backed by the live Supabase catalog. */
-export default async function LocalesPage({ searchParams }: LocalesPageProps) {
+export default async function VenuesPage({ searchParams }: VenuesPageProps) {
   const params = await searchParams
   const query = typeof params.q === "string" ? params.q : ""
   const venues = await getServerCatalog()

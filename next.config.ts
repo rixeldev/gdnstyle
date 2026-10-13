@@ -33,6 +33,24 @@ const nextConfig: NextConfig = {
   },
   cacheComponents: true,
   partialPrefetching: true,
+  /**
+   * The marketplace routes used to be Spanish (`/locales`, `/favoritos`, …).
+   * Keep the old public paths working with permanent redirects to the English
+   * routes, so shared links and search results don't 404.
+   */
+  async redirects() {
+    return [
+      { source: "/locales", destination: "/venues", permanent: true },
+      {
+        source: "/locales/categoria/:slug",
+        destination: "/venues/category/:slug",
+        permanent: true,
+      },
+      { source: "/locales/ciudad/:slug", destination: "/venues/city/:slug", permanent: true },
+      { source: "/locales/:id", destination: "/venues/:id", permanent: true },
+      { source: "/favoritos", destination: "/favorites", permanent: true },
+    ]
+  },
   /** Allow the dev-only HMR socket when previewing through an ngrok tunnel. */
   allowedDevOrigins: ["*.ngrok-free.dev"],
   turbopack: {

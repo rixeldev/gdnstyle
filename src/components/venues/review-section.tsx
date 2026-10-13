@@ -225,7 +225,7 @@ export function ReviewSection({ venue, locale }: ReviewSectionProps) {
         <div className="border-cream/10 mt-6 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-dashed p-5">
           <p className="text-cream/60 text-sm">{t("venues.detail.reviewsLoginHint")}</p>
           <ButtonLink
-            href={`/auth/login?next=${encodeURIComponent(`/locales/${venue.id}`)}`}
+            href={`/auth/login?next=${encodeURIComponent(`/venues/${venue.id}`)}`}
             variant="outline"
             size="sm"
           >

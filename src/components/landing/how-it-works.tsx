@@ -10,7 +10,7 @@ export function HowItWorks() {
 
   return (
     <section
-      id="como-funciona"
+      id="how-it-works"
       aria-labelledby="como-funciona-title"
       className="scroll-mt-24 px-5 py-24 md:px-8"
     >

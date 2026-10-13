@@ -12,8 +12,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE.url}/`, changeFrequency: "weekly", priority: 1 },
-    { url: `${SITE.url}/locales`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${SITE.url}/favoritos`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${SITE.url}/venues`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${SITE.url}/favorites`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${SITE.url}/faq`, changeFrequency: "monthly", priority: 0.5 },
     { url: `${SITE.url}/policies`, changeFrequency: "yearly", priority: 0.3 },
     { url: `${SITE.url}/terms`, changeFrequency: "yearly", priority: 0.3 },
@@ -22,19 +22,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const categoryRoutes: MetadataRoute.Sitemap = ALL_CATEGORIES.map((category) => ({
-    url: `${SITE.url}/locales/categoria/${category.slug}`,
+    url: `${SITE.url}/venues/category/${category.slug}`,
     changeFrequency: "weekly",
     priority: 0.8,
   }))
 
   const cityRoutes: MetadataRoute.Sitemap = cities.map((city) => ({
-    url: `${SITE.url}/locales/ciudad/${slugify(city)}`,
+    url: `${SITE.url}/venues/city/${slugify(city)}`,
     changeFrequency: "weekly",
     priority: 0.7,
   }))
 
   const venueRoutes: MetadataRoute.Sitemap = venues.map((venue) => ({
-    url: `${SITE.url}/locales/${venue.id}`,
+    url: `${SITE.url}/venues/${venue.id}`,
     changeFrequency: "weekly",
     priority: 0.6,
   }))

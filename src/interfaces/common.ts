@@ -43,7 +43,7 @@ export type IconName =
 export interface Category {
   /** Canonical id — matches `Venue["categoryId"]` (camelCase). */
   id: string
-  /** URL slug used by `/locales/categoria/[slug]`. */
+  /** URL slug used by `/venues/category/[slug]`. */
   slug: string
   labelKey: string
   icon: IconName

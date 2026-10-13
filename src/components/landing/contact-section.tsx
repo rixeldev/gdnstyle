@@ -50,7 +50,7 @@ export function ContactSection() {
 
   return (
     <section
-      id="contacto"
+      id="contact"
       aria-labelledby="contacto-title"
       className="relative scroll-mt-24 px-5 py-24 md:px-8"
     >

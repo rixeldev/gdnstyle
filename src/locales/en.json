@@ -518,6 +518,9 @@
     "removed": "Removed from favorites",
     "count": "{{count}} saved",
     "loginRequired": "Sign in to save your favorites.",
+    "signInTitle": "Sign in to save favorites",
+    "signInBody": "Sign in or create an account to save your favorite venues and reach them from any device.",
+    "signInCta": "Sign in",
     "removeConfirmTitle": "Remove from favorites",
     "removeConfirmBody": "Remove this venue from your favorites?",
     "removeConfirm": "Remove"

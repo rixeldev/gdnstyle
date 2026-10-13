@@ -114,7 +114,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
       <>
         <p className="text-cream/45 mt-5 text-xs">{t("venues.detail.signInHint")}</p>
         <ButtonLink
-          href={`/auth/login?next=${encodeURIComponent(`/locales/${venue.id}`)}`}
+          href={`/auth/login?next=${encodeURIComponent(`/venues/${venue.id}`)}`}
           size="lg"
           className="mt-3 w-full"
         >

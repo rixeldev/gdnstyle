@@ -37,7 +37,7 @@ export function FavoriteButton({ venueId, variant = "icon", className }: Favorit
     // Saving favorites implies a database write, so it always needs a session.
     if (!authenticated) {
       toast(t("favorites.loginRequired"), "neutral")
-      router.push(`/auth/login?next=${encodeURIComponent(pathname || "/locales")}`)
+      router.push(`/auth/login?next=${encodeURIComponent(pathname || "/venues")}`)
       return
     }
 

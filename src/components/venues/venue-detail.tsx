@@ -60,7 +60,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
 
   const crumbs: Crumb[] = [
     { label: t("breadcrumbs.home"), href: "/" },
-    { label: t("breadcrumbs.directory"), href: "/locales" },
+    { label: t("breadcrumbs.directory"), href: "/venues" },
     { label: venue.name },
   ]
 

@@ -371,7 +371,7 @@ function OwnedVenueCard({ venue, locale, cloud, onEdit, onToggle, onRemove }: Ow
           {t("dashboard.professional.editVenue")}
         </Button>
         <ButtonLink
-          href={`/locales/${venue.id}`}
+          href={`/venues/${venue.id}`}
           variant="ghost"
           size="sm"
           iconLeft={<Icon name="arrow-up-right" className="size-4" />}

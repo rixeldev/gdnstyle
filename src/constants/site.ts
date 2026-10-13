@@ -10,29 +10,29 @@ export const SITE = {
 } as const
 
 export const NAV_LINKS = [
-  { key: "nav.clients", href: "/#clientes" },
-  { key: "nav.professionals", href: "/#profesionales" },
-  { key: "nav.howItWorks", href: "/#como-funciona" },
+  { key: "nav.clients", href: "/#clients" },
+  { key: "nav.professionals", href: "/#professionals" },
+  { key: "nav.howItWorks", href: "/#how-it-works" },
   { key: "nav.app", href: "/#app" },
-  { key: "nav.contact", href: "/#contacto" },
+  { key: "nav.contact", href: "/#contact" },
 ] as const
 
 export const FOOTER_NAV = [
   {
     titleKey: "landing.footer.explore",
     links: [
-      { key: "nav.clients", href: "/#clientes" },
-      { key: "nav.professionals", href: "/#profesionales" },
-      { key: "nav.howItWorks", href: "/#como-funciona" },
+      { key: "nav.clients", href: "/#clients" },
+      { key: "nav.professionals", href: "/#professionals" },
+      { key: "nav.howItWorks", href: "/#how-it-works" },
       { key: "nav.app", href: "/#app" },
-      { key: "landing.footer.payments", href: "/#pagos" },
+      { key: "landing.footer.payments", href: "/#payments" },
     ],
   },
   {
     titleKey: "landing.footer.help",
     links: [
       { key: "landing.footer.faq", href: "/faq" },
-      { key: "landing.footer.contact", href: "/#contacto" },
+      { key: "landing.footer.contact", href: "/#contact" },
       { key: "landing.footer.privacy", href: "/policies" },
       { key: "landing.footer.terms", href: "/terms" },
     ],

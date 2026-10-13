@@ -47,7 +47,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     description: `Encuentra locales de ${name.toLowerCase()} en GDN Style y reserva tu cita online. ${
       count === 1 ? "1 local disponible" : `${count} locales disponibles`
     } en República Dominicana y Estados Unidos.`,
-    alternates: { canonical: `/locales/categoria/${slug}` },
+    alternates: { canonical: `/venues/category/${slug}` },
     openGraph: {
       title: `${name} · GDN Style`,
       description: `Reserva ${name.toLowerCase()} con los mejores locales, valorados por clientas reales.`,

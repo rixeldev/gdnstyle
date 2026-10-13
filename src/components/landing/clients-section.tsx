@@ -13,7 +13,7 @@ export function ClientsSection() {
 
   return (
     <section
-      id="clientes"
+      id="clients"
       aria-labelledby="clientes-title"
       className="scroll-mt-24 px-5 py-24 md:px-8"
     >

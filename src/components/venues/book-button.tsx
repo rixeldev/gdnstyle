@@ -26,7 +26,7 @@ export function BookButton({ venueId, size = "sm", fullWidth = false }: BookButt
   const { user } = useSession()
   const [busy, setBusy] = useState(false)
   const professional = user?.role === "professional"
-  const href = `/locales/${venueId}`
+  const href = `/venues/${venueId}`
 
   async function handleBook() {
     if (busy) return

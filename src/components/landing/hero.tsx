@@ -83,7 +83,7 @@ export function Hero() {
           <HeroSearch />
 
           <div className="animate-fade-in-up animate-delay-500 animate-fill-mode-both mt-6 flex flex-wrap gap-3">
-            <ButtonLink href="/locales" size="lg" className="shadow-gold">
+            <ButtonLink href="/venues" size="lg" className="shadow-gold">
               {t("landing.hero.primaryCta")}
             </ButtonLink>
             <ButtonLink href="/auth/login?role=professional" variant="outline" size="lg">

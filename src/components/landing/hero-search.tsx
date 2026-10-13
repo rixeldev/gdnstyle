@@ -94,15 +94,15 @@ export function HeroSearch() {
     event.preventDefault()
     const highlighted = active >= 0 ? suggestions[active] : null
     if (highlighted) {
-      router.push(`/locales/${highlighted.id}`)
+      router.push(`/venues/${highlighted.id}`)
       return
     }
     const trimmed = query.trim()
-    router.push(trimmed ? `/locales?q=${encodeURIComponent(trimmed)}` : "/locales")
+    router.push(trimmed ? `/venues?q=${encodeURIComponent(trimmed)}` : "/venues")
   }
 
   function goToVenue(venueId: string) {
-    router.push(`/locales/${venueId}`)
+    router.push(`/venues/${venueId}`)
   }
 
   return (

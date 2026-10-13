@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
     description: `Encuentra locales en ${city} en GDN Style y reserva tu cita online. ${
       count === 1 ? "1 local disponible" : `${count} locales disponibles`
     }.`,
-    alternates: { canonical: `/locales/ciudad/${slug}` },
+    alternates: { canonical: `/venues/city/${slug}` },
     openGraph: {
       title: `${city} · GDN Style`,
       description: `Reserva tu cita en los mejores locales de ${city}.`,

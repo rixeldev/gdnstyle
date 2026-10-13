@@ -16,7 +16,7 @@ interface VenuePageProps {
 /**
  * Blocking route: the record is looked up from `params` and there is no
  * meaningful streaming shell, so we opt out of instant-navigation validation
- * (same reasoning as `/locales`).
+ * (same reasoning as `/venues`).
  */
 export const instant = false
 
@@ -33,7 +33,7 @@ function buildJsonLd(venue: Venue) {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
     name: venue.name,
-    url: `${SITE.url}/locales/${venue.id}`,
+    url: `${SITE.url}/venues/${venue.id}`,
     image: venue.gallery.map((photo) => absoluteUrl(photo)),
     priceRange: `RD$${venue.priceFrom}+`,
     currenciesAccepted: SITE.currency,
@@ -81,7 +81,7 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
   return {
     title: `${venue.name} · ${location}`,
     description,
-    alternates: { canonical: `/locales/${venue.id}` },
+    alternates: { canonical: `/venues/${venue.id}` },
     openGraph: {
       title: `${venue.name} · GDN Style`,
       description,

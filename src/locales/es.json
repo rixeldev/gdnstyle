@@ -518,6 +518,9 @@
     "removed": "Quitado de favoritos",
     "count": "{{count}} guardados",
     "loginRequired": "Inicia sesión para guardar tus favoritos.",
+    "signInTitle": "Inicia sesión para guardar favoritos",
+    "signInBody": "Entra o crea tu cuenta para guardar tus locales preferidos y verlos desde cualquier dispositivo.",
+    "signInCta": "Iniciar sesión",
     "removeConfirmTitle": "Quitar de favoritos",
     "removeConfirmBody": "¿Seguro que quieres quitar este local de tus favoritos?",
     "removeConfirm": "Quitar"

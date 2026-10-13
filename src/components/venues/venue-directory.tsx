@@ -34,7 +34,7 @@ interface VenueDirectoryProps {
   initialCity?: string
   /** Records resolved on the server so the first paint already shows them. */
   initialVenues?: Venue[]
-  /** Keep the URL in sync while filtering (base `/locales` route only). */
+  /** Keep the URL in sync while filtering (base `/venues` route only). */
   syncUrl?: boolean
 }
 
@@ -147,7 +147,7 @@ export function VenueDirectory({
           name: venue.name,
           lat: venue.lat,
           lon: venue.lon,
-          href: `/locales/${venue.id}`,
+          href: `/venues/${venue.id}`,
         })),
     [results],
   )
@@ -167,7 +167,7 @@ export function VenueDirectory({
   const crumbs: Crumb[] = [{ label: t("breadcrumbs.home"), href: "/" }]
   crumbs.push(
     presetCategory || initialCity
-      ? { label: t("breadcrumbs.directory"), href: "/locales" }
+      ? { label: t("breadcrumbs.directory"), href: "/venues" }
       : { label: t("breadcrumbs.directory") },
   )
   if (presetCategory) crumbs.push({ label: t(presetCategory.labelKey) })
@@ -182,7 +182,7 @@ export function VenueDirectory({
     const nextQuery = (overrides.query ?? query).trim()
     if (nextQuery) params.set("q", nextQuery)
     const search = params.toString()
-    window.history.replaceState(null, "", search ? `/locales?${search}` : "/locales")
+    window.history.replaceState(null, "", search ? `/venues?${search}` : "/venues")
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -199,7 +199,7 @@ export function VenueDirectory({
     setQuery("")
     setCategory("all")
     setZone("all")
-    if (syncUrl) window.history.replaceState(null, "", "/locales")
+    if (syncUrl) window.history.replaceState(null, "", "/venues")
   }
 
   const chipClass = (active: boolean) =>
@@ -335,7 +335,7 @@ export function VenueDirectory({
             </Button>
 
             <ButtonLink
-              href="/favoritos"
+              href="/favorites"
               variant="subtle"
               size="sm"
               iconLeft={<Icon name="heart" className="size-4" />}

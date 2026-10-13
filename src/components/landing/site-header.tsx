@@ -23,7 +23,7 @@ interface SiteHeaderProps {
   ctaHref?: string
 }
 
-export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHeaderProps) {
+export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/venues" }: SiteHeaderProps) {
   const { t } = useTranslation()
   const router = useRouter()
   const scrolled = useScrolled()
@@ -71,7 +71,7 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
         <div className="hidden items-center gap-3 md:flex lg:gap-4">
           {!professional && (
             <Link
-              href="/favoritos"
+              href="/favorites"
               aria-label={t("favorites.title")}
               className="text-cream/70 hover:text-gold relative inline-flex items-center transition"
             >
@@ -96,7 +96,7 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
             </ButtonLink>
           )}
           <LanguageSwitcher />
-          <ButtonLink href={professional ? "/locales" : ctaHref} size="sm">
+          <ButtonLink href={professional ? "/venues" : ctaHref} size="sm">
             {professional ? t("nav.explore") : t(ctaKey)}
           </ButtonLink>
         </div>
@@ -135,7 +135,7 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/locales" }: SiteHe
 
             {!professional && (
               <Link
-                href="/favoritos"
+                href="/favorites"
                 onClick={() => setOpen(false)}
                 className="text-cream/80 hover:bg-cream/5 hover:text-cream inline-flex items-center gap-2 rounded-lg px-2 py-3 text-base transition"
               >

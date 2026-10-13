@@ -12,7 +12,7 @@ export function TerminalsSection() {
 
   return (
     <section
-      id="pagos"
+      id="payments"
       aria-labelledby="pagos-title"
       className="border-cream/10 bg-ink-soft relative scroll-mt-24 border-y px-5 py-24 md:px-8"
     >

@@ -11,7 +11,7 @@ export function ProfessionalsSection() {
 
   return (
     <section
-      id="profesionales"
+      id="professionals"
       aria-labelledby="profesionales-title"
       className="border-cream/10 bg-ink-soft relative scroll-mt-24 border-y px-5 py-24 md:px-8"
     >

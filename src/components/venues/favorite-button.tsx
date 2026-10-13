@@ -19,7 +19,7 @@ interface FavoriteButtonProps {
   className?: string
 }
 
-/** Heart toggle persisted locally (see `useFavorites`), gated by the session. */
+/** Heart toggle saved to the account (`favorites` table), gated by the session. */
 export function FavoriteButton({ venueId, variant = "icon", className }: FavoriteButtonProps) {
   const { t } = useTranslation()
   const router = useRouter()

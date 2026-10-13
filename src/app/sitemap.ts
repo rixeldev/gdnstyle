@@ -1,12 +1,14 @@
 import type { MetadataRoute } from "next"
 
-import { CATEGORIES } from "@/constants/categories"
+import { ALL_CATEGORIES } from "@/constants/categories"
 import { SITE } from "@/constants/site"
-import { VENUES, VENUE_CITIES } from "@/constants/venues"
+import { catalogCities, getServerCatalog } from "@/libs/marketplace/server"
 import { slugify } from "@/utils/slug"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
+  const venues = await getServerCatalog()
+  const cities = catalogCities(venues)
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${SITE.url}/`, changeFrequency: "weekly", priority: 1 },
@@ -19,19 +21,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE.url}/auth/signup`, changeFrequency: "yearly", priority: 0.3 },
   ]
 
-  const categoryRoutes: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({
+  const categoryRoutes: MetadataRoute.Sitemap = ALL_CATEGORIES.map((category) => ({
     url: `${SITE.url}/locales/categoria/${category.slug}`,
     changeFrequency: "weekly",
     priority: 0.8,
   }))
 
-  const cityRoutes: MetadataRoute.Sitemap = VENUE_CITIES.map((city) => ({
+  const cityRoutes: MetadataRoute.Sitemap = cities.map((city) => ({
     url: `${SITE.url}/locales/ciudad/${slugify(city)}`,
     changeFrequency: "weekly",
     priority: 0.7,
   }))
 
-  const venueRoutes: MetadataRoute.Sitemap = VENUES.map((venue) => ({
+  const venueRoutes: MetadataRoute.Sitemap = venues.map((venue) => ({
     url: `${SITE.url}/locales/${venue.id}`,
     changeFrequency: "weekly",
     priority: 0.6,

@@ -268,7 +268,19 @@
     "cuidadoPiel": "Skincare",
     "depilacion": "Waxing",
     "maquillaje": "Makeup",
-    "masaje": "Massage"
+    "masaje": "Massage",
+    "peluqueria": "Hair salon",
+    "daySpa": "Wellness & day spa",
+    "medicinaEstetica": "Aesthetic medicine",
+    "piercing": "Piercing",
+    "salonUnas": "Nail salon",
+    "saludDental": "Dental care and orthodontics",
+    "saludFitness": "Health and fitness",
+    "serviciosDomicilio": "Mobile services",
+    "serviciosMascotas": "Pet services",
+    "serviciosProfesionales": "Professional services",
+    "tatuadores": "Tattoo artists",
+    "trenzasRastas": "Braids and locs"
   },
   "venues": {
     "services": {
@@ -446,7 +458,9 @@
       "photoOption": "Photo set {{index}}",
       "create": "Publish venue",
       "saved": "Venue updated",
-      "created": "Venue published"
+      "created": "Venue published",
+      "databaseHint": "With Supabase connected, the venue stores its name, address, city, category and photos.",
+      "databaseEditHint": "On an existing venue you can only change the category and photos."
     }
   },
   "directory": {
@@ -720,7 +734,29 @@
       "removeConfirm": "Delete",
       "releaseTitle": "Remove from my venues",
       "releaseBody": "“{{name}}” will stay published but will no longer appear in your list. Continue?",
-      "releaseConfirm": "Remove"
+      "releaseConfirm": "Remove",
+      "appointments": {
+        "title": "Client appointments",
+        "body": "The bookings made with you, with the client's contact details.",
+        "empty": "You have no bookings yet.",
+        "historyTitle": "Past appointments",
+        "atTime": "at {{time}}",
+        "clientFallback": "Client",
+        "status": {
+          "pending": "Pending",
+          "confirmed": "Confirmed",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        },
+        "complete": "Mark completed",
+        "cancel": "Cancel",
+        "completed": "Appointment marked as completed",
+        "cancelled": "Appointment cancelled",
+        "cancelConfirmTitle": "Cancel appointment",
+        "cancelConfirmBody": "Cancel {{client}}'s appointment on {{date}}?",
+        "cancelConfirm": "Yes, cancel",
+        "cancelKeep": "Keep appointment"
+      }
     },
     "signOut": "Sign out",
     "signingOut": "Signing out…",

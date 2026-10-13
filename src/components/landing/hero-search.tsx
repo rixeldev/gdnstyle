@@ -6,10 +6,11 @@ import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
-import { CATEGORIES } from "@/constants/categories"
+import { getCategoryById } from "@/constants/categories"
 import { usePublicVenues } from "@/hooks/use-venues"
 import { cn } from "@/utils/cn"
 import { normalize } from "@/utils/normalize"
+import { venueLocationLabel } from "@/utils/venue"
 
 const MAX_SUGGESTIONS = 6
 
@@ -38,9 +39,14 @@ export function HeroSearch() {
             venue.name,
             venue.city,
             venue.area,
-            t(`categories.${venue.categoryId}`),
+            venue.address,
+            venue.categoryId ? t(`categories.${venue.categoryId}`) : "",
+            ...(venue.categoryNames ?? []),
             ...venue.services.map((service) => t(`venues.services.${service}`)),
-          ].join(" "),
+            ...(venue.serviceList ?? []).map((service) => service.name),
+          ]
+            .filter(Boolean)
+            .join(" "),
         )
         return haystack.includes(needle)
       })
@@ -140,7 +146,8 @@ export function HeroSearch() {
           className="border-cream/10 bg-ink-card/95 shadow-luxe animate-fade-in-up animate-duration-fast absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border backdrop-blur-md"
         >
           {suggestions.map((venue, index) => {
-            const category = CATEGORIES.find((item) => item.id === venue.categoryId)
+            const category = getCategoryById(venue.categoryId)
+            const categoryLabel = category ? t(category.labelKey) : (venue.categoryNames?.[0] ?? "")
             return (
               <li key={venue.id} role="option" aria-selected={active === index}>
                 <button
@@ -160,7 +167,7 @@ export function HeroSearch() {
                       {venue.name}
                     </span>
                     <span className="text-cream/50 block truncate text-xs">
-                      {t(category?.labelKey ?? "categories.masaje")} · {venue.area}, {venue.city}
+                      {categoryLabel} · {venueLocationLabel(venue)}
                     </span>
                   </span>
                   <Icon name="arrow-right" className="text-gold/60 size-4 shrink-0" />

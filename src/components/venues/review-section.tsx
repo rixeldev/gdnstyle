@@ -59,8 +59,10 @@ export function ReviewSection({ venue, locale }: ReviewSectionProps) {
   const [rating, setRating] = useState(5)
   const [comment, setComment] = useState("")
 
-  const seedReviews = getVenueReviews(venue)
-  const serviceLabel = t(`venues.services.${venue.services[0]}`)
+  const seedReviews = venue.reviewsList ? [] : getVenueReviews(venue)
+  const serviceLabel = venue.services[0]
+    ? t(`venues.services.${venue.services[0]}`)
+    : (venue.serviceList?.[0]?.name ?? "")
   const ratingText = formatNumber(venue.rating, locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
@@ -119,6 +121,26 @@ export function ReviewSection({ venue, locale }: ReviewSectionProps) {
             </div>
           </li>
         ))}
+
+        {(venue.reviewsList ?? []).map((review) => {
+          const author = review.author ?? t("venues.detail.reviewsAnonymous")
+          return (
+            <li key={review.id} className="border-cream/10 flex gap-3 border-b pb-4 last:border-0">
+              <span className="border-cream/15 bg-cream/5 text-cream/70 flex size-10 shrink-0 items-center justify-center rounded-full border text-xs font-semibold">
+                {initials(author)}
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-cream text-sm font-semibold">{author}</p>
+                  <Stars rating={review.rating} />
+                </div>
+                {review.text && (
+                  <p className="text-cream/70 mt-1.5 text-sm leading-relaxed">{review.text}</p>
+                )}
+              </div>
+            </li>
+          )
+        })}
 
         {seedReviews.map((review) => (
           <li key={review.id} className="border-cream/10 flex gap-3 border-b pb-4 last:border-0">

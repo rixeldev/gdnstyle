@@ -9,10 +9,12 @@ import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { toast } from "@/components/ui/toast"
 import { ProfileDialog } from "@/components/dashboard/profile-dialog"
+import { ProviderAppointmentsSection } from "@/components/dashboard/provider-appointments-section"
 import { VenueFormDialog } from "@/components/dashboard/venue-form-dialog"
 import { getCategoryById } from "@/constants/categories"
 import type { Venue } from "@/constants/venues"
 import type { SessionUser } from "@/libs/session"
+import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import {
   claimVenue,
   deleteVenue,
@@ -45,6 +47,9 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
   const locale = toIntlLocale(i18n.language ?? "es")
   const owned = useOwnedVenues()
   const allVenues = useAllVenues()
+  // With Supabase the catalog is the source of truth, so the local hide/claim
+  // actions (which only patch the local store) are not offered.
+  const cloud = Boolean(getSupabaseBrowserClient())
 
   const [editingVenue, setEditingVenue] = useState<Venue | "new" | null>(null)
   const [profileOpen, setProfileOpen] = useState(false)
@@ -57,7 +62,8 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
     let hidden = 0
 
     for (const venue of owned) {
-      venue.services.forEach((serviceId) => services.add(serviceId))
+      for (const serviceId of venue.services) services.add(serviceId)
+      for (const service of venue.serviceList ?? []) services.add(service.id)
       if (venue.reviews > 0) {
         ratingTotal += venue.rating
         rated += 1
@@ -94,8 +100,8 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
   }, [owned])
 
   const claimable = useMemo(
-    () => allVenues.filter((venue) => !venue.ownerId && !venue.hidden),
-    [allVenues],
+    () => (cloud ? [] : allVenues.filter((venue) => !venue.ownerId && !venue.hidden)),
+    [allVenues, cloud],
   )
 
   const displayName = user.fullName ?? user.email ?? t("dashboard.professional.role")
@@ -209,6 +215,7 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
                 key={venue.id}
                 venue={venue}
                 locale={locale}
+                cloud={cloud}
                 onEdit={() => setEditingVenue(venue)}
                 onToggle={() => toggleHidden(venue)}
                 onRemove={() => setPendingRemove(venue)}
@@ -262,9 +269,12 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
           open
           venue={editingVenue === "new" ? null : editingVenue}
           ownerId={user.id}
+          providerId={user.providerId}
           onClose={() => setEditingVenue(null)}
         />
       )}
+
+      {cloud && user.providerId && <ProviderAppointmentsSection />}
 
       {profileOpen && <ProfileDialog open user={user} onClose={() => setProfileOpen(false)} />}
 
@@ -296,16 +306,19 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
 interface OwnedVenueCardProps {
   venue: Venue
   locale: string
+  /** Database mode: hide/remove only exist in the local demo store. */
+  cloud: boolean
   onEdit: () => void
   onToggle: () => void
   onRemove: () => void
 }
 
-function OwnedVenueCard({ venue, locale, onEdit, onToggle, onRemove }: OwnedVenueCardProps) {
+function OwnedVenueCard({ venue, locale, cloud, onEdit, onToggle, onRemove }: OwnedVenueCardProps) {
   const { t } = useTranslation()
   const category = getCategoryById(venue.categoryId)
   const custom = isCustomVenueId(venue.id)
   const price = formatCurrency(venue.priceFrom, locale, "DOP", { maximumFractionDigits: 0 })
+  const serviceCount = venue.serviceList?.length ?? venue.services.length
 
   return (
     <article className="border-cream/10 bg-ink-card flex flex-col gap-4 rounded-3xl border p-4">
@@ -317,18 +330,20 @@ function OwnedVenueCard({ venue, locale, onEdit, onToggle, onRemove }: OwnedVenu
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">
             <h3 className="font-display truncate text-lg">{venue.name}</h3>
-            <span
-              className={cn(
-                "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium",
-                venue.hidden
-                  ? "border-cream/20 text-cream/55"
-                  : "border-gold/30 bg-gold/10 text-gold-soft",
-              )}
-            >
-              {venue.hidden
-                ? t("dashboard.professional.hiddenBadge")
-                : t("dashboard.professional.activeBadge")}
-            </span>
+            {!cloud && (
+              <span
+                className={cn(
+                  "shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium",
+                  venue.hidden
+                    ? "border-cream/20 text-cream/55"
+                    : "border-gold/30 bg-gold/10 text-gold-soft",
+                )}
+              >
+                {venue.hidden
+                  ? t("dashboard.professional.hiddenBadge")
+                  : t("dashboard.professional.activeBadge")}
+              </span>
+            )}
           </div>
           <p className="text-cream/55 mt-1 truncate text-sm">
             {category ? t(category.labelKey) : venue.categoryId} · {venue.area}, {venue.city}
@@ -340,7 +355,7 @@ function OwnedVenueCard({ venue, locale, onEdit, onToggle, onRemove }: OwnedVenu
             </span>
             <span className="inline-flex items-center gap-1.5">
               <Icon name="list" className="text-gold size-3.5" />
-              {t("dashboard.professional.serviceCount", { count: venue.services.length })}
+              {t("dashboard.professional.serviceCount", { count: serviceCount })}
             </span>
           </div>
         </div>
@@ -363,27 +378,31 @@ function OwnedVenueCard({ venue, locale, onEdit, onToggle, onRemove }: OwnedVenu
         >
           {t("dashboard.professional.viewVenue")}
         </ButtonLink>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onToggle}
-          iconLeft={<Icon name={venue.hidden ? "eye" : "eye-off"} className="size-4" />}
-        >
-          {venue.hidden
-            ? t("dashboard.professional.showVenue")
-            : t("dashboard.professional.hideVenue")}
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRemove}
-          className="text-red-300 hover:text-red-200"
-          iconLeft={<Icon name="trash" className="size-4" />}
-        >
-          {custom
-            ? t("dashboard.professional.deleteVenue")
-            : t("dashboard.professional.releaseVenue")}
-        </Button>
+        {!cloud && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggle}
+              iconLeft={<Icon name={venue.hidden ? "eye" : "eye-off"} className="size-4" />}
+            >
+              {venue.hidden
+                ? t("dashboard.professional.showVenue")
+                : t("dashboard.professional.hideVenue")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onRemove}
+              className="text-red-300 hover:text-red-200"
+              iconLeft={<Icon name="trash" className="size-4" />}
+            >
+              {custom
+                ? t("dashboard.professional.deleteVenue")
+                : t("dashboard.professional.releaseVenue")}
+            </Button>
+          </>
+        )}
       </div>
     </article>
   )

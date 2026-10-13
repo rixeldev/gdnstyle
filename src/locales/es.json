@@ -268,7 +268,19 @@
     "cuidadoPiel": "Cuidado de la piel",
     "depilacion": "Depilación",
     "maquillaje": "Maquillaje",
-    "masaje": "Masaje"
+    "masaje": "Masaje",
+    "peluqueria": "Peluquería",
+    "daySpa": "Bienestar y Day Spa",
+    "medicinaEstetica": "Medicina estética",
+    "piercing": "Piercing",
+    "salonUnas": "Salón de uñas",
+    "saludDental": "Salud dental y ortodoncia",
+    "saludFitness": "Salud y fitness",
+    "serviciosDomicilio": "Servicios a domicilio",
+    "serviciosMascotas": "Servicios para mascotas",
+    "serviciosProfesionales": "Servicios profesionales",
+    "tatuadores": "Tatuadores",
+    "trenzasRastas": "Trenzas y rastas"
   },
   "venues": {
     "services": {
@@ -446,7 +458,9 @@
       "photoOption": "Conjunto de fotos {{index}}",
       "create": "Publicar local",
       "saved": "Local actualizado",
-      "created": "Local publicado"
+      "created": "Local publicado",
+      "databaseHint": "Con Supabase conectado, el local guarda su nombre, dirección, ciudad, categoría y fotos.",
+      "databaseEditHint": "En un local existente solo puedes cambiar la categoría y las fotos."
     }
   },
   "directory": {
@@ -720,7 +734,31 @@
       "removeConfirm": "Eliminar",
       "releaseTitle": "Quitar de mis locales",
       "releaseBody": "«{{name}}» seguirá publicado, pero dejará de aparecer en tu lista. ¿Continuar?",
-      "releaseConfirm": "Quitar"
+      "releaseTitle": "Quitar de mis locales",
+      "releaseBody": "«{{name}}» seguirá publicado, pero dejará de aparecer en tu lista. ¿Continuar?",
+      "releaseConfirm": "Quitar",
+      "appointments": {
+        "title": "Citas de clientes",
+        "body": "Las reservas que han hecho contigo, con el contacto de la clienta.",
+        "empty": "Todavía no tienes citas reservadas.",
+        "historyTitle": "Citas pasadas",
+        "atTime": "a las {{time}}",
+        "clientFallback": "Cliente",
+        "status": {
+          "pending": "Pendiente",
+          "confirmed": "Confirmada",
+          "completed": "Completada",
+          "cancelled": "Cancelada"
+        },
+        "complete": "Marcar completada",
+        "cancel": "Cancelar",
+        "completed": "Cita marcada como completada",
+        "cancelled": "Cita cancelada",
+        "cancelConfirmTitle": "Cancelar cita",
+        "cancelConfirmBody": "¿Seguro que quieres cancelar la cita de {{client}} el {{date}}?",
+        "cancelConfirm": "Sí, cancelar",
+        "cancelKeep": "Mantener cita"
+      }
     },
     "signOut": "Cerrar sesión",
     "signingOut": "Cerrando sesión…",

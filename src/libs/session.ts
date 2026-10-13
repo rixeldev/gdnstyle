@@ -8,6 +8,7 @@ import { readDemoSession } from "@/libs/auth/demo"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import { STORAGE_EVENT } from "@/libs/storage"
 import { fetchProfile } from "@/services/auth.service"
+import { fetchProviderForUser } from "@/services/provider.service"
 
 /** Normalized signed-in visitor, regardless of the auth backend in use. */
 export interface SessionUser {
@@ -15,6 +16,8 @@ export interface SessionUser {
   email: string | null
   fullName: string | null
   role: UserRole
+  /** `providers.id` when `auth.uid()` owns a providers row, else `null`. */
+  providerId: string | null
   avatarUrl: string | null
   phone: string | null
   bio: string | null
@@ -37,15 +40,12 @@ function userFromDemo(): SessionUser | null {
     email: session.email,
     fullName: session.fullName,
     role: session.role,
+    providerId: null,
     avatarUrl: session.avatarUrl,
     phone: session.phone ?? null,
     bio: session.bio ?? null,
     demo: true,
   }
-}
-
-function metadataRole(session: Session): UserRole {
-  return session.user.user_metadata?.role === "professional" ? "professional" : "customer"
 }
 
 /**
@@ -85,6 +85,7 @@ export function useSession(): SessionState {
     }
 
     let active = true
+    const client = supabase
 
     async function apply(session: Session | null) {
       if (!session?.user) {
@@ -92,7 +93,12 @@ export function useSession(): SessionState {
         return
       }
 
-      const profile = await fetchProfile(session.user.id)
+      // Role is decided by the presence of a `providers` row for this user, not
+      // by `profiles.role`.
+      const [profile, provider] = await Promise.all([
+        fetchProfile(session.user.id),
+        fetchProviderForUser(client, session.user.id),
+      ])
       if (!active) return
 
       setState({
@@ -103,7 +109,8 @@ export function useSession(): SessionState {
           fullName:
             profile?.fullName ??
             ((session.user.user_metadata?.full_name as string | undefined) || null),
-          role: profile?.role ?? metadataRole(session),
+          role: provider ? "professional" : "customer",
+          providerId: provider?.id ?? null,
           avatarUrl: profile?.avatarUrl ?? null,
           phone: profile?.phone ?? null,
           bio: null,

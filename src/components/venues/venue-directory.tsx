@@ -9,9 +9,9 @@ import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { VenueCard } from "@/components/venues/venue-card"
 import { VenueMap } from "@/components/venues/venue-map"
-import { usePublicVenues } from "@/hooks/use-venues"
-import { CATEGORIES, getCategoryById } from "@/constants/categories"
-import { VENUE_ZONES } from "@/constants/venues"
+import { useCatalogReady, usePublicVenues } from "@/hooks/use-venues"
+import { ALL_CATEGORIES, getCategoryById } from "@/constants/categories"
+import type { Venue } from "@/constants/venues"
 import { useFavorites } from "@/hooks/use-favorites"
 import { useIsClient } from "@/hooks/use-is-client"
 import { cn } from "@/utils/cn"
@@ -32,6 +32,8 @@ interface VenueDirectoryProps {
   initialQuery?: string
   initialCategory?: string
   initialCity?: string
+  /** Records resolved on the server so the first paint already shows them. */
+  initialVenues?: Venue[]
   /** Keep the URL in sync while filtering (base `/locales` route only). */
   syncUrl?: boolean
 }
@@ -45,6 +47,7 @@ export function VenueDirectory({
   initialQuery = "",
   initialCategory = "all",
   initialCity,
+  initialVenues,
   syncUrl = false,
 }: VenueDirectoryProps) {
   const { t, i18n } = useTranslation()
@@ -63,21 +66,45 @@ export function VenueDirectory({
   const [sort, setSort] = useState<SortKey>("relevance")
   const [showMap, setShowMap] = useState(false)
   const { count: favoritesCount } = useFavorites()
-  const venues = usePublicVenues()
+  const storeVenues = usePublicVenues()
+  const ready = useCatalogReady()
+  // Server-resolved records paint immediately; the live store takes over once
+  // the catalog finishes loading on the client.
+  const venues = storeVenues.length > 0 ? storeVenues : (initialVenues ?? [])
   const isClient = useIsClient()
   const locale = toIntlLocale(i18n.language ?? "es")
 
-  const zones = useMemo(
-    () => (initialCity ? VENUE_ZONES.filter((item) => item.city === initialCity) : VENUE_ZONES),
-    [initialCity],
-  )
+  const availableCategories = useMemo(() => {
+    const present = new Set<string>()
+    for (const venue of venues) {
+      for (const id of venue.categoryIds ?? [venue.categoryId]) {
+        if (id) present.add(id)
+      }
+    }
+    return ALL_CATEGORIES.filter((item) => present.has(item.id))
+  }, [venues])
+
+  const zones = useMemo(() => {
+    const unique = new Map<string, { area: string; city: string }>()
+    for (const venue of venues) {
+      if (initialCity && venue.city !== initialCity) continue
+      if (!venue.area) continue
+      unique.set(venue.area, { area: venue.area, city: venue.city })
+    }
+    return [...unique.values()].sort((a, b) => a.area.localeCompare(b.area))
+  }, [venues, initialCity])
 
   const results = useMemo(() => {
     const needle = normalize(query)
 
     const filtered = venues.filter((venue) => {
       if (initialCity && venue.city !== initialCity) return false
-      if (category !== "all" && venue.categoryId !== category) return false
+      if (
+        category !== "all" &&
+        !(venue.categoryIds?.includes(category) ?? venue.categoryId === category)
+      ) {
+        return false
+      }
       if (zone !== "all" && venue.area !== zone) return false
       if (!needle) return true
 
@@ -86,9 +113,14 @@ export function VenueDirectory({
           venue.name,
           venue.city,
           venue.area,
-          t(`categories.${venue.categoryId}`),
+          venue.address,
+          venue.categoryId ? t(`categories.${venue.categoryId}`) : "",
+          ...(venue.categoryNames ?? []),
           ...venue.services.map((service) => t(`venues.services.${service}`)),
-        ].join(" "),
+          ...(venue.serviceList ?? []).map((service) => service.name),
+        ]
+          .filter(Boolean)
+          .join(" "),
       )
 
       return haystack.includes(needle)
@@ -108,13 +140,15 @@ export function VenueDirectory({
 
   const mapPoints = useMemo(
     () =>
-      results.map((venue) => ({
-        id: venue.id,
-        name: venue.name,
-        lat: venue.lat,
-        lon: venue.lon,
-        href: `/locales/${venue.id}`,
-      })),
+      results
+        .filter((venue) => venue.hasCoords !== false)
+        .map((venue) => ({
+          id: venue.id,
+          name: venue.name,
+          lat: venue.lat,
+          lon: venue.lon,
+          href: `/locales/${venue.id}`,
+        })),
     [results],
   )
 
@@ -233,7 +267,7 @@ export function VenueDirectory({
             >
               {t("directory.all")}
             </button>
-            {CATEGORIES.map((item) => (
+            {availableCategories.map((item) => (
               <button
                 key={item.id}
                 type="button"
@@ -314,10 +348,12 @@ export function VenueDirectory({
               )}
             </ButtonLink>
 
-            <p className="text-cream/45 ml-auto inline-flex items-center gap-2 text-xs">
-              <span aria-hidden="true" className="bg-gold size-1.5 animate-pulse rounded-full" />
-              {t("directory.socialProof", { count: proofCount })}
-            </p>
+            {ready && (
+              <p className="text-cream/45 ml-auto inline-flex items-center gap-2 text-xs">
+                <span aria-hidden="true" className="bg-gold size-1.5 animate-pulse rounded-full" />
+                {t("directory.socialProof", { count: proofCount })}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -342,7 +378,16 @@ export function VenueDirectory({
             {t("directory.results", { count: results.length })}
           </p>
 
-          {results.length > 0 ? (
+          {!ready && venues.length === 0 ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map((index) => (
+                <div
+                  key={index}
+                  className="border-cream/10 bg-cream/2 h-72 animate-pulse rounded-3xl border"
+                />
+              ))}
+            </div>
+          ) : results.length > 0 ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {results.map((venue) => (
                 <VenueCard key={venue.id} venue={venue} locale={locale} />

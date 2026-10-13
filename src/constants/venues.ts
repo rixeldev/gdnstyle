@@ -6,6 +6,42 @@
  * (used by the map, directions links and structured data).
  * `image`/`gallery` are test photos under `public/venues` (cover first).
  */
+/** A professional (`providers` row) attached to a location. */
+export interface VenueProfessional {
+  id: string
+  name: string
+  photo?: string
+  rating: number
+  reviews: number
+  /** Raw category names the professional works with (database records). */
+  specialties?: string[]
+  /** i18n key under `venues.professionals.specialties.*` (static records). */
+  specialtyKey?: string
+  /** Years of experience (static records only). */
+  experience?: number
+}
+
+/** A bookable service (`provider_services` row) offered at a location. */
+export interface VenueServiceItem {
+  id: string
+  providerId: string
+  providerName: string
+  name: string
+  category?: string
+  price: number
+  durationMin: number
+}
+
+/** A customer review (`location_reviews` row). */
+export interface VenueReviewItem {
+  id: string
+  /** Reviewer name when known; the UI falls back to a generic label. */
+  author?: string
+  rating: number
+  text: string
+  createdAt?: string
+}
+
 export interface Venue {
   id: string
   name: string
@@ -39,6 +75,24 @@ export interface Venue {
   instagram?: string
   /** When `true` the venue is hidden from the public directory. */
   hidden?: boolean
+  /** Every category id when the record lists several (database records). */
+  categoryIds?: string[]
+  /** Raw category names exactly as stored in the database. */
+  categoryNames?: string[]
+  /** Street address from the database (static records have none). */
+  address?: string
+  /** Country name from the database (used by structured data). */
+  country?: string
+  /** Professionals working at this location (database records). */
+  professionals?: VenueProfessional[]
+  /** Real services from `provider_services` (database records). */
+  serviceList?: VenueServiceItem[]
+  /** Real reviews from `location_reviews` (database records). */
+  reviewsList?: VenueReviewItem[]
+  /** Where the record came from; database records carry no test data. */
+  source?: "static" | "database"
+  /** Whether `lat`/`lon` are real coordinates (database rows may have none). */
+  hasCoords?: boolean
 }
 
 export const VENUES: Venue[] = [

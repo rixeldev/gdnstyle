@@ -9,9 +9,9 @@ import { toast } from "@/components/ui/toast"
 import { DatePicker } from "@/components/venues/date-picker"
 import { PaymentForm } from "@/components/venues/payment-form"
 import { getVenueProfessionals } from "@/constants/professionals"
-import { serviceDurationMin, servicePrice } from "@/constants/services"
+import { venueServiceOptions } from "@/libs/marketplace/venue-services"
 import type { Venue } from "@/constants/venues"
-import { useBookings } from "@/hooks/use-bookings"
+import { type Booking, useBookings } from "@/hooks/use-bookings"
 import { useBookingAccess, useSession } from "@/libs/session"
 import { createId } from "@/libs/storage"
 import { cn } from "@/utils/cn"
@@ -22,6 +22,11 @@ const DAYS_AHEAD = 60
 const SLOT_START_MIN = 9 * 60
 const SLOT_END_MIN = 18 * 60 + 15
 const SLOT_STEP_MIN = 45
+
+/** Current epoch milliseconds, read from the event handler (kept out of render). */
+function nowMs(): number {
+  return Date.now()
+}
 
 interface Slot {
   time: string
@@ -75,7 +80,21 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
   const { ready: accessReady, allowed } = useBookingAccess()
   const { user } = useSession()
   const { add } = useBookings()
-  const professionals = getVenueProfessionals(venue)
+  const databaseProfessionals = venue.professionals ?? []
+  const professionals: { id: string; name: string }[] =
+    databaseProfessionals.length > 0
+      ? databaseProfessionals.map((professional) => ({
+          id: professional.id,
+          name: professional.name,
+        }))
+      : getVenueProfessionals(venue).map((professional) => ({
+          id: professional.id,
+          name: professional.name,
+        }))
+  const serviceOptions = venueServiceOptions(venue).map((option) => ({
+    ...option,
+    displayLabel: option.label ?? (option.labelKey ? t(option.labelKey) : ""),
+  }))
 
   const [step, setStep] = useState(0)
   const [serviceId, setServiceId] = useState<string | null>(null)
@@ -136,26 +155,44 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     setConfirmed(null)
   }
 
-  function handlePaid() {
+  async function handlePaid() {
     if (!serviceId || !dateKey || !time) return
-    const booking = {
+    const service = serviceOptions.find((option) => option.id === serviceId)
+    // The database requires a provider: fall back to the one offering the
+    // selected service, then to the first professional of the venue.
+    const providerId = professionalId ?? service?.professionalId ?? professionals[0]?.id ?? null
+    const booking: Booking = {
       id: createId(venue.id),
       venueId: venue.id,
       serviceId,
-      professionalId,
+      professionalId: providerId,
       date: dateKey,
       time,
-      price: servicePrice(venue, serviceId),
-      createdAt: Date.now(),
+      price: service?.price ?? venue.priceFrom,
+      createdAt: nowMs(),
+      serviceName: service?.displayLabel,
+      professionalName: professionals.find((item) => item.id === providerId)?.name,
+      durationMinutes: service?.durationMin,
+      clientName: user?.fullName ?? undefined,
+      clientEmail: user?.email ?? undefined,
+      clientPhone: user?.phone ?? undefined,
+      database: venue.source === "database",
     }
-    add(booking)
-    setConfirmed({ id: booking.id, date: dateKey, time })
-    toast(
-      t("venues.booking.toast", {
-        date: longDate(dateKey, locale),
-        time: timeLabel(time, locale),
-      }),
-    )
+
+    try {
+      // Persists to `appointments` when Supabase is configured, otherwise keeps
+      // the local test record.
+      const saved = await add(booking)
+      setConfirmed({ id: saved.id, date: saved.date, time: saved.time })
+      toast(
+        t("venues.booking.toast", {
+          date: longDate(dateKey, locale),
+          time: timeLabel(time, locale),
+        }),
+      )
+    } catch {
+      toast(t("errors.generic"), "neutral")
+    }
   }
 
   if (confirmed) {
@@ -187,13 +224,15 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     )
   }
 
-  const serviceLabel = serviceId ? t(`venues.services.${serviceId}`) : ""
+  const selectedService = serviceOptions.find((option) => option.id === serviceId) ?? null
+  const serviceLabel = selectedService?.displayLabel ?? ""
   const professionalLabel =
     professionalId === null
       ? t("venues.professionals.anyone")
       : (professionals.find((item) => item.id === professionalId)?.name ??
         t("venues.professionals.anyone"))
-  const price = serviceId ? servicePrice(venue, serviceId) : venue.priceFrom
+  const price = selectedService ? selectedService.price : venue.priceFrom
+  const serviceDuration = selectedService?.durationMin ?? 0
   const canContinue = step === 0 ? Boolean(serviceId) : Boolean(dateKey && time)
 
   return (
@@ -230,13 +269,13 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
             {t("venues.booking.serviceLabel")}
           </legend>
           <div className="mt-3 space-y-2">
-            {venue.services.map((id) => {
-              const active = serviceId === id
+            {serviceOptions.map((option) => {
+              const active = serviceId === option.id
               return (
                 <button
-                  key={id}
+                  key={option.id}
                   type="button"
-                  onClick={() => setServiceId(id)}
+                  onClick={() => setServiceId(option.id)}
                   aria-pressed={active}
                   className={cn(
                     "flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left text-sm transition",
@@ -246,13 +285,13 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
                   )}
                 >
                   <span>
-                    <span className="block font-medium">{t(`venues.services.${id}`)}</span>
+                    <span className="block font-medium">{option.displayLabel}</span>
                     <span className="text-cream/45 text-xs">
-                      {t("venues.booking.duration", { count: serviceDurationMin(id) })}
+                      {t("venues.booking.duration", { count: option.durationMin })}
                     </span>
                   </span>
                   <span className="text-cream shrink-0 font-semibold">
-                    {formatCurrency(servicePrice(venue, id), locale, "DOP", {
+                    {formatCurrency(option.price, locale, "DOP", {
                       maximumFractionDigits: 0,
                     })}
                   </span>
@@ -360,8 +399,9 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
             <div className="flex justify-between gap-3">
               <dt className="text-cream/50">{t("venues.booking.summaryService")}</dt>
               <dd className="text-right">
-                {serviceLabel} ·{" "}
-                {t("venues.booking.duration", { count: serviceDurationMin(serviceId ?? "") })}
+                {serviceLabel}
+                {serviceDuration > 0 &&
+                  ` · ${t("venues.booking.duration", { count: serviceDuration })}`}
               </dd>
             </div>
             <div className="flex justify-between gap-3">

@@ -6,11 +6,12 @@ import { useTranslation } from "react-i18next"
 import { BookButton } from "@/components/venues/book-button"
 import { FavoriteButton } from "@/components/venues/favorite-button"
 import { Icon } from "@/components/ui/icon"
-import { CATEGORIES } from "@/constants/categories"
+import { getCategoryById } from "@/constants/categories"
 import { categoryCover } from "@/constants/covers"
 import type { Venue } from "@/constants/venues"
 import { cn } from "@/utils/cn"
 import { formatCurrency, formatNumber } from "@/utils/format"
+import { venueLocationLabel } from "@/utils/venue"
 
 interface VenueCardProps {
   venue: Venue
@@ -20,7 +21,12 @@ interface VenueCardProps {
 
 export function VenueCard({ venue, locale }: VenueCardProps) {
   const { t } = useTranslation()
-  const category = CATEGORIES.find((item) => item.id === venue.categoryId)
+  const category = getCategoryById(venue.categoryId)
+  const categoryLabel = category ? t(category.labelKey) : (venue.categoryNames?.[0] ?? "")
+  const serviceLabels =
+    venue.serviceList && venue.serviceList.length > 0
+      ? venue.serviceList.slice(0, 3).map((service) => service.name)
+      : venue.services.slice(0, 3).map((service) => t(`venues.services.${service}`))
   const rating = formatNumber(venue.rating, locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
@@ -37,13 +43,15 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
             categoryCover(venue.categoryId),
           )}
         />
-        <Image
-          src={venue.image}
-          alt={t("directory.venueImageAlt", { name: venue.name })}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition duration-500 group-hover:scale-105"
-        />
+        {venue.image && (
+          <Image
+            src={venue.image}
+            alt={t("directory.venueImageAlt", { name: venue.name })}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition duration-500 group-hover:scale-105"
+          />
+        )}
         <div
           aria-hidden="true"
           className="from-ink-card via-ink-card/20 absolute inset-0 bg-linear-to-t to-transparent"
@@ -57,10 +65,10 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
           </span>
         )}
 
-        {category && (
+        {categoryLabel && (
           <span className="border-gold/25 bg-ink/70 text-gold absolute bottom-3 left-4 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] font-medium tracking-[0.16em] uppercase backdrop-blur-sm">
-            <Icon name={category.icon} className="size-3" />
-            {t(category.labelKey)}
+            <Icon name={category?.icon ?? "sparkles"} className="size-3" />
+            {categoryLabel}
           </span>
         )}
       </div>
@@ -70,7 +78,7 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
 
         <p className="text-cream/50 mt-1.5 flex items-center gap-1.5 text-xs">
           <Icon name="map-pin" className="text-gold size-3.5 shrink-0" />
-          {venue.area}, {venue.city}
+          {venueLocationLabel(venue)}
         </p>
 
         <div className="mt-3 flex items-center gap-2 text-xs">
@@ -95,12 +103,12 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
         </div>
 
         <ul className="mt-3 mb-5 flex flex-wrap gap-1.5">
-          {venue.services.slice(0, 3).map((service) => (
+          {serviceLabels.map((label, index) => (
             <li
-              key={service}
+              key={`${label}-${index}`}
               className="border-cream/10 text-cream/55 rounded-full border px-2.5 py-1 text-[11px]"
             >
-              {t(`venues.services.${service}`)}
+              {label}
             </li>
           ))}
         </ul>

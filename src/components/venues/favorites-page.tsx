@@ -7,16 +7,19 @@ import { Breadcrumbs, type Crumb } from "@/components/ui/breadcrumbs"
 import { ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { VenueCard } from "@/components/venues/venue-card"
-import { usePublicVenues } from "@/hooks/use-venues"
+import { useCatalogReady, usePublicVenues } from "@/hooks/use-venues"
 import { useFavorites } from "@/hooks/use-favorites"
 import { toIntlLocale } from "@/utils/format"
 
-/** Saved venues page: the locally favourited records, newest first. */
+/** Saved venues page: the account's favourited records, in the saved order. */
 export function FavoritesPage() {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language ?? "es")
   const { favorites, ready, count } = useFavorites()
   const allVenues = usePublicVenues()
+  const catalogReady = useCatalogReady()
+  // Wait for both the saved ids and the catalog the cards come from.
+  const loading = !ready || !catalogReady
 
   const venues = useMemo(
     () =>
@@ -67,7 +70,7 @@ export function FavoritesPage() {
 
       <section className="px-5 pb-24 md:px-8">
         <div className="mx-auto max-w-6xl">
-          {!ready ? (
+          {!loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[0, 1, 2].map((index) => (
                 <div key={index} className="bg-cream/5 h-80 animate-pulse rounded-3xl" />

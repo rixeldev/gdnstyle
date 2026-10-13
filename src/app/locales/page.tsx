@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 
 import { VenueShell } from "@/components/venues/venue-shell"
 import { VenueDirectory } from "@/components/venues/venue-directory"
+import { getServerCatalog } from "@/libs/marketplace/server"
 
 export const metadata: Metadata = {
   title: "Explora locales de belleza",
@@ -19,14 +20,15 @@ interface LocalesPageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-/** Marketplace venue directory (Vagaro/Booksy style) with test records for now. */
+/** Marketplace venue directory backed by the live Supabase catalog. */
 export default async function LocalesPage({ searchParams }: LocalesPageProps) {
   const params = await searchParams
   const query = typeof params.q === "string" ? params.q : ""
+  const venues = await getServerCatalog()
 
   return (
     <VenueShell>
-      <VenueDirectory initialQuery={query} syncUrl />
+      <VenueDirectory initialQuery={query} initialVenues={venues} syncUrl />
     </VenueShell>
   )
 }

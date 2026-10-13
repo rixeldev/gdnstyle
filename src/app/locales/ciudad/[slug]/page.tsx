@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 
 import { VenueDirectory } from "@/components/venues/venue-directory"
 import { VenueShell } from "@/components/venues/venue-shell"
-import { VENUES, VENUE_CITIES } from "@/constants/venues"
+import { catalogCities, getServerCatalog } from "@/libs/marketplace/server"
 import { slugify } from "@/utils/slug"
 
 interface CityPageProps {
@@ -12,36 +12,28 @@ interface CityPageProps {
 
 /**
  * Blocking route: the city comes from `params` and the list is filtered from
- * it, so opt out of instant-navigation validation (it still prerenders via
- * `generateStaticParams`).
+ * it, so opt out of instant-navigation validation. The city list comes from the
+ * live catalog, so there is no `generateStaticParams`.
  */
 export const instant = false
 
-function cityBySlug(slug: string): string | undefined {
-  return VENUE_CITIES.find((city) => slugify(city) === slug)
-}
-
-/** Prerender one landing page per city. */
-export function generateStaticParams() {
-  return VENUE_CITIES.map((city) => ({ slug: slugify(city) }))
-}
-
 export async function generateMetadata({ params }: CityPageProps): Promise<Metadata> {
   const { slug } = await params
-  const city = cityBySlug(slug)
+  const venues = await getServerCatalog()
+  const city = catalogCities(venues).find((item) => slugify(item) === slug)
   if (!city) return { title: "Ciudad no encontrada" }
 
-  const count = VENUES.filter((venue) => venue.city === city).length
+  const count = venues.filter((venue) => venue.city === city).length
 
   return {
     title: `Locales de belleza en ${city}`,
-    description: `Salones, barberías y estudios de belleza en ${city}. ${
-      count === 1 ? "1 local" : `${count} locales`
-    } valorados por clientas reales. Reserva tu cita online en GDN Style.`,
+    description: `Encuentra locales en ${city} en GDN Style y reserva tu cita online. ${
+      count === 1 ? "1 local disponible" : `${count} locales disponibles`
+    }.`,
     alternates: { canonical: `/locales/ciudad/${slug}` },
     openGraph: {
-      title: `Belleza en ${city} · GDN Style`,
-      description: `Descubre y reserva los mejores locales de ${city}.`,
+      title: `${city} · GDN Style`,
+      description: `Reserva tu cita en los mejores locales de ${city}.`,
     },
   }
 }
@@ -49,12 +41,13 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
 /** SEO landing page for a city. */
 export default async function CityPage({ params }: CityPageProps) {
   const { slug } = await params
-  const city = cityBySlug(slug)
+  const venues = await getServerCatalog()
+  const city = catalogCities(venues).find((item) => slugify(item) === slug)
   if (!city) notFound()
 
   return (
     <VenueShell>
-      <VenueDirectory initialCity={city} />
+      <VenueDirectory initialCity={city} initialVenues={venues} />
     </VenueShell>
   )
 }

@@ -31,9 +31,12 @@ export function AppointmentsSection() {
 
   function renderBooking(booking: Booking, isUpcoming: boolean) {
     const venue = venues.find((item) => item.id === booking.venueId)
-    const professional = booking.professionalId
-      ? getProfessionalById(booking.professionalId)
-      : undefined
+    // Database bookings carry the raw service/provider labels; local records
+    // fall back to the static pool + i18n table.
+    const professionalName =
+      booking.professionalName ??
+      (booking.professionalId ? getProfessionalById(booking.professionalId)?.name : undefined)
+    const serviceLabel = booking.serviceName ?? t(`venues.services.${booking.serviceId}`)
     const date = parseDateKey(booking.date)
 
     return (
@@ -62,11 +65,11 @@ export function AppointmentsSection() {
             </span>
           )}
           <span className="text-cream/50 mt-1 block text-xs">
-            {t(`venues.services.${booking.serviceId}`)} ·{" "}
+            {serviceLabel} ·{" "}
             {t("dashboard.customer.atTime", {
               time: formatTime(new Date(`${booking.date}T${booking.time}:00`), locale),
             })}
-            {professional ? ` · ${professional.name}` : ""}
+            {professionalName ? ` · ${professionalName}` : ""}
           </span>
         </span>
 

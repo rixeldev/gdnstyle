@@ -20,3 +20,18 @@ export function createVenueSchema(t: Translate) {
 }
 
 export type VenueFormValues = z.infer<ReturnType<typeof createVenueSchema>>
+
+/**
+ * Validation for a database-backed venue. Only `locations` columns can be
+ * stored (name/address/city/category/photos), so services, price, description
+ * and contact fields are not part of the schema.
+ */
+export function createDatabaseVenueSchema(t: Translate) {
+  return z.object({
+    name: z.string().trim().min(2, t("validation.venueNameMin")),
+    categoryId: z.string().min(1, t("validation.venueCategoryRequired")),
+    city: z.string().trim().min(2, t("validation.venueCityRequired")),
+    area: z.string().trim().min(2, t("validation.venueAreaRequired")),
+    image: z.string().min(1, t("validation.venuePhotoRequired")),
+  })
+}

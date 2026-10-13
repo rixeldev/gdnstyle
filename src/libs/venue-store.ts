@@ -1,12 +1,13 @@
 /**
- * Local venue overlay.
+ * Venue source for the marketplace.
  *
- * Supabase is optional in this project, so the professional's venue management
- * (create, edit, hide, remove, claim) is persisted in localStorage and merged
- * over the static test records in `@/constants/venues`. Every client component
- * that lists venues reads the merged view, so a professional's changes show up
- * across the marketplace (directory, search, favorites, venue page) while the
- * base records stay untouched.
+ * Two modes:
+ * - Supabase configured: `@/libs/marketplace/loader` publishes the live catalog
+ *   (locations + providers + services) through `setCatalogVenues`, and every
+ *   client component reads it from this store. No test records are shown.
+ * - Supabase not configured: the professional's venue management (create, edit,
+ *   hide, remove, claim) is persisted in localStorage and merged over the static
+ *   records in `@/constants/venues`, so the demo keeps working.
  *
  * Ownership lives on `Venue.ownerId`: the seed records claim a couple of venues
  * for the demo professional, and venues created here are stamped with the
@@ -15,6 +16,7 @@
  */
 import { VENUES, type Venue } from "@/constants/venues"
 import { broadcastStorageChange, createId, readStorage, writeStorage } from "@/libs/storage"
+import { isSupabaseConfigured } from "@/libs/supabase/env"
 
 const CUSTOM_KEY = "gdn.venues.custom"
 const EDITS_KEY = "gdn.venues.edits"
@@ -90,8 +92,31 @@ function signature(): string {
   }
 }
 
+const EMPTY: Venue[] = []
+
+/**
+ * Live catalog loaded from Supabase (see `@/libs/marketplace/loader`). When the
+ * project is configured the database replaces the static/local test records
+ * entirely; before the load resolves the snapshot stays empty (honest loading
+ * state) instead of showing placeholder venues.
+ */
+let catalogVenues: Venue[] | null = null
+
+/** Store the catalog fetched from the database and notify subscribers. */
+export function setCatalogVenues(venues: Venue[]): void {
+  catalogVenues = venues
+  broadcastStorageChange()
+}
+
+/** `true` once the database catalog is available (or Supabase is not used). */
+export function catalogReady(): boolean {
+  return !isSupabaseConfigured || catalogVenues !== null
+}
+
 /** Stable merged snapshot for `useSyncExternalStore` (client). */
 export function venuesSnapshot(): Venue[] {
+  if (isSupabaseConfigured) return catalogVenues ?? EMPTY
+
   const key = signature()
   if (cache && cache.key === key) return cache.value
   const value = mergeVenues()
@@ -101,7 +126,7 @@ export function venuesSnapshot(): Venue[] {
 
 /** Base records shown on the server and during hydration. */
 export function venuesServerSnapshot(): Venue[] {
-  return VENUES
+  return isSupabaseConfigured ? EMPTY : VENUES
 }
 
 /** Coordinates for a city, averaged from known venues (custom venues need a pin). */

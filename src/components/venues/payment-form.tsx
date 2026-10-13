@@ -13,7 +13,8 @@ interface PaymentFormProps {
   /** Amount in DOP (major units). Sent to the gateway as cents. */
   amount: number
   amountLabel: string
-  onPaid: () => void
+  /** Creates the booking; may write to the database, so it can be async. */
+  onPaid: () => void | Promise<void>
 }
 
 interface PaymentValues {
@@ -127,8 +128,12 @@ export function PaymentForm({ amount, amountLabel, onPaid }: PaymentFormProps) {
     if (realCheckout && (await startRealCheckout())) return
 
     await new Promise((resolve) => setTimeout(resolve, 1500))
-    setProcessing(false)
-    onPaid()
+    try {
+      // Keep the button loading until the booking is actually persisted.
+      await onPaid()
+    } finally {
+      setProcessing(false)
+    }
   }
 
   return (

@@ -12,11 +12,12 @@ import { Icon } from "@/components/ui/icon"
 import { getCategoryById } from "@/constants/categories"
 import { categoryCover } from "@/constants/covers"
 import { getVenueProfessionals } from "@/constants/professionals"
-import { serviceDurationMin, servicePrice } from "@/constants/services"
 import type { Venue } from "@/constants/venues"
 import { cn } from "@/utils/cn"
 import { formatCurrency, formatNumber, toIntlLocale } from "@/utils/format"
 import { initials } from "@/utils/initials"
+import { venueLocationLabel } from "@/utils/venue"
+import { venueServiceOptions } from "@/libs/marketplace/venue-services"
 
 interface VenueDetailProps {
   venue: Venue
@@ -27,7 +28,28 @@ export function VenueDetail({ venue }: VenueDetailProps) {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language ?? "es")
   const category = getCategoryById(venue.categoryId)
-  const professionals = getVenueProfessionals(venue)
+  const categoryLabel = category ? t(category.labelKey) : (venue.categoryNames?.[0] ?? "")
+  const databaseProfessionals = venue.professionals ?? []
+  const professionals =
+    databaseProfessionals.length > 0
+      ? databaseProfessionals.map((professional) => ({
+          id: professional.id,
+          name: professional.name,
+          meta: (professional.specialties ?? []).join(", "),
+        }))
+      : getVenueProfessionals(venue).map((professional) => ({
+          id: professional.id,
+          name: professional.name,
+          meta: `${t(professional.specialtyKey)} · ${t("venues.professionals.experienceYears", {
+            count: professional.experience,
+          })}`,
+        }))
+  const serviceOptions = venueServiceOptions(venue).map((option) => ({
+    ...option,
+    displayLabel: option.label ?? (option.labelKey ? t(option.labelKey) : ""),
+  }))
+  const hasCoords = venue.hasCoords !== false
+  const galleryPhotos = venue.gallery.length > 0 ? venue.gallery : [""]
   const rating = formatNumber(venue.rating, locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
@@ -69,9 +91,9 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                   {t("venues.detail.galleryTitle")}
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {venue.gallery.map((photo, index) => (
+                  {galleryPhotos.map((photo, index) => (
                     <div
-                      key={photo}
+                      key={`${venue.id}-photo-${index}`}
                       className={cn(
                         "border-cream/10 relative h-32 overflow-hidden rounded-2xl border sm:h-36",
                         index === 0 && "col-span-2 sm:col-span-1",
@@ -84,16 +106,18 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                           categoryCover(venue.categoryId),
                         )}
                       />
-                      <Image
-                        src={photo}
-                        alt={t("venues.detail.galleryPhotoAlt", {
-                          name: venue.name,
-                          index: index + 1,
-                        })}
-                        fill
-                        sizes="(max-width: 640px) 100vw, 33vw"
-                        className="object-cover"
-                      />
+                      {photo && (
+                        <Image
+                          src={photo}
+                          alt={t("venues.detail.galleryPhotoAlt", {
+                            name: venue.name,
+                            index: index + 1,
+                          })}
+                          fill
+                          sizes="(max-width: 640px) 100vw, 33vw"
+                          className="object-cover"
+                        />
+                      )}
                     </div>
                   ))}
                 </div>
@@ -102,10 +126,10 @@ export function VenueDetail({ venue }: VenueDetailProps) {
               {/* Header */}
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  {category && (
+                  {categoryLabel && (
                     <span className="border-gold/25 bg-ink/70 text-gold inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase backdrop-blur-sm">
-                      <Icon name={category.icon} className="size-3.5" />
-                      {t(category.labelKey)}
+                      <Icon name={category?.icon ?? "sparkles"} className="size-3.5" />
+                      {categoryLabel}
                     </span>
                   )}
                   <span className="text-gold border-gold/25 bg-gold/10 inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[11px] font-medium tracking-[0.16em] uppercase">
@@ -124,7 +148,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
 
                 <p className="text-cream/60 mt-3 flex items-center gap-2 text-sm">
                   <Icon name="map-pin" className="text-gold size-4 shrink-0" />
-                  {venue.area}, {venue.city}
+                  {venueLocationLabel(venue)}
                 </p>
 
                 <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -213,21 +237,21 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                   {t("venues.detail.servicesTitle")}
                 </h2>
                 <ul className="border-cream/10 bg-cream/2 divide-cream/10 mt-4 divide-y rounded-3xl border">
-                  {venue.services.map((service) => (
+                  {serviceOptions.map((service) => (
                     <li
-                      key={service}
+                      key={service.id}
                       className="flex items-center justify-between gap-4 px-5 py-3.5"
                     >
                       <span className="text-cream/85 flex items-center gap-2.5 text-sm">
                         <Icon name="check" className="text-gold size-4 shrink-0" />
-                        {t(`venues.services.${service}`)}
+                        {service.displayLabel}
                       </span>
                       <span className="flex shrink-0 items-center gap-4 text-sm">
                         <span className="text-cream/40 text-xs">
-                          {t("venues.booking.duration", { count: serviceDurationMin(service) })}
+                          {t("venues.booking.duration", { count: service.durationMin })}
                         </span>
                         <span className="text-cream font-semibold">
-                          {formatCurrency(servicePrice(venue, service), locale, "DOP", {
+                          {formatCurrency(service.price, locale, "DOP", {
                             maximumFractionDigits: 0,
                           })}
                         </span>
@@ -255,12 +279,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                         <span className="text-cream block text-sm font-semibold">
                           {professional.name}
                         </span>
-                        <span className="text-cream/50 block text-xs">
-                          {t(professional.specialtyKey)} ·{" "}
-                          {t("venues.professionals.experienceYears", {
-                            count: professional.experience,
-                          })}
-                        </span>
+                        <span className="text-cream/50 block text-xs">{professional.meta}</span>
                       </span>
                     </div>
                   ))}
@@ -298,27 +317,29 @@ export function VenueDetail({ venue }: VenueDetailProps) {
               <ReviewSection venue={venue} locale={locale} />
 
               {/* Map */}
-              <div>
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <h2 className="font-display text-xl font-semibold">
-                    {t("venues.detail.mapTitle")}
-                  </h2>
-                  <a
-                    href={directionsHref}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gold inline-flex items-center gap-1.5 text-sm underline-offset-4 transition hover:underline"
-                  >
-                    {t("venues.detail.mapDirections")}
-                    <Icon name="arrow-up-right" className="size-4" />
-                  </a>
+              {hasCoords && (
+                <div>
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <h2 className="font-display text-xl font-semibold">
+                      {t("venues.detail.mapTitle")}
+                    </h2>
+                    <a
+                      href={directionsHref}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-gold inline-flex items-center gap-1.5 text-sm underline-offset-4 transition hover:underline"
+                    >
+                      {t("venues.detail.mapDirections")}
+                      <Icon name="arrow-up-right" className="size-4" />
+                    </a>
+                  </div>
+                  <VenueMap
+                    points={mapPoints}
+                    label={t("venues.detail.mapHint", { name: venue.name })}
+                    className="border-cream/10 mt-4 h-75 w-full overflow-hidden rounded-4xl border"
+                  />
                 </div>
-                <VenueMap
-                  points={mapPoints}
-                  label={t("venues.detail.mapHint", { name: venue.name })}
-                  className="border-cream/10 mt-4 h-75 w-full overflow-hidden rounded-4xl border"
-                />
-              </div>
+              )}
             </div>
 
             {/* Booking card */}

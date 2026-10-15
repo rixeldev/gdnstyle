@@ -138,7 +138,7 @@ export function Select({
         onClick={() => (open ? setOpen(false) : openMenu())}
         onKeyDown={handleKeyDown}
         className={cn(
-          "inline-flex h-9 max-w-56 cursor-pointer items-center gap-2 rounded-full border py-1.5 pr-8 pl-3.5 text-xs font-medium transition",
+          "relative inline-flex h-9 max-w-56 cursor-pointer items-center gap-2 rounded-full border py-1.5 pr-8 pl-3.5 text-xs font-medium transition",
           variant === "ghost"
             ? "text-cream/80 hover:border-cream/15 hover:bg-cream/5 hover:text-cream border-transparent bg-transparent"
             : "border-cream/15 bg-ink-card text-cream hover:border-gold/40 hover:bg-cream/5",
@@ -149,16 +149,25 @@ export function Select({
         )}
       >
         <span className="truncate">{current?.label ?? ""}</span>
+        {/*
+          Inside the trigger instead of beside it. The wrapper can be wider
+          than the button -- a form passes `w-full` while the pill keeps its
+          `max-w-56` -- and from there the chevron sat past the button's edge,
+          where it looked detached from the control and did nothing on a click:
+          as a sibling carrying `pointer-events-none` it passed the click to the
+          wrapper, which has no handler. Anchored to the button it always sits
+          on the control, so the click it drops lands on the control too.
+        */}
+        <Icon
+          name="chevron-down"
+          aria-hidden="true"
+          className={cn(
+            "pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 transition-transform",
+            active ? "text-gold" : "text-cream/45",
+            open && "rotate-180",
+          )}
+        />
       </button>
-      <Icon
-        name="chevron-down"
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute top-1/2 right-2.5 size-3.5 -translate-y-1/2 transition-transform",
-          active ? "text-gold" : "text-cream/45",
-          open && "rotate-180",
-        )}
-      />
 
       {open && (
         <ul

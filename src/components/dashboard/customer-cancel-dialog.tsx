@@ -28,21 +28,28 @@ interface CustomerCancelDialogProps {
  * it on their dashboard, which is the only way a refusal is ever explained.
  */
 export function CustomerCancelDialog({ booking, cancel, onClose }: CustomerCancelDialogProps) {
+  // Mounted only while a booking is picked. The prompt below owns its fields and
+  // is keyed on the booking id, so choosing another appointment remounts it and
+  // starts it empty. No state is ever synchronised from the prop, which means
+  // nothing runs while the dialog sits closed.
+  if (!booking) return null
+  return <CancelPrompt key={booking.id} booking={booking} cancel={cancel} onClose={onClose} />
+}
+
+interface CancelPromptProps {
+  booking: Booking
+  cancel: (id: string, reason: string) => Promise<CancellationOutcome>
+  onClose: () => void
+}
+
+function CancelPrompt({ booking, cancel, onClose }: CancelPromptProps) {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language)
   const [reason, setReason] = useState("")
   const [busy, setBusy] = useState(false)
-  // Reset when the booking changes, adjusting state during render instead of
-  // in an effect: React's documented pattern for "the prop changed, the form
-  // starts clean", and it avoids a second render pass per dialog open.
-  const [openFor, setOpenFor] = useState<string | null>(null)
-  if (booking?.id !== openFor) {
-    setOpenFor(booking?.id ?? null)
-    setReason("")
-  }
 
   async function handleConfirm() {
-    if (!booking || !reason.trim()) return
+    if (!reason.trim()) return
     const id = booking.id
     const text = reason.trim()
     setBusy(true)
@@ -59,26 +66,22 @@ export function CustomerCancelDialog({ booking, cancel, onClose }: CustomerCance
 
   return (
     <ConfirmDialog
-      open={booking !== null}
+      open
       title={t("dashboard.customer.cancelConfirmTitle")}
-      body={
-        booking
-          ? `${t("dashboard.customer.cancelConfirmBody", {
-              service: booking.serviceName ?? t(`venues.services.${booking.serviceId}`),
-              date: formatDate(parseDateKey(booking.date), locale, {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-              }),
-            })} ${
-              booking.paymentStatus &&
-              booking.paymentStatus !== "none" &&
-              booking.paymentStatus !== "refunded"
-                ? t("dashboard.customer.cancelRefundNote")
-                : ""
-            }`
-          : undefined
-      }
+      body={`${t("dashboard.customer.cancelConfirmBody", {
+        service: booking.serviceName ?? t(`venues.services.${booking.serviceId}`),
+        date: formatDate(parseDateKey(booking.date), locale, {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        }),
+      })} ${
+        booking.paymentStatus &&
+        booking.paymentStatus !== "none" &&
+        booking.paymentStatus !== "refunded"
+          ? t("dashboard.customer.cancelRefundNote")
+          : ""
+      }`}
       confirmLabel={t("dashboard.customer.cancelConfirm")}
       cancelLabel={t("dashboard.customer.cancelKeep")}
       tone="danger"

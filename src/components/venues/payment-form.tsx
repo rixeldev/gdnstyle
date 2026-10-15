@@ -1,20 +1,54 @@
 "use client"
 
-import { useMemo, useState, type ChangeEvent, type FormEvent } from "react"
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
+import { StripePaymentCardForm, STRIPE_PUBLISHABLE_KEY } from "@/components/ui/stripe-elements"
 import { TextField } from "@/components/ui/text-field"
+import { FunctionError } from "@/libs/functions/invoke"
+import { useSession } from "@/libs/session"
+import { getSupabaseBrowserClient } from "@/libs/supabase/client"
+import type { DbAppointment } from "@/interfaces/appointments"
+import { isSlotAvailable } from "@/services/availability.service"
+import { SlotUnavailableError } from "@/services/appointments.service"
+import {
+  createAppointmentViaFunction,
+  createBookingPayment,
+  ensureStripeCustomer,
+  listPaymentMethods,
+  type StripePaymentMethodSummary,
+} from "@/services/payments.service"
 import { fieldErrorsFrom } from "@/utils/zod"
 
+/** Everything the Edge Function needs to create the `appointments` row. */
+export interface CloudBookingContext {
+  providerId: string
+  serviceId: string
+  serviceName: string | null
+  locationId: string
+  /** `YYYY-MM-DD`. */
+  date: string
+  /** `HH:MM`. */
+  time: string
+  durationMinutes?: number
+  clientName?: string | null
+  clientEmail?: string | null
+  clientPhone?: number | null
+}
+
 interface PaymentFormProps {
-  /** Amount in DOP (major units). Sent to the gateway as cents. */
+  /** Amount in major units. The Edge Functions charge in USD. */
   amount: number
   amountLabel: string
-  /** Creates the booking; may write to the database, so it can be async. */
+  /** Live booking context: enables the real edge-function payment flow. */
+  booking?: CloudBookingContext
+  /** Creates the booking in the demo/local gateway (no Supabase). */
   onPaid: () => void | Promise<void>
+  /** Cloud path: the `create-appointment` function created the row. */
+  onCloudPaid?: (appointment: DbAppointment) => void | Promise<void>
 }
 
 interface PaymentValues {
@@ -50,11 +84,321 @@ function expiryIsValid(value: string): boolean {
 
 /**
  * Card step that stands in for the payment gateway before an appointment is
- * created. It talks to `/api/checkout` (Stripe Checkout) when provider keys are
- * configured and otherwise runs a safe simulation, so the booking flow always
+ * created. With Supabase + a booking context it runs the real Stripe flow
+ * through the Edge Functions (saved card / new card / pay in person);
+ * otherwise it falls back to the safe simulation so the booking flow always
  * passes through a payment step.
  */
-export function PaymentForm({ amount, amountLabel, onPaid }: PaymentFormProps) {
+export function PaymentForm({
+  amount,
+  amountLabel,
+  booking,
+  onPaid,
+  onCloudPaid,
+}: PaymentFormProps) {
+  const supabase = getSupabaseBrowserClient()
+  const cloudMode = Boolean(supabase && booking && onCloudPaid)
+
+  if (cloudMode && booking && onCloudPaid) {
+    return (
+      <CloudPaymentForm
+        booking={booking}
+        amount={amount}
+        amountLabel={amountLabel}
+        onCloudPaid={onCloudPaid}
+      />
+    )
+  }
+
+  return <DemoPaymentForm amount={amount} amountLabel={amountLabel} onPaid={onPaid} />
+}
+
+type CloudMethod = "saved" | "new" | "in_person"
+
+interface CloudPaymentFormProps {
+  booking: CloudBookingContext
+  amount: number
+  amountLabel: string
+  onCloudPaid: (appointment: DbAppointment) => void | Promise<void>
+}
+
+/** Real payment step backed by the Supabase Edge Functions + Stripe Elements. */
+function CloudPaymentForm({ booking, amount, amountLabel, onCloudPaid }: CloudPaymentFormProps) {
+  const { t } = useTranslation()
+  const { user } = useSession()
+
+  const [cards, setCards] = useState<StripePaymentMethodSummary[] | null>(null)
+  const [method, setMethod] = useState<CloudMethod>(STRIPE_PUBLISHABLE_KEY ? "new" : "in_person")
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    // Card payments need the publishable key; without it only "pay in person"
+    // (cards stays null and the saved-card list simply renders as empty).
+    if (!STRIPE_PUBLISHABLE_KEY) return
+    let active = true
+    void listPaymentMethods()
+      .then((result) => {
+        if (!active) return
+        const list = result.paymentMethods ?? []
+        setCards(list)
+        if (list.length > 0) {
+          setMethod("saved")
+          setSelectedCardId(list[0].id)
+        }
+      })
+      // No Stripe customer yet (or the function is not deployed): the list is
+      // simply empty and the new-card option stays available.
+      .catch(() => {
+        if (active) setCards([])
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const appointmentInput = useMemo(
+    () => ({
+      serviceId: booking.serviceId,
+      serviceName: booking.serviceName,
+      providerId: booking.providerId,
+      locationId: booking.locationId,
+      scheduledDate: booking.date,
+      scheduledTime: booking.time,
+      durationMinutes: booking.durationMinutes ?? 30,
+      price: amount,
+    }),
+    [booking, amount],
+  )
+
+  async function finishWithAppointment(paymentIntentId: string | null, paymentMethod: "stripe") {
+    const result = await createAppointmentViaFunction({
+      ...appointmentInput,
+      paymentIntentId,
+      paymentMethod,
+    })
+    await onCloudPaid(result.appointment)
+  }
+
+  /**
+   * Error message for a failed payment/booking step. A slot that filled up
+   * while the form was open gets its own copy instead of a generic failure.
+   */
+  function failureMessage(error: unknown): string {
+    const slotTaken =
+      error instanceof SlotUnavailableError ||
+      (error instanceof FunctionError && error.serverCode === "SLOT_TAKEN")
+    if (slotTaken) return t("venues.booking.slotTaken")
+    return (error as Error)?.message || t("common.tryAgain")
+  }
+
+  /**
+   * Re-check the chosen hour right before money moves: the grid may be stale
+   * by the time the visitor submits, so refuse to charge for a taken slot.
+   */
+  async function assertSlotAvailable(): Promise<void> {
+    const client = getSupabaseBrowserClient()
+    if (!client) return
+    const available = await isSlotAvailable(client, {
+      providerId: booking.providerId,
+      locationId: booking.locationId,
+      dateKey: booking.date,
+      time: booking.time,
+      durationMinutes: booking.durationMinutes ?? 30,
+    })
+    if (!available) {
+      throw new SlotUnavailableError("slot-taken")
+    }
+  }
+
+  async function handleChoosePay(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setMessage(null)
+    setBusy(true)
+
+    try {
+      await assertSlotAvailable()
+
+      if (method === "in_person") {
+        const result = await createAppointmentViaFunction({
+          ...appointmentInput,
+          paymentMethod: "in_person",
+        })
+        await onCloudPaid(result.appointment)
+        return
+      }
+
+      if (method === "saved" && selectedCardId) {
+        const payment = await createBookingPayment({
+          amount,
+          providerId: booking.providerId,
+          paymentMethodId: selectedCardId,
+          metadata: {
+            flow: "booking",
+            service_id: booking.serviceId,
+            client_user_id: user?.id ?? "",
+          },
+        })
+        if (payment.status !== "succeeded") {
+          setMessage(t("venues.booking.paymentCardDeclined"))
+          return
+        }
+        await finishWithAppointment(payment.paymentIntentId, "stripe")
+        return
+      }
+
+      // New card: create the PaymentIntent, then mount the Stripe form.
+      await ensureStripeCustomer(user?.email ?? "", user?.fullName ?? undefined)
+      const payment = await createBookingPayment({
+        amount,
+        providerId: booking.providerId,
+        metadata: {
+          flow: "booking",
+          service_id: booking.serviceId,
+          client_user_id: user?.id ?? "",
+        },
+      })
+      if (!payment.clientSecret) {
+        setMessage(t("venues.booking.paymentCardDeclined"))
+        return
+      }
+      setClientSecret(payment.clientSecret)
+    } catch (error) {
+      setMessage(failureMessage(error))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const savedCards = cards ?? []
+  const cardless = method === "in_person"
+
+  return (
+    <form onSubmit={handleChoosePay} noValidate className="mt-4 space-y-4">
+      <div className="border-cream/10 bg-cream/3 flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm">
+        <span className="text-cream/60 inline-flex items-center gap-2">
+          <Icon name="credit-card" className="size-4" />
+          {t("venues.booking.paymentTotal")}
+        </span>
+        <span className="text-gold font-semibold">{amountLabel}</span>
+      </div>
+
+      {clientSecret ? (
+        <>
+          <StripePaymentCardForm
+            clientSecret={clientSecret}
+            buttonLabel={t("venues.booking.pay")}
+            onSuccess={async (paymentIntentId) => {
+              setMessage(null)
+              // The charge already succeeded; a slot-taken answer here must be
+              // surfaced instead of vanishing as an unhandled rejection.
+              try {
+                await finishWithAppointment(paymentIntentId, "stripe")
+              } catch (error) {
+                setMessage(failureMessage(error))
+              }
+            }}
+            onError={(value) => setMessage(value)}
+          />
+          <p className="text-cream/45 inline-flex items-center gap-2 text-xs">
+            <Icon name="shield" className="size-4 shrink-0" />
+            {t("venues.booking.paymentStripe")}
+          </p>
+        </>
+      ) : (
+        <>
+          {savedCards.length > 0 && (
+            <fieldset className="grid gap-2">
+              <legend className="text-cream/70 mb-1 text-sm">
+                {t("venues.booking.savedCards")}
+              </legend>
+              {savedCards.map((card, index) => (
+                <label
+                  key={card.id}
+                  className="border-cream/10 bg-cream/3 flex cursor-pointer items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm"
+                >
+                  <span className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      name="savedCard"
+                      checked={selectedCardId === card.id}
+                      onChange={() => {
+                        setMethod("saved")
+                        setSelectedCardId(card.id)
+                      }}
+                    />
+                    <span className="capitalize">
+                      {card.brand} •••• {card.last4}
+                    </span>
+                    <span className="text-cream/50">
+                      {card.exp_month.toString().padStart(2, "0")}/{card.exp_year}
+                    </span>
+                  </span>
+                  {index === 0 && (
+                    <span className="text-gold/80 text-xs">{t("venues.booking.defaultCard")}</span>
+                  )}
+                </label>
+              ))}
+            </fieldset>
+          )}
+
+          <label className="border-cream/10 bg-cream/3 flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
+            <input
+              type="radio"
+              name="payMethod"
+              checked={method === "new"}
+              onChange={() => setMethod("new")}
+            />
+            <Icon name="credit-card" className="size-4" />
+            {t("venues.booking.newCard")}
+          </label>
+
+          <label className="border-cream/10 bg-cream/3 flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
+            <input
+              type="radio"
+              name="payMethod"
+              checked={cardless}
+              onChange={() => setMethod("in_person")}
+            />
+            <Icon name="calendar" className="size-4" />
+            <span>
+              {t("venues.booking.payInPerson")}
+              <span className="text-cream/50 block text-xs">
+                {t("venues.booking.payInPersonHint")}
+              </span>
+            </span>
+          </label>
+
+          <Button type="submit" loading={busy} className="w-full">
+            {method === "new" ? t("venues.booking.continue") : t("venues.booking.pay")}
+          </Button>
+        </>
+      )}
+
+      {message && <p className="text-danger text-sm leading-relaxed">{message}</p>}
+
+      <p className="text-cream/45 inline-flex items-center gap-2 text-xs">
+        <Icon name="shield" className="size-4 shrink-0" />
+        {t("venues.booking.paymentPendingNote")}
+      </p>
+    </form>
+  )
+}
+
+interface DemoPaymentFormProps {
+  amount: number
+  amountLabel: string
+  onPaid: () => void | Promise<void>
+}
+
+/**
+ * Local test gateway: validates the card shape, then hands off to
+ * `/api/checkout` (Stripe Checkout) when provider keys are configured, or
+ * runs a safe simulation. Used when Supabase is not configured.
+ */
+function DemoPaymentForm({ amount, amountLabel, onPaid }: DemoPaymentFormProps) {
   const { t } = useTranslation()
   const realCheckout = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 

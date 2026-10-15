@@ -1,64 +1,63 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { useTranslation } from "react-i18next"
 
 import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { toast } from "@/components/ui/toast"
 import { DatePicker } from "@/components/venues/date-picker"
-import { PaymentForm } from "@/components/venues/payment-form"
+import { PaymentForm, type CloudBookingContext } from "@/components/venues/payment-form"
 import { getVenueProfessionals } from "@/constants/professionals"
 import { venueServiceOptions } from "@/libs/marketplace/venue-services"
+import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import type { Venue } from "@/constants/venues"
+import type { DbAppointment } from "@/interfaces/appointments"
 import { type Booking, useBookings } from "@/hooks/use-bookings"
 import { useBookingAccess, useSession } from "@/libs/session"
 import { createId } from "@/libs/storage"
+import {
+  buildDaySlots,
+  fetchProviderSchedule,
+  NO_SCHEDULE,
+  type ProviderScheduleRow,
+} from "@/services/availability.service"
+import {
+  fetchOccupiedSlots,
+  SlotUnavailableError,
+  type OccupiedSlot,
+} from "@/services/appointments.service"
 import { cn } from "@/utils/cn"
-import { addDays, dayNumber, parseDateKey, timeslotEpoch } from "@/utils/date"
+import { addDays, parseDateKey } from "@/utils/date"
 import { formatCurrency, formatDate, formatTime } from "@/utils/format"
 
 const DAYS_AHEAD = 60
-const SLOT_START_MIN = 9 * 60
-const SLOT_END_MIN = 18 * 60 + 15
-const SLOT_STEP_MIN = 45
 
 /** Current epoch milliseconds, read from the event handler (kept out of render). */
 function nowMs(): number {
   return Date.now()
 }
 
-interface Slot {
-  time: string
-  available: boolean
+/** Availability of one day for one provider, as loaded from the database. */
+interface DayAvailability {
+  /** `${dateKey}|${providerId}` this answer belongs to. */
+  key: string
+  occupied: OccupiedSlot[]
+  schedule: ProviderScheduleRow[]
 }
 
-/** Deterministic test availability (roughly 20% of slots are taken). */
-function buildSlots(dateKey: string): Slot[] {
-  const seed = dayNumber(parseDateKey(dateKey))
-  const now = Date.now()
-  const slots: Slot[] = []
-
-  for (
-    let minutes = SLOT_START_MIN, index = 0;
-    minutes <= SLOT_END_MIN;
-    minutes += SLOT_STEP_MIN, index += 1
-  ) {
-    const hours = String(Math.floor(minutes / 60)).padStart(2, "0")
-    const mins = String(minutes % 60).padStart(2, "0")
-    const time = `${hours}:${mins}`
-    slots.push({
-      time,
-      available: (seed + index * 7) % 5 !== 0 && timeslotEpoch(dateKey, time) > now,
-    })
-  }
-
-  return slots
-}
+/** Stable empty occupancy list so effects keep the same reference. */
+const NO_OCCUPIED: OccupiedSlot[] = []
 
 function timeLabel(time: string, locale: string): string {
   const [hours, minutes] = time.split(":").map(Number)
   return formatTime(new Date(2000, 0, 1, hours, minutes), locale)
+}
+
+/** Postgres `time` (`HH:MM:SS`) → the `HH:MM` used across the booking UI. */
+function toHhMm(value: string): string {
+  return value.slice(0, 5)
 }
 
 function longDate(dateKey: string, locale: string): string {
@@ -96,14 +95,80 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     displayLabel: option.label ?? (option.labelKey ? t(option.labelKey) : ""),
   }))
 
-  const [step, setStep] = useState(0)
-  const [serviceId, setServiceId] = useState<string | null>(null)
+  // Deep links (e.g. "Book again" from the dashboard history) may preselect a
+  // service via `?service=`; unknown ids fall back to the plain stepper. The
+  // param only seeds the initial state — the URL does not change while the
+  // form is mounted.
+  const requestedService = useSearchParams().get("service")
+  const prefilledServiceId =
+    requestedService && serviceOptions.some((option) => option.id === requestedService)
+      ? requestedService
+      : null
+
+  const [step, setStep] = useState(prefilledServiceId ? 1 : 0)
+  const [serviceId, setServiceId] = useState<string | null>(prefilledServiceId)
   const [professionalId, setProfessionalId] = useState<string | null>(null)
   const [dateKey, setDateKey] = useState<string | null>(null)
   const [time, setTime] = useState<string | null>(null)
   const [confirmed, setConfirmed] = useState<{ id: string; date: string; time: string } | null>(
     null,
   )
+
+  const supabase = getSupabaseBrowserClient()
+  const selectedService = serviceOptions.find((option) => option.id === serviceId) ?? null
+  // The booking always lands on one provider: the picked professional, else the
+  // one offering the selected service, else the first professional of the venue.
+  const providerId =
+    professionalId ?? selectedService?.professionalId ?? professionals[0]?.id ?? null
+  const serviceDuration = selectedService?.durationMin ?? 0
+  // Live catalog venues have real appointments/schedules to check against; demo
+  // venues keep the deterministic test availability (no tables behind them).
+  const live = venue.source === "database" && Boolean(supabase)
+  // Availability is stored tagged with the day/provider it belongs to, so a
+  // day that is still loading never borrows the previous day's answer.
+  const [daySlots, setDaySlots] = useState<DayAvailability | null>(null)
+  const availabilityKey = live && dateKey && providerId ? `${dateKey}|${providerId}` : ""
+
+  // Real availability for the chosen day: the provider's booked hours (each one
+  // occupying its service duration) plus their working hours. Both are needed
+  // to decide which start times the client may pick.
+  useEffect(() => {
+    if (!availabilityKey || !supabase) return
+
+    const [date, provider] = availabilityKey.split("|")
+    let active = true
+    void Promise.all([
+      fetchOccupiedSlots(supabase, {
+        locationId: venue.id,
+        providerId: provider,
+        date,
+      }),
+      fetchProviderSchedule(supabase, provider),
+    ])
+      .then(([occupiedRows, scheduleRows]) => {
+        if (!active) return
+        setDaySlots({ key: availabilityKey, occupied: occupiedRows, schedule: scheduleRows })
+      })
+      // A failed read must not block booking: creation re-validates anyway.
+      .catch(() => {
+        if (!active) return
+        setDaySlots({
+          key: availabilityKey,
+          occupied: NO_OCCUPIED,
+          schedule: NO_SCHEDULE,
+        })
+      })
+
+    return () => {
+      active = false
+    }
+  }, [availabilityKey, supabase, venue.id])
+
+  // Derived straight from the loaded key: no extra render just to clear state.
+  const loaded = daySlots && daySlots.key === availabilityKey ? daySlots : null
+  const occupied = loaded?.occupied ?? NO_OCCUPIED
+  const schedule = loaded?.schedule ?? NO_SCHEDULE
+  const checkingSlots = Boolean(availabilityKey && !loaded)
 
   if (!accessReady) {
     return <Button size="lg" loading disabled className="mt-5 w-full" />
@@ -143,8 +208,18 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
   // Built after the session gate so no clock reads happen during prerender.
   const today = new Date()
   const lastBookableDay = addDays(today, DAYS_AHEAD - 1)
-  const slots = dateKey ? buildSlots(dateKey) : []
-  const availableSlots = slots.filter((slot) => slot.available)
+  // Start times the client may actually pick: inside the professional's
+  // working window, outside lunch, not colliding with another appointment's
+  // duration and not in the past. Anything else is simply not offered.
+  const slots = dateKey
+    ? buildDaySlots({
+        dateKey,
+        durationMinutes: serviceDuration,
+        occupied,
+        schedule,
+        demo: !live,
+      })
+    : []
 
   function reset() {
     setStep(0)
@@ -158,9 +233,6 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
   async function handlePaid() {
     if (!serviceId || !dateKey || !time) return
     const service = serviceOptions.find((option) => option.id === serviceId)
-    // The database requires a provider: fall back to the one offering the
-    // selected service, then to the first professional of the venue.
-    const providerId = professionalId ?? service?.professionalId ?? professionals[0]?.id ?? null
     const booking: Booking = {
       id: createId(venue.id),
       venueId: venue.id,
@@ -190,9 +262,32 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
           time: timeLabel(time, locale),
         }),
       )
-    } catch {
+    } catch (error) {
+      // The slot filled up between picking it and creating the row: send the
+      // visitor back to the grid with the refreshed availability.
+      if (error instanceof SlotUnavailableError) {
+        toast(t("venues.booking.slotTaken"), "neutral")
+        setTime(null)
+        setStep(1)
+        return
+      }
       toast(t("errors.generic"), "neutral")
     }
+  }
+
+  /** Cloud path: the `create-appointment` function already created the row. */
+  async function handleCloudPaid(appointment: DbAppointment) {
+    setConfirmed({
+      id: appointment.id,
+      date: appointment.scheduled_date,
+      time: toHhMm(appointment.scheduled_time),
+    })
+    toast(
+      t("venues.booking.toast", {
+        date: longDate(dateKey ?? appointment.scheduled_date, locale),
+        time: time ? timeLabel(time, locale) : appointment.scheduled_time.slice(0, 5),
+      }),
+    )
   }
 
   if (confirmed) {
@@ -224,7 +319,6 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     )
   }
 
-  const selectedService = serviceOptions.find((option) => option.id === serviceId) ?? null
   const serviceLabel = selectedService?.displayLabel ?? ""
   const professionalLabel =
     professionalId === null
@@ -232,8 +326,27 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
       : (professionals.find((item) => item.id === professionalId)?.name ??
         t("venues.professionals.anyone"))
   const price = selectedService ? selectedService.price : venue.priceFrom
-  const serviceDuration = selectedService?.durationMin ?? 0
-  const canContinue = step === 0 ? Boolean(serviceId) : Boolean(dateKey && time)
+  // Refuse to advance while the availability of the chosen day is still being
+  // read, so a slot never slips through before its check finished.
+  const canContinue = step === 0 ? Boolean(serviceId) : Boolean(dateKey && time && !checkingSlots)
+
+  // Real bookings (live catalog venues) run through the payment Edge
+  // Functions; demo venues keep the local gateway.
+  const cloudBooking: CloudBookingContext | null =
+    venue.source === "database" && serviceId && dateKey && time && providerId
+      ? {
+          providerId,
+          serviceId,
+          serviceName: serviceLabel || null,
+          locationId: venue.id,
+          date: dateKey,
+          time,
+          durationMinutes: serviceDuration || undefined,
+          clientName: user?.fullName ?? null,
+          clientEmail: user?.email ?? null,
+          clientPhone: user?.phone ? Number(user.phone.replace(/\D/g, "")) : null,
+        }
+      : null
 
   return (
     <div className="mt-5">
@@ -291,7 +404,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
                     </span>
                   </span>
                   <span className="text-cream shrink-0 font-semibold">
-                    {formatCurrency(option.price, locale, "DOP", {
+                    {formatCurrency(option.price, locale, "USD", {
                       maximumFractionDigits: 0,
                     })}
                   </span>
@@ -362,15 +475,20 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
               <legend className="text-cream/70 text-sm font-medium">
                 {t("venues.booking.timeLabel")}
               </legend>
-              {availableSlots.length > 0 ? (
+              {checkingSlots ? (
+                <p className="text-cream/50 mt-3 inline-flex items-center gap-2 text-xs">
+                  <Icon name="clock" className="size-4" />
+                  {t("venues.booking.checkingAvailability")}
+                </p>
+              ) : slots.length > 0 ? (
                 <div className="mt-3 grid grid-cols-3 gap-2">
-                  {availableSlots.map((slot) => {
-                    const active = time === slot.time
+                  {slots.map((slot) => {
+                    const active = time === slot
                     return (
                       <button
-                        key={slot.time}
+                        key={slot}
                         type="button"
-                        onClick={() => setTime(slot.time)}
+                        onClick={() => setTime(slot)}
                         aria-pressed={active}
                         className={cn(
                           "rounded-xl border px-2 py-2 text-xs font-medium transition",
@@ -379,7 +497,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
                             : "border-cream/10 bg-cream/3 text-cream/70 hover:border-gold/40",
                         )}
                       >
-                        {timeLabel(slot.time, locale)}
+                        {timeLabel(slot, locale)}
                       </button>
                     )
                   })}
@@ -418,7 +536,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
             <div className="border-cream/10 flex justify-between gap-3 border-t pt-2.5">
               <dt className="text-cream/70">{t("venues.booking.summaryPrice")}</dt>
               <dd className="text-gold font-semibold">
-                {formatCurrency(price, locale, "DOP", { maximumFractionDigits: 0 })}
+                {formatCurrency(price, locale, "USD", { maximumFractionDigits: 0 })}
               </dd>
             </div>
           </dl>
@@ -429,8 +547,10 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
           {/* Step through the payment gateway before the booking is created. */}
           <PaymentForm
             amount={price}
-            amountLabel={formatCurrency(price, locale, "DOP", { maximumFractionDigits: 0 })}
+            amountLabel={formatCurrency(price, locale, "USD", { maximumFractionDigits: 0 })}
+            booking={cloudBooking ?? undefined}
             onPaid={handlePaid}
+            onCloudPaid={handleCloudPaid}
           />
         </div>
       )}

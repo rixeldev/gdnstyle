@@ -1,26 +1,36 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useState, type MouseEvent } from "react"
 import { useTranslation } from "react-i18next"
 
-import { BookButton } from "@/components/venues/book-button"
 import { FavoriteButton } from "@/components/venues/favorite-button"
 import { Icon } from "@/components/ui/icon"
 import { getCategoryById } from "@/constants/categories"
 import { categoryCover } from "@/constants/covers"
 import type { Venue } from "@/constants/venues"
+import { hasSession, useSession } from "@/libs/session"
 import { cn } from "@/utils/cn"
 import { formatCurrency, formatNumber } from "@/utils/format"
 import { venueLocationLabel } from "@/utils/venue"
 
 interface VenueCardProps {
   venue: Venue
-  /** Intl locale (e.g. es-DO / en-US) for number and currency formatting. */
+  /** Intl locale (e.g. es-US / en-US) for number and currency formatting. */
   locale: string
 }
 
 export function VenueCard({ venue, locale }: VenueCardProps) {
   const { t } = useTranslation()
+  const router = useRouter()
+  const { user } = useSession()
+  const [busy, setBusy] = useState(false)
+  const professional = user?.role === "professional"
+  const href = `/venues/${venue.id}`
+  /** The card itself is the booking trigger, so it carries the old button label. */
+  const actionLabel = professional ? t("venues.viewVenue") : t("directory.book")
   const category = getCategoryById(venue.categoryId)
   const categoryLabel = category ? t(category.labelKey) : (venue.categoryNames?.[0] ?? "")
   const serviceLabels =
@@ -31,10 +41,31 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
-  const price = formatCurrency(venue.priceFrom, locale, "DOP", { maximumFractionDigits: 0 })
+  const price = formatCurrency(venue.priceFrom, locale, "USD", { maximumFractionDigits: 0 })
+
+  /**
+   * The card is the booking trigger. Without an account the visitor signs in
+   * first and is returned to the venue afterwards via `next`. Professional
+   * accounts never book, so for them the card just opens the venue (handled by
+   * the plain link, no interception).
+   */
+  async function handleOpen(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return
+    if (professional) return
+    event.preventDefault()
+    if (busy) return
+    setBusy(true)
+    if (!(await hasSession())) {
+      router.push(`/auth/login?next=${encodeURIComponent(href)}`)
+      setBusy(false)
+      return
+    }
+    router.push(href)
+    setBusy(false)
+  }
 
   return (
-    <article className="border-cream/10 bg-ink-card group hover:border-gold/40 flex h-full flex-col overflow-hidden rounded-3xl border transition duration-300 hover:-translate-y-1">
+    <article className="border-cream/10 bg-ink-card group hover:border-gold/40 relative flex h-full flex-col overflow-hidden rounded-3xl border transition duration-300 hover:-translate-y-1">
       <div className="relative h-40 overflow-hidden">
         <div
           aria-hidden="true"
@@ -115,9 +146,24 @@ export function VenueCard({ venue, locale }: VenueCardProps) {
 
         <div className="border-cream/10 mt-auto flex items-center justify-between gap-3 border-t pt-4">
           <span className="text-cream/45 text-xs">{t("directory.priceFrom", { price })}</span>
-          <BookButton venueId={venue.id} />
+          <span
+            aria-hidden="true"
+            className="text-gold inline-flex items-center gap-1 text-xs font-semibold"
+          >
+            {actionLabel}
+            <Icon name="arrow-up-right" className="size-3.5" />
+          </span>
         </div>
       </div>
+
+      {/* Stretched link: the whole card opens the venue (and books it). It sits
+          below FavoriteButton (z-10) so the heart keeps working on its own. */}
+      <Link
+        href={href}
+        onClick={handleOpen}
+        aria-label={`${actionLabel}: ${venue.name}`}
+        className="focus-visible:outline-gold absolute inset-0 rounded-3xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px]"
+      />
     </article>
   )
 }

@@ -30,7 +30,7 @@ import {
 } from "@/services/appointments.service"
 import { cn } from "@/utils/cn"
 import { addDays, parseDateKey } from "@/utils/date"
-import { formatCurrency, formatDate, formatTime } from "@/utils/format"
+import { formatClockTime, formatCurrency, formatDate } from "@/utils/format"
 
 const DAYS_AHEAD = 60
 
@@ -49,11 +49,6 @@ interface DayAvailability {
 
 /** Stable empty occupancy list so effects keep the same reference. */
 const NO_OCCUPIED: OccupiedSlot[] = []
-
-function timeLabel(time: string, locale: string): string {
-  const [hours, minutes] = time.split(":").map(Number)
-  return formatTime(new Date(2000, 0, 1, hours, minutes), locale)
-}
 
 /** Postgres `time` (`HH:MM:SS`) → the `HH:MM` used across the booking UI. */
 function toHhMm(value: string): string {
@@ -259,7 +254,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
       toast(
         t("venues.booking.toast", {
           date: longDate(dateKey, locale),
-          time: timeLabel(time, locale),
+          time: formatClockTime(time, locale),
         }),
       )
     } catch (error) {
@@ -285,7 +280,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     toast(
       t("venues.booking.toast", {
         date: longDate(dateKey ?? appointment.scheduled_date, locale),
-        time: time ? timeLabel(time, locale) : appointment.scheduled_time.slice(0, 5),
+        time: time ? formatClockTime(time, locale) : appointment.scheduled_time.slice(0, 5),
       }),
     )
   }
@@ -300,7 +295,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
         <p className="text-cream/65 mt-2 text-sm leading-relaxed">
           {t("venues.booking.successBody", {
             date: longDate(confirmed.date, locale),
-            time: timeLabel(confirmed.time, locale),
+            time: formatClockTime(confirmed.time, locale),
           })}
         </p>
         <p className="text-cream/40 mt-4 text-[11px] tracking-[0.2em] uppercase">
@@ -497,7 +492,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
                             : "border-cream/10 bg-cream/3 text-cream/70 hover:border-gold/40",
                         )}
                       >
-                        {timeLabel(slot, locale)}
+                        {formatClockTime(slot, locale)}
                       </button>
                     )
                   })}
@@ -526,7 +521,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
               <dt className="text-cream/50">{t("venues.booking.summaryWhen")}</dt>
               <dd className="text-right">
                 {dateKey ? longDate(dateKey, locale) : ""}
-                {time ? ` · ${timeLabel(time, locale)}` : ""}
+                {time ? ` · ${formatClockTime(time, locale)}` : ""}
               </dd>
             </div>
             <div className="flex justify-between gap-3">

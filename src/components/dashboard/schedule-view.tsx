@@ -18,7 +18,7 @@ import {
   type ProviderScheduleRow,
 } from "@/services/provider-schedule.service"
 import { cn } from "@/utils/cn"
-import { formatDate, toIntlLocale } from "@/utils/format"
+import { formatClockTime, formatDate, toIntlLocale } from "@/utils/format"
 
 /** 2024-01-07 is a Sunday, so adding `day_of_week` lands on the right weekday. */
 const WEEK_ANCHOR = new Date(2024, 0, 7)
@@ -295,9 +295,21 @@ interface TimeFieldProps {
   onChange: (value: string | null) => void
 }
 
-/** One native time input. `color-scheme: dark` keeps the picker on-brand. */
+/**
+ * One native time input. `color-scheme: dark` keeps the picker on-brand.
+ *
+ * The control paints its value in the *browser's* locale, so a machine set to a
+ * 24h clock shows `15:00` while the rest of the app reads `3:00 PM`. When there
+ * is a value, the painted text is made transparent and the app's own 12h label
+ * sits on top of it: the input still holds the stored `HH:MM` string and keeps
+ * its picker, its validation and its keyboard behaviour, only the display is
+ * ours. An empty field is left alone -- `--:--` carries no hour cycle to
+ * disagree about.
+ */
 function TimeField({ label, value, onChange }: TimeFieldProps) {
   const id = useId()
+  const { i18n } = useTranslation()
+  const locale = toIntlLocale(i18n.language)
 
   return (
     <div className="space-y-1.5">
@@ -307,13 +319,28 @@ function TimeField({ label, value, onChange }: TimeFieldProps) {
       >
         {label}
       </label>
-      <input
-        id={id}
-        type="time"
-        value={value ?? ""}
-        onChange={(event) => onChange(event.target.value || null)}
-        className={cn(fieldInputClasses, "h-10 font-medium tabular-nums", "border-cream/15")}
-      />
+      <div className="relative">
+        <input
+          id={id}
+          type="time"
+          value={value ?? ""}
+          onChange={(event) => onChange(event.target.value || null)}
+          className={cn(
+            fieldInputClasses,
+            "h-10 font-medium tabular-nums",
+            "border-cream/15",
+            value && "text-transparent caret-transparent [-webkit-text-fill-color:transparent]",
+          )}
+        />
+        {value && (
+          <span
+            aria-hidden="true"
+            className="text-cream pointer-events-none absolute inset-0 flex items-center px-3.5 text-sm font-medium tabular-nums"
+          >
+            {formatClockTime(value, locale)}
+          </span>
+        )}
+      </div>
     </div>
   )
 }

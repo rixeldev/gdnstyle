@@ -15,12 +15,25 @@ import {
   listBankAccounts,
   processWithdrawal,
   type BankAccountSummary,
+  type ProviderPaymentRow,
   type ProviderPaymentsPayload,
 } from "@/services/payments.service"
-import { toIntlLocale } from "@/utils/format"
+import { formatDate, formatTime, toIntlLocale } from "@/utils/format"
 
 /** Minimum amount accepted by the `process-withdrawal` function. */
 const MIN_WITHDRAWAL = 10
+
+/**
+ * A payment's instant, in the viewer's locale. The Edge Function also ships
+ * `date`/`time` already formatted with a hardcoded `es-ES` clock (15:00, DD/MM),
+ * which is neither the app's language nor its 12h day, so they are used only
+ * as a fallback when the timestamp itself will not parse.
+ */
+function paymentStamp({ created_at, date, time }: ProviderPaymentRow, locale: string): string {
+  const at = Date.parse(created_at)
+  if (!Number.isFinite(at)) return `${date} ${time}`
+  return `${formatDate(at, locale, { dateStyle: "medium" })} · ${formatTime(at, locale)}`
+}
 
 /**
  * Professional finance hub: earnings from `get-provider-payments`, bank
@@ -205,9 +218,7 @@ export function ProviderEarningsSection() {
                   <span className="text-cream block truncate font-medium">
                     {payment.clientName} · {payment.service}
                   </span>
-                  <span className="text-cream/50 text-xs">
-                    {payment.date} {payment.time}
-                  </span>
+                  <span className="text-cream/50 text-xs">{paymentStamp(payment, locale)}</span>
                 </span>
                 <span
                   className={

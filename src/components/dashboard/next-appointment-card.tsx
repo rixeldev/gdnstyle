@@ -67,7 +67,7 @@ export function NextAppointmentCard({
       )}
       <div
         aria-hidden="true"
-        className="from-ink via-ink/94 to-ink/45 absolute inset-0 bg-gradient-to-r"
+        className="from-ink via-ink/94 to-ink/45 absolute inset-0 bg-linear-to-r"
       />
       <div
         aria-hidden="true"

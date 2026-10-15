@@ -87,7 +87,16 @@ export function NextAppointmentCard({
           </span>
         </div>
 
-        <div className="min-w-0 flex-1">
+        {/*
+          A real flex-basis, not `flex: 1 1 0%`: line breaking compares each
+          item's *hypothetical* size, and a zero basis meant this column always
+          "fit" beside the shrink-proof action column -- so on mid-width screens
+          the free space all went here, the box collapsed to a few dozen pixels
+          and its text spilled across the buttons before the card clipped it.
+          With 10rem the actions wrap onto their own line first, and the column
+          can still shrink to nothing (min-w-0) on the narrowest phones.
+        */}
+        <div className="min-w-0 shrink grow basis-40">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-gold text-[11px] font-semibold tracking-[0.22em] uppercase">
               {t("dashboard.customer.nextUp")}

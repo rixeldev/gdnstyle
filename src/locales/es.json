@@ -808,6 +808,7 @@
       "venues": "Locales",
       "earnings": "Ingresos",
       "portfolio": "Portafolio",
+      "schedule": "Horario",
       "account": "Cuenta"
     },
     "account": {
@@ -1109,6 +1110,35 @@
     "signingOut": "Cerrando sesión…",
     "loading": "Cargando tu panel…",
     "noSession": "Necesitas iniciar sesión para ver esta página."
+  },
+
+  "schedule": {
+    "title": "Horario de trabajo",
+    "body": "Estas horas deciden qué horarios se les ofrecen a los clientes. Lo que cierres aquí desaparece de inmediato de todas las reservas.",
+    "loading": "Cargando tu horario…",
+    "unavailable": "El horario de trabajo todavía no está disponible para esta cuenta.",
+    "summary": "{{days}} días abiertos · {{hours}} h por semana",
+    "summaryEmpty": "Estás cerrado todos los días, así que nadie puede reservarte ahora mismo.",
+    "unsaved": "Cambios sin guardar",
+    "save": "Guardar horario",
+    "saved": "Tu horario de trabajo quedó guardado.",
+    "copyAll": "Copiar estas horas a todos los días abiertos",
+    "dayHours": "{{hours}} h",
+    "working": "Abierto",
+    "dayOff": "Libre",
+    "start": "Inicio",
+    "end": "Fin",
+    "lunchStart": "Almuerzo desde",
+    "lunchEnd": "Almuerzo hasta",
+    "lunchHint": "Deja el almuerzo vacío si trabajas sin parar. Ninguna cita se ofrece atravesando el descanso.",
+    "note": "La última cita del día empieza a tiempo para terminar antes de que cierres, y un día más corto que el servicio simplemente no ofrece ningún horario.",
+    "errors": {
+      "missingHours": "Indica el inicio y el fin del día.",
+      "endBeforeStart": "El fin del día tiene que ser posterior a su inicio.",
+      "lunchIncomplete": "Completa los dos campos del almuerzo, o déjalos ambos vacíos.",
+      "lunchOrder": "El almuerzo tiene que terminar después de empezar.",
+      "lunchOutside": "El almuerzo tiene que caer dentro de tu horario de trabajo."
+    }
   },
   "legal": {
     "faq": {

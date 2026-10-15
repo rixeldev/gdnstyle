@@ -41,7 +41,7 @@ export interface ProviderScheduleRow {
 export const NO_SCHEDULE: ProviderScheduleRow[] = []
 
 /** `HH:MM` or `HH:MM:SS` → minutes since midnight (null when unusable). */
-function toMinutes(value: string | null | undefined): number | null {
+export function toMinutes(value: string | null | undefined): number | null {
   if (!value) return null
   const [hours, minutes] = value.slice(0, 5).split(":").map(Number)
   if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null

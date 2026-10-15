@@ -15,6 +15,9 @@ import { Icon } from "./icon"
 const inputClasses =
   "h-11 w-full rounded-xl border bg-cream/3 px-3.5 text-sm text-cream placeholder:text-cream/35 outline-none transition focus:border-gold/60 focus:bg-cream/5 disabled:opacity-60"
 
+/** Shared input chrome, for fields that render their own label. */
+export const fieldInputClasses = inputClasses
+
 interface FieldChromeProps {
   id: string
   label: ReactNode

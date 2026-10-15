@@ -31,6 +31,7 @@ export const CUSTOMER_NAV: NavItem[] = [
 export const PROFESSIONAL_NAV: NavItem[] = [
   { id: "overview", labelKey: "dashboard.nav.overview", icon: "layout-grid" },
   { id: "appointments", labelKey: "dashboard.nav.appointments", icon: "inbox" },
+  { id: "schedule", labelKey: "dashboard.nav.schedule", icon: "clock", requiresProvider: true },
   { id: "venues", labelKey: "dashboard.nav.venues", icon: "store" },
   {
     id: "earnings",

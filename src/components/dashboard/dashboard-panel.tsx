@@ -14,6 +14,7 @@ import { ProviderCardSection } from "@/components/dashboard/provider-card-sectio
 import { ProviderEarningsSection } from "@/components/dashboard/provider-earnings-section"
 import { ProviderPortfolioSection } from "@/components/dashboard/provider-portfolio-section"
 import { ProviderVerificationSection } from "@/components/dashboard/provider-verification-section"
+import { ScheduleView } from "@/components/dashboard/schedule-view"
 import { ViewHeading } from "@/components/dashboard/view-primitives"
 import { VenueManagement } from "@/components/dashboard/venue-management"
 
@@ -77,6 +78,8 @@ function ProfessionalViews({ view, user, selectView }: DashboardRenderContext) {
           <ProviderAppointmentsSection />
         </div>
       )
+    case "schedule":
+      return <ScheduleView />
     case "venues":
       return <VenueManagement user={user} />
     case "earnings":

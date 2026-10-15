@@ -270,6 +270,7 @@ export function ProfessionalOverview({ onNavigate }: ProfessionalOverviewProps) 
             <PanelHead title={t("dashboard.professional.quick.title")} />
             <ul className="mt-4 space-y-2">
               {[
+                { id: "schedule", icon: "clock" as const, labelKey: "dashboard.nav.schedule" },
                 { id: "venues", icon: "store" as const, labelKey: "dashboard.nav.venues" },
                 {
                   id: "earnings",

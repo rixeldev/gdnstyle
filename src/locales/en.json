@@ -808,6 +808,7 @@
       "venues": "Venues",
       "earnings": "Earnings",
       "portfolio": "Portfolio",
+      "schedule": "Hours",
       "account": "Account"
     },
     "account": {
@@ -1107,6 +1108,35 @@
     "signingOut": "Signing out…",
     "loading": "Loading your dashboard…",
     "noSession": "You need to sign in to view this page."
+  },
+
+  "schedule": {
+    "title": "Working hours",
+    "body": "These hours decide the times clients are offered. Whatever you close here disappears from every booking grid right away.",
+    "loading": "Loading your schedule…",
+    "unavailable": "Working hours are not available for this account yet.",
+    "summary": "{{days}} working days · {{hours}} h a week",
+    "summaryEmpty": "You are closed every day, so clients cannot book you right now.",
+    "unsaved": "Unsaved changes",
+    "save": "Save hours",
+    "saved": "Your working hours are saved.",
+    "copyAll": "Copy these hours to every open day",
+    "dayHours": "{{hours}} h",
+    "working": "Open",
+    "dayOff": "Day off",
+    "start": "Start",
+    "end": "End",
+    "lunchStart": "Lunch from",
+    "lunchEnd": "Lunch until",
+    "lunchHint": "Leave the lunch fields empty if you work straight through. No appointment is ever offered across the break.",
+    "note": "The last appointment of the day starts early enough to finish before you close, and a day shorter than the service simply offers no hours.",
+    "errors": {
+      "missingHours": "Set the start and the end of the day.",
+      "endBeforeStart": "The end of the day has to be after its start.",
+      "lunchIncomplete": "Fill in both lunch fields, or leave both empty.",
+      "lunchOrder": "Lunch has to end after it starts.",
+      "lunchOutside": "Lunch has to fall inside your working hours."
+    }
   },
   "legal": {
     "faq": {

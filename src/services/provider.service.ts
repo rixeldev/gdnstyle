@@ -1,8 +1,122 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import type { DbProvider, DbProviderLocation } from "@/interfaces/marketplace"
+import type {
+  DbLocation,
+  DbProvider,
+  DbProviderLocation,
+  DbProviderPortfolio,
+  DbProviderReview,
+  DbProviderService,
+} from "@/interfaces/marketplace"
 
 const PROVIDER_LOCATION_COLUMNS = "id,provider_id,location_id,category,image"
+
+/** Everything a public professional profile needs, in one round-trip batch. */
+export interface ProviderProfileData {
+  provider: DbProvider
+  services: DbProviderService[]
+  reviews: DbProviderReview[]
+  portfolio: DbProviderPortfolio[]
+  locations: DbLocation[]
+}
+
+const PROFILE_PROVIDER_COLUMNS = [
+  "id",
+  "user_id",
+  "full_name",
+  "business_name",
+  "email",
+  "phone",
+  "photo",
+  "rating",
+  "reviews",
+  "charges_enabled",
+  "stripe_onboarding_completed",
+  "identity_verified",
+  "address_line1",
+  "address_line2",
+  "address_city",
+  "address_state",
+  "address_postal_code",
+  "address_country",
+  "social_facebook",
+  "social_instagram",
+  "social_tiktok",
+  "social_twitter",
+  "social_youtube",
+  "social_whatsapp",
+].join(",")
+
+const PROFILE_SERVICE_COLUMNS =
+  "id,provider_id,name,description,category,price,duration,is_active,image_url"
+const PROFILE_REVIEW_COLUMNS =
+  "id,provider_id,client_id,appointment_id,rating,comment,service_name,reviewer_name,reviewer_avatar_url,created_at"
+const PROFILE_PORTFOLIO_COLUMNS =
+  "id,provider_id,image_url,title,description,likes_count,comments_count,created_at"
+const PROFILE_LOCATION_COLUMNS =
+  "id,name,address,city,state,country,latitude,longitude,image_url,image_alt,category"
+
+/**
+ * Load a professional's public profile in as few round-trips as possible:
+ * the provider row, its active services, reviews and portfolio, plus the
+ * venues it is linked to through `provider_locations`.
+ */
+export async function fetchProviderProfileData(
+  client: SupabaseClient,
+  providerId: string,
+): Promise<ProviderProfileData | null> {
+  const providerResult = await client
+    .from("providers")
+    .select(PROFILE_PROVIDER_COLUMNS)
+    .eq("id", providerId)
+    .maybeSingle()
+
+  if (providerResult.error) {
+    console.error("[providers] failed to load the profile row", providerResult.error)
+    return null
+  }
+  if (!providerResult.data) return null
+
+  const provider = providerResult.data as unknown as DbProvider
+
+  const [services, reviews, portfolio, links] = await Promise.all([
+    client
+      .from("provider_services")
+      .select(PROFILE_SERVICE_COLUMNS)
+      .eq("provider_id", providerId)
+      .eq("is_active", true)
+      .order("price"),
+    client
+      .from("provider_reviews")
+      .select(PROFILE_REVIEW_COLUMNS)
+      .eq("provider_id", providerId)
+      .order("created_at", { ascending: false }),
+    client
+      .from("provider_portfolio")
+      .select(PROFILE_PORTFOLIO_COLUMNS)
+      .eq("provider_id", providerId)
+      .order("created_at", { ascending: false }),
+    client
+      .from("provider_locations")
+      .select(PROVIDER_LOCATION_COLUMNS)
+      .eq("provider_id", providerId),
+  ])
+
+  const providerLocations = (links.error ? [] : (links.data ?? [])) as DbProviderLocation[]
+  const locationIds = Array.from(new Set(providerLocations.map((link) => link.location_id)))
+
+  const locationsResult = locationIds.length
+    ? await client.from("locations").select(PROFILE_LOCATION_COLUMNS).in("id", locationIds)
+    : { data: [], error: null }
+
+  return {
+    provider,
+    services: (services.error ? [] : (services.data ?? [])) as DbProviderService[],
+    reviews: (reviews.error ? [] : (reviews.data ?? [])) as DbProviderReview[],
+    portfolio: (portfolio.error ? [] : (portfolio.data ?? [])) as DbProviderPortfolio[],
+    locations: (locationsResult.error ? [] : (locationsResult.data ?? [])) as DbLocation[],
+  }
+}
 
 /**
  * The `providers` row owned by `auth.uid()`. Its presence is what makes a

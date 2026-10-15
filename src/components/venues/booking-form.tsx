@@ -31,6 +31,7 @@ import {
 import { cn } from "@/utils/cn"
 import { addDays, parseDateKey } from "@/utils/date"
 import { formatClockTime, formatCurrency, formatDate } from "@/utils/format"
+import { bookingCharge } from "@/utils/payment-fees"
 
 const DAYS_AHEAD = 60
 
@@ -343,6 +344,11 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
         }
       : null
 
+  // What a live booking actually charges: the price grossed up for the platform
+  // cut and Stripe's processing — the same math the payment function runs, so
+  // the number shown here is the number the card is asked for.
+  const charge = cloudBooking ? bookingCharge(price) : null
+
   return (
     <div className="mt-5">
       <ol className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
@@ -528,11 +534,31 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
               <dt className="text-cream/50">{t("venues.booking.summaryProfessional")}</dt>
               <dd className="text-right">{professionalLabel}</dd>
             </div>
-            <div className="border-cream/10 flex justify-between gap-3 border-t pt-2.5">
-              <dt className="text-cream/70">{t("venues.booking.summaryPrice")}</dt>
-              <dd className="text-gold font-semibold">
-                {formatCurrency(price, locale, "USD", { maximumFractionDigits: 0 })}
-              </dd>
+            <div className="border-cream/10 border-t pt-2.5">
+              <div className="flex justify-between gap-3">
+                <dt className="text-cream/70">{t("venues.booking.summaryPrice")}</dt>
+                <dd className="font-semibold">{formatCurrency(price, locale, "USD")}</dd>
+              </div>
+              {/* A live booking is charged the grossed-up total — service plus
+                  the platform cut and Stripe's processing — so the summary has
+                  to say so before the card does. Demo venues charge the price
+                  as it stands and keep the single line. */}
+              {charge && (
+                <>
+                  <div className="text-cream/50 mt-1 flex justify-between gap-3">
+                    <dt>{t("venues.booking.processingFee")}</dt>
+                    <dd>{formatCurrency(charge.feeCents / 100, locale, "USD")}</dd>
+                  </div>
+                  <div className="border-cream/10 mt-2 flex justify-between gap-3 border-t pt-2">
+                    <dt className="text-cream/70 font-medium">
+                      {t("venues.booking.summaryTotal")}
+                    </dt>
+                    <dd className="text-gold font-semibold">
+                      {formatCurrency(charge.totalCents / 100, locale, "USD")}
+                    </dd>
+                  </div>
+                </>
+              )}
             </div>
           </dl>
           <p className="text-cream/45 mt-3 text-xs leading-relaxed">
@@ -543,6 +569,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
           <PaymentForm
             amount={price}
             amountLabel={formatCurrency(price, locale, "USD", { maximumFractionDigits: 0 })}
+            locale={locale}
             booking={cloudBooking ?? undefined}
             onPaid={handlePaid}
             onCloudPaid={handleCloudPaid}

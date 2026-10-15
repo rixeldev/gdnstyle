@@ -21,6 +21,8 @@ import {
   listPaymentMethods,
   type StripePaymentMethodSummary,
 } from "@/services/payments.service"
+import { formatCurrency } from "@/utils/format"
+import { bookingCharge } from "@/utils/payment-fees"
 import { fieldErrorsFrom } from "@/utils/zod"
 
 /** Everything the Edge Function needs to create the `appointments` row. */
@@ -43,6 +45,8 @@ interface PaymentFormProps {
   /** Amount in major units. The Edge Functions charge in USD. */
   amount: number
   amountLabel: string
+  /** App locale (`en` / `es`), for the money lines that carry cents. */
+  locale: string
   /** Live booking context: enables the real edge-function payment flow. */
   booking?: CloudBookingContext
   /** Creates the booking in the demo/local gateway (no Supabase). */
@@ -92,6 +96,7 @@ function expiryIsValid(value: string): boolean {
 export function PaymentForm({
   amount,
   amountLabel,
+  locale,
   booking,
   onPaid,
   onCloudPaid,
@@ -104,7 +109,7 @@ export function PaymentForm({
       <CloudPaymentForm
         booking={booking}
         amount={amount}
-        amountLabel={amountLabel}
+        locale={locale}
         onCloudPaid={onCloudPaid}
       />
     )
@@ -118,14 +123,20 @@ type CloudMethod = "saved" | "new" | "in_person"
 interface CloudPaymentFormProps {
   booking: CloudBookingContext
   amount: number
-  amountLabel: string
+  locale: string
   onCloudPaid: (appointment: DbAppointment) => void | Promise<void>
 }
 
 /** Real payment step backed by the Supabase Edge Functions + Stripe Elements. */
-function CloudPaymentForm({ booking, amount, amountLabel, onCloudPaid }: CloudPaymentFormProps) {
+function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPaymentFormProps) {
   const { t } = useTranslation()
   const { user } = useSession()
+
+  // What the card is really charged: the service price grossed up for the
+  // platform cut and Stripe's processing. The Edge Function charges exactly
+  // this, so the checkout has to show it rather than the service price.
+  const charge = useMemo(() => bookingCharge(amount), [amount])
+  const money = (cents: number) => formatCurrency(cents / 100, locale, "USD")
 
   const [cards, setCards] = useState<StripePaymentMethodSummary[] | null>(null)
   const [method, setMethod] = useState<CloudMethod>(STRIPE_PUBLISHABLE_KEY ? "new" : "in_person")
@@ -277,19 +288,31 @@ function CloudPaymentForm({ booking, amount, amountLabel, onCloudPaid }: CloudPa
 
   return (
     <form onSubmit={handleChoosePay} noValidate className="mt-4 space-y-4">
-      <div className="border-cream/10 bg-cream/3 flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-sm">
-        <span className="text-cream/60 inline-flex items-center gap-2">
-          <Icon name="credit-card" className="size-4" />
-          {t("venues.booking.paymentTotal")}
-        </span>
-        <span className="text-gold font-semibold">{amountLabel}</span>
+      <div className="border-cream/10 bg-cream/3 rounded-2xl border px-4 py-3 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-cream/60 inline-flex items-center gap-2">
+            <Icon name="credit-card" className="size-4" />
+            {t("venues.booking.paymentTotal")}
+          </span>
+          <span className="text-gold font-semibold">{money(charge.totalCents)}</span>
+        </div>
+        <dl className="border-cream/10 text-cream/50 mt-2 space-y-1 border-t pt-2 text-xs">
+          <div className="flex items-center justify-between gap-3">
+            <dt>{t("venues.booking.summaryPrice")}</dt>
+            <dd>{money(charge.serviceCents)}</dd>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <dt>{t("venues.booking.processingFee")}</dt>
+            <dd>{money(charge.feeCents)}</dd>
+          </div>
+        </dl>
       </div>
 
       {clientSecret ? (
         <>
           <StripePaymentCardForm
             clientSecret={clientSecret}
-            buttonLabel={t("venues.booking.pay")}
+            buttonLabel={t("venues.booking.payAmount", { amount: money(charge.totalCents) })}
             onSuccess={async (paymentIntentId) => {
               setMessage(null)
               // The charge already succeeded; a slot-taken answer here must be

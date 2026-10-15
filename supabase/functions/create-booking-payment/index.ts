@@ -76,7 +76,13 @@ serve(async (req) => {
       throw new Error("Provider does not have a Stripe account configured")
     }
 
-    // Calcular montos
+    // Calcular montos.
+    //
+    // El cliente NO paga el precio del servicio: se le cobra el total, con la
+    // comisión de la plataforma y el procesamiento de Stripe ya incluidos.
+    // El checkout calcula este mismo número con `bookingCharge` en
+    // `src/utils/payment-fees.ts` para poder mostrarlo antes de cobrar, así
+    // que cualquier cambio aquí tiene que repetirse allí — y al revés.
     const serviceAmount = amount
     const platformFee = 0.5
     const targetNet = serviceAmount + platformFee

@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
   return updateSession(request)
 }
 
-export const proxyConfig = {
+export const config = {
   matcher: [
     /*
      * Run on everything except Next internals and static image assets so the

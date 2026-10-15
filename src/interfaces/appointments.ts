@@ -25,4 +25,15 @@ export interface DbAppointment {
   client_phone: number | string | null
   client_email: string | null
   cancelled_at: string | null
+  /** Why the appointment was cancelled, filled in by whoever cancelled it. */
+  cancellation_reason: string | null
+  /**
+   * Payment lifecycle: null/none (no charge) → pending (paid, awaiting the
+   * professional's confirmation) → released (appointment confirmed) →
+   * refunded. `paid` is the legacy value written by the payment-link webhook
+   * and behaves like `released`.
+   */
+  payment_status: string | null
+  refund_status: string | null
+  refund_reason: string | null
 }

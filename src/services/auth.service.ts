@@ -62,6 +62,10 @@ export async function signUpWithPassword(
       password: input.password,
       fullName: input.fullName,
       role: input.role,
+      phone: input.phone,
+      city: input.city,
+      instagram: input.instagram,
+      tiktok: input.tiktok,
     })
     return result.ok ? { ok: true } : { ok: false, errorCode: result.errorCode }
   }
@@ -71,7 +75,17 @@ export async function signUpWithPassword(
     password: input.password,
     options: {
       emailRedirectTo,
-      data: { role: input.role, full_name: input.fullName.trim() },
+      // The `handle_new_user` trigger (migration 0002) validates `role`
+      // against the `roles` catalog, creates the profile row and — for
+      // professionals — their `providers` row with the onboarding extras.
+      data: {
+        role: input.role,
+        full_name: input.fullName.trim(),
+        phone: input.phone?.trim() ?? "",
+        city: input.city?.trim() ?? "",
+        instagram: input.instagram?.trim() ?? "",
+        tiktok: input.tiktok?.trim() ?? "",
+      },
     },
   })
 
@@ -144,6 +158,20 @@ export async function updateProfile(userId: string, patch: ProfileUpdate): Promi
   return normalize(error)
 }
 
+/**
+ * Permissions granted by a role row (`roles` catalog, migration 0002).
+ * Returns an empty list when the table is missing so callers fall back to
+ * the static map instead of breaking the session.
+ */
+export async function fetchRolePermissions(role: string): Promise<string[]> {
+  const supabase = getSupabaseBrowserClient()
+  if (!supabase) return []
+
+  const { data } = await supabase.from("roles").select("permissions").eq("key", role).maybeSingle()
+
+  return Array.isArray(data?.permissions) ? (data.permissions as string[]) : []
+}
+
 /** Fetch the current user's profile row (RLS lets users read only their own). */
 export async function fetchProfile(userId: string): Promise<Profile | null> {
   const supabase = getSupabaseBrowserClient()
@@ -159,6 +187,8 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
 
   return {
     id: data.id,
+    // `role` is a foreign key into the `roles` catalog; the UI ships two
+    // flows, so any other value (e.g. admin) renders the customer one.
     role: data.role === "professional" ? "professional" : "customer",
     fullName: data.full_name,
     email: data.email,

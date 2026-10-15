@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { PasswordField, TextField } from "@/components/ui/text-field"
 import { toast } from "@/components/ui/toast"
+import { useAuthedRedirect } from "@/hooks/use-authed-redirect"
 import type { UserRole } from "@/interfaces/auth"
 import { DEMO_USERS, type DemoUser } from "@/libs/auth/demo"
 import { isSupabaseConfigured } from "@/libs/supabase/env"
@@ -26,6 +27,8 @@ function parseRole(value: string | null): UserRole {
 export function LoginForm() {
   const { t } = useTranslation()
   const router = useRouter()
+  // Already signed in? Leave the auth screens for the role-aware dashboard.
+  const alreadyAuthed = useAuthedRedirect()
   const searchParams = useSearchParams()
   const role = parseRole(searchParams.get("role"))
   const linkError = searchParams.get("error") ? t("errors.auth.sessionExpired") : ""
@@ -121,6 +124,10 @@ export function LoginForm() {
       router.refresh()
     }
   }
+
+  // The session arrived (another tab, or just signed in): hold the paint
+  // while `router.replace` takes over.
+  if (alreadyAuthed) return null
 
   return (
     <div className="space-y-6">

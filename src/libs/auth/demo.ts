@@ -28,6 +28,10 @@ export interface DemoUser {
   phone?: string
   bio?: string
   avatarUrl?: string | null
+  /** Professional onboarding extras (mirror the `providers` columns). */
+  city?: string
+  instagram?: string
+  tiktok?: string
 }
 
 /** Account persisted once a visitor signs in (never stores the password). */
@@ -160,6 +164,10 @@ export interface DemoSignUpInput {
   password: string
   fullName: string
   role: UserRole
+  phone?: string
+  city?: string
+  instagram?: string
+  tiktok?: string
 }
 
 export interface DemoSignUpResult {
@@ -182,6 +190,10 @@ export function registerDemoUser(input: DemoSignUpInput): DemoSignUpResult {
     password: input.password,
     role: input.role,
     fullName: input.fullName.trim(),
+    phone: input.phone?.trim() || undefined,
+    city: input.city?.trim() || undefined,
+    instagram: input.instagram?.trim() || undefined,
+    tiktok: input.tiktok?.trim() || undefined,
   }
 
   writeStorage(USERS_KEY, [...readCustomUsers(), user])
@@ -191,7 +203,7 @@ export function registerDemoUser(input: DemoSignUpInput): DemoSignUpResult {
     email: user.email,
     role: user.role,
     fullName: user.fullName,
-    phone: null,
+    phone: user.phone ?? null,
     bio: null,
     avatarUrl: null,
     method: "password",

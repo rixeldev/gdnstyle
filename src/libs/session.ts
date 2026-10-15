@@ -4,10 +4,11 @@ import type { Session } from "@supabase/supabase-js"
 import { useEffect, useState } from "react"
 
 import type { UserRole } from "@/interfaces/auth"
+import { ROLE_PERMISSIONS } from "@/constants/roles"
 import { readDemoSession } from "@/libs/auth/demo"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import { STORAGE_EVENT } from "@/libs/storage"
-import { fetchProfile } from "@/services/auth.service"
+import { fetchProfile, fetchRolePermissions } from "@/services/auth.service"
 import { fetchProviderForUser } from "@/services/provider.service"
 
 /** Normalized signed-in visitor, regardless of the auth backend in use. */
@@ -21,6 +22,8 @@ export interface SessionUser {
   avatarUrl: string | null
   phone: string | null
   bio: string | null
+  /** Permission keys granted by the DB `roles` row (static map as fallback). */
+  permissions: string[]
   /** True when the session comes from the built-in demo layer. */
   demo: boolean
 }
@@ -44,6 +47,7 @@ function userFromDemo(): SessionUser | null {
     avatarUrl: session.avatarUrl,
     phone: session.phone ?? null,
     bio: session.bio ?? null,
+    permissions: ROLE_PERMISSIONS[session.role],
     demo: true,
   }
 }
@@ -93,13 +97,17 @@ export function useSession(): SessionState {
         return
       }
 
-      // Role is decided by the presence of a `providers` row for this user, not
-      // by `profiles.role`.
-      const [profile, provider] = await Promise.all([
-        fetchProfile(session.user.id),
+      // The database owns the role (`profiles.role` → `roles` catalog);
+      // the providers row only backstops accounts that predate migration
+      // 0002 and have no profile role yet.
+      const profile = await fetchProfile(session.user.id)
+      const [provider, dbPermissions] = await Promise.all([
         fetchProviderForUser(client, session.user.id),
+        profile ? fetchRolePermissions(profile.role) : Promise.resolve([]),
       ])
       if (!active) return
+
+      const role: UserRole = profile?.role ?? (provider ? "professional" : "customer")
 
       setState({
         ready: true,
@@ -109,11 +117,12 @@ export function useSession(): SessionState {
           fullName:
             profile?.fullName ??
             ((session.user.user_metadata?.full_name as string | undefined) || null),
-          role: provider ? "professional" : "customer",
+          role,
           providerId: provider?.id ?? null,
           avatarUrl: profile?.avatarUrl ?? null,
           phone: profile?.phone ?? null,
           bio: null,
+          permissions: dbPermissions.length > 0 ? dbPermissions : ROLE_PERMISSIONS[role],
           demo: false,
         },
       })

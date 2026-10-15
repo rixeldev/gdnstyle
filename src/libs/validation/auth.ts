@@ -27,6 +27,21 @@ export function createSignUpSchema(t: TranslateFn) {
       role: z.enum(["customer", "professional"]),
       fullName: z.string().trim().min(2, t("validation.fullNameMin")),
       email: emailField(t),
+      // Optional for customers (booking can collect it later), required for
+      // professionals — enforced by the superRefine below.
+      phone: z
+        .string()
+        .trim()
+        .regex(/^$|^[\d\s()+-]{7,20}$/, t("validation.phoneInvalid")),
+      city: z.string().trim().max(80, t("validation.cityMax")),
+      instagram: z
+        .string()
+        .trim()
+        .regex(/^$|^@?[A-Za-z0-9._]{1,30}$/, t("validation.socialInvalid")),
+      tiktok: z
+        .string()
+        .trim()
+        .regex(/^$|^@?[A-Za-z0-9._]{1,30}$/, t("validation.socialInvalid")),
       password: passwordField(t),
       confirmPassword: z.string().min(1, t("validation.passwordRequired")),
       terms: z.literal(true, { error: t("validation.termsRequired") }),
@@ -34,6 +49,16 @@ export function createSignUpSchema(t: TranslateFn) {
     .refine((data) => data.password === data.confirmPassword, {
       error: t("validation.passwordMismatch"),
       path: ["confirmPassword"],
+    })
+    .superRefine((data, ctx) => {
+      // The professional directory needs a contact phone from day one.
+      if (data.role === "professional" && data.phone.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["phone"],
+          message: t("validation.phoneRequired"),
+        })
+      }
     })
 }
 

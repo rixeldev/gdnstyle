@@ -26,4 +26,10 @@ export interface Credentials {
 export interface SignUpInput extends Credentials {
   fullName: string
   role: UserRole
+  /** Contact phone; required for professionals, optional for customers. */
+  phone?: string
+  /** Professional onboarding extras (stored on the `providers` row). */
+  city?: string
+  instagram?: string
+  tiktok?: string
 }

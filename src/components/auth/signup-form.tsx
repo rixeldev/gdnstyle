@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { PasswordField, TextField } from "@/components/ui/text-field"
 import { toast } from "@/components/ui/toast"
+import { useAuthedRedirect } from "@/hooks/use-authed-redirect"
 import type { UserRole } from "@/interfaces/auth"
 import { isSupabaseConfigured } from "@/libs/supabase/env"
 import { createSignUpSchema } from "@/libs/validation/auth"
 import { resendConfirmationEmail, signUpWithPassword } from "@/services/auth.service"
+import { sendWelcomeEmail } from "@/services/payments.service"
 import { translateAuthError } from "@/utils/auth-error"
 import { fieldErrorsFrom } from "@/utils/zod"
 
@@ -22,6 +24,10 @@ interface SignUpFormState {
   role: UserRole
   fullName: string
   email: string
+  phone: string
+  city: string
+  instagram: string
+  tiktok: string
   password: string
   confirmPassword: string
   terms: boolean
@@ -34,6 +40,8 @@ function parseRole(value: string | null): UserRole {
 export function SignUpForm() {
   const { t } = useTranslation()
   const router = useRouter()
+  // Already signed in? Leave the auth screens for the role-aware dashboard.
+  const alreadyAuthed = useAuthedRedirect()
   const searchParams = useSearchParams()
   const role = parseRole(searchParams.get("role"))
 
@@ -42,6 +50,10 @@ export function SignUpForm() {
     role,
     fullName: "",
     email: "",
+    phone: "",
+    city: "",
+    instagram: "",
+    tiktok: "",
     password: "",
     confirmPassword: "",
     terms: false,
@@ -99,6 +111,10 @@ export function SignUpForm() {
         password: parsed.data.password,
         fullName: parsed.data.fullName,
         role: parsed.data.role,
+        phone: parsed.data.phone,
+        city: parsed.data.city,
+        instagram: parsed.data.instagram,
+        tiktok: parsed.data.tiktok,
       },
       emailRedirectTo,
     )
@@ -117,6 +133,14 @@ export function SignUpForm() {
       return
     }
 
+    // Fire-and-forget welcome email via the Edge Function; the signup itself
+    // never depends on it.
+    void sendWelcomeEmail(
+      parsed.data.email,
+      parsed.data.fullName,
+      parsed.data.role === "professional" ? "provider" : "client",
+    ).catch(() => undefined)
+
     setCreatedEmail(parsed.data.email)
   }
 
@@ -129,6 +153,10 @@ export function SignUpForm() {
     if (result.ok) setResent(true)
     else setFormError(translateAuthError(result, t))
   }
+
+  // The session arrived (another tab, or just signed in): hold the paint
+  // while `router.replace` takes over.
+  if (alreadyAuthed) return null
 
   if (createdEmail) {
     return (
@@ -204,6 +232,53 @@ export function SignUpForm() {
           error={errors.email}
           required
         />
+
+        <TextField
+          name="phone"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          label={t("auth.signup.phone")}
+          placeholder={t("auth.signup.phonePlaceholder")}
+          hint={role === "professional" ? undefined : t("auth.signup.phoneHintOptional")}
+          value={values.phone}
+          onChange={handleChange("phone")}
+          error={errors.phone}
+          required={role === "professional"}
+        />
+
+        {role === "professional" && (
+          <>
+            <TextField
+              name="city"
+              autoComplete="address-level2"
+              label={t("auth.signup.city")}
+              placeholder={t("auth.signup.cityPlaceholder")}
+              hint={t("auth.signup.cityHint")}
+              value={values.city}
+              onChange={handleChange("city")}
+              error={errors.city}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField
+                name="instagram"
+                label={t("auth.signup.instagram")}
+                placeholder="@tuinstagram"
+                value={values.instagram}
+                onChange={handleChange("instagram")}
+                error={errors.instagram}
+              />
+              <TextField
+                name="tiktok"
+                label={t("auth.signup.tiktok")}
+                placeholder="@tutiktok"
+                value={values.tiktok}
+                onChange={handleChange("tiktok")}
+                error={errors.tiktok}
+              />
+            </div>
+          </>
+        )}
 
         <PasswordField
           name="password"

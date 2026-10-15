@@ -10,6 +10,10 @@ import { Icon } from "@/components/ui/icon"
 import { toast } from "@/components/ui/toast"
 import { ProfileDialog } from "@/components/dashboard/profile-dialog"
 import { ProviderAppointmentsSection } from "@/components/dashboard/provider-appointments-section"
+import { ProviderCardSection } from "@/components/dashboard/provider-card-section"
+import { ProviderEarningsSection } from "@/components/dashboard/provider-earnings-section"
+import { ProviderPortfolioSection } from "@/components/dashboard/provider-portfolio-section"
+import { ProviderVerificationSection } from "@/components/dashboard/provider-verification-section"
 import { VenueFormDialog } from "@/components/dashboard/venue-form-dialog"
 import { getCategoryById } from "@/constants/categories"
 import type { Venue } from "@/constants/venues"
@@ -44,7 +48,7 @@ interface StatCard {
  */
 export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
   const { t, i18n } = useTranslation()
-  const locale = toIntlLocale(i18n.language ?? "es")
+  const locale = toIntlLocale(i18n.language)
   const owned = useOwnedVenues()
   const allVenues = useAllVenues()
   // With Supabase the catalog is the source of truth, so the local hide/claim
@@ -276,6 +280,14 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
 
       {cloud && user.providerId && <ProviderAppointmentsSection />}
 
+      {cloud && user.providerId && <ProviderVerificationSection />}
+
+      {cloud && user.providerId && <ProviderEarningsSection />}
+
+      {cloud && user.providerId && <ProviderCardSection />}
+
+      {cloud && user.providerId && <ProviderPortfolioSection />}
+
       {profileOpen && <ProfileDialog open user={user} onClose={() => setProfileOpen(false)} />}
 
       <ConfirmDialog
@@ -317,7 +329,7 @@ function OwnedVenueCard({ venue, locale, cloud, onEdit, onToggle, onRemove }: Ow
   const { t } = useTranslation()
   const category = getCategoryById(venue.categoryId)
   const custom = isCustomVenueId(venue.id)
-  const price = formatCurrency(venue.priceFrom, locale, "DOP", { maximumFractionDigits: 0 })
+  const price = formatCurrency(venue.priceFrom, locale, "USD", { maximumFractionDigits: 0 })
   const serviceCount = venue.serviceList?.length ?? venue.services.length
 
   return (

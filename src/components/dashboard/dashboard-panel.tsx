@@ -9,39 +9,15 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { Logo } from "@/components/ui/logo"
 import { Spinner } from "@/components/ui/spinner"
 import { Button } from "@/components/ui/button"
-import { Icon, type IconProps } from "@/components/ui/icon"
+import { Icon } from "@/components/ui/icon"
 import { AppointmentsSection } from "@/components/dashboard/appointments-section"
+import { CustomerFavoritesPreview } from "@/components/dashboard/customer-favorites-preview"
+import { CustomerSummaryStats } from "@/components/dashboard/customer-summary-stats"
+import { PaymentMethodsSection } from "@/components/dashboard/payment-methods-section"
 import { ProfessionalWorkspace } from "@/components/dashboard/professional-workspace"
+import { ProfileDialog } from "@/components/dashboard/profile-dialog"
 import { useSession } from "@/libs/session"
 import { signOut } from "@/services/auth.service"
-
-interface Module {
-  key: string
-  titleKey: string
-  bodyKey: string
-  icon: IconProps["name"]
-}
-
-const customerModules: Module[] = [
-  {
-    key: "appointments",
-    titleKey: "dashboard.customer.appointments",
-    bodyKey: "dashboard.customer.appointmentsBody",
-    icon: "calendar",
-  },
-  {
-    key: "favorites",
-    titleKey: "dashboard.customer.favorites",
-    bodyKey: "dashboard.customer.favoritesBody",
-    icon: "star",
-  },
-  {
-    key: "history",
-    titleKey: "dashboard.customer.history",
-    bodyKey: "dashboard.customer.historyBody",
-    icon: "clock",
-  },
-]
 
 function displayName(userName: string | null): string {
   if (!userName) return ""
@@ -53,6 +29,7 @@ export function DashboardPanel() {
   const router = useRouter()
   const { ready, user } = useSession()
   const [signingOut, setSigningOut] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
 
   // No session: send the visitor to the entry point, whatever the backend.
   useEffect(() => {
@@ -99,6 +76,15 @@ export function DashboardPanel() {
 
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
+            {role === "customer" && (
+              <Button
+                variant="ghost"
+                onClick={() => setProfileOpen(true)}
+                iconLeft={<Icon name="sliders" className="size-4" />}
+              >
+                {t("dashboard.professional.editProfile")}
+              </Button>
+            )}
             <Button variant="outline" onClick={handleSignOut} loading={signingOut}>
               {signingOut ? t("dashboard.signingOut") : t("dashboard.signOut")}
             </Button>
@@ -109,23 +95,13 @@ export function DashboardPanel() {
           <ProfessionalWorkspace user={user} />
         ) : (
           <>
+            <CustomerSummaryStats />
+
             <AppointmentsSection />
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {customerModules.map((module) => (
-                <div
-                  key={module.key}
-                  className="border-cream/10 bg-ink-card hover:border-gold/40 rounded-3xl border p-6 transition duration-300 hover:-translate-y-1"
-                >
-                  <Icon name={module.icon} className="text-gold size-6" />
-                  <h2 className="font-display mt-4 text-xl">{t(module.titleKey)}</h2>
-                  <p className="text-cream/55 mt-2 text-sm leading-relaxed">{t(module.bodyKey)}</p>
-                  <span className="text-cream/30 mt-4 inline-flex items-center gap-1.5 text-xs tracking-[0.16em] uppercase">
-                    {t("common.soon")}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <CustomerFavoritesPreview />
+
+            <PaymentMethodsSection />
           </>
         )}
 
@@ -135,6 +111,10 @@ export function DashboardPanel() {
         >
           {t("common.backHome")}
         </Link>
+
+        {user.role === "customer" && profileOpen && (
+          <ProfileDialog open user={user} onClose={() => setProfileOpen(false)} />
+        )}
       </div>
     )
 

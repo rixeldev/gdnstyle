@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
+import { Select } from "@/components/ui/select"
 import { TextField } from "@/components/ui/text-field"
 import { toast } from "@/components/ui/toast"
 import { ALL_CATEGORIES } from "@/constants/categories"
@@ -42,9 +43,6 @@ const PHOTO_SETS = VENUES.map((venue, index) => ({
   gallery: venue.gallery,
 }))
 
-const selectClass =
-  "h-11 w-full rounded-xl border border-cream/15 bg-cream/3 px-3.5 text-sm text-cream outline-none transition focus:border-gold/60 focus:bg-cream/5 disabled:opacity-60"
-
 interface FormState {
   name: string
   categoryId: string
@@ -64,9 +62,9 @@ function initialValues(venue: Venue | null): FormState {
   return {
     name: venue?.name ?? "",
     categoryId: venue?.categoryId ?? ALL_CATEGORIES[0]?.id ?? "barberia",
-    city: venue?.city ?? VENUE_CITIES[0] ?? "Santo Domingo",
+    city: venue?.city ?? VENUE_CITIES[0] ?? "Manhattan",
     area: venue?.area ?? "",
-    priceFrom: String(venue?.priceFrom ?? 1000),
+    priceFrom: String(venue?.priceFrom ?? 50),
     services: venue ? [...venue.services] : [],
     description: venue?.description ?? "",
     phone: venue?.phone ?? "",
@@ -280,18 +278,18 @@ export function VenueFormDialog({
               <label htmlFor="venue-category" className="text-cream/80 block text-sm font-medium">
                 {t("venues.form.category")}
               </label>
-              <select
+              <Select
                 id="venue-category"
                 value={values.categoryId}
-                onChange={(event) => set("categoryId", event.target.value)}
-                className={selectClass}
-              >
-                {ALL_CATEGORIES.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {t(category.labelKey)}
-                  </option>
-                ))}
-              </select>
+                options={ALL_CATEGORIES.map((category) => ({
+                  value: category.id,
+                  label: t(category.labelKey),
+                }))}
+                onChange={(value) => set("categoryId", value)}
+                ariaLabel={t("venues.form.category")}
+                className="w-full"
+                triggerClassName="h-11 w-full rounded-xl pl-3.5 text-sm"
+              />
               {errors.categoryId && (
                 <p className="text-xs font-medium text-red-300">{errors.categoryId}</p>
               )}
@@ -301,19 +299,16 @@ export function VenueFormDialog({
               <label htmlFor="venue-city" className="text-cream/80 block text-sm font-medium">
                 {t("venues.form.city")}
               </label>
-              <select
+              <Select
                 id="venue-city"
                 value={values.city}
-                onChange={(event) => set("city", event.target.value)}
+                options={cityOptions.map((city) => ({ value: city, label: city }))}
+                onChange={(value) => set("city", value)}
                 disabled={cloudEdit}
-                className={selectClass}
-              >
-                {cityOptions.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
-                  </option>
-                ))}
-              </select>
+                ariaLabel={t("venues.form.city")}
+                className="w-full"
+                triggerClassName="h-11 w-full rounded-xl pl-3.5 text-sm"
+              />
             </div>
           </div>
 
@@ -404,14 +399,14 @@ export function VenueFormDialog({
                   label={t("venues.form.phone")}
                   value={values.phone}
                   onChange={(event) => set("phone", event.target.value)}
-                  placeholder="+1 809 000 0000"
+                  placeholder="+1 212 555 0100"
                   inputMode="tel"
                 />
                 <TextField
                   label={t("venues.form.whatsapp")}
                   value={values.whatsapp}
                   onChange={(event) => set("whatsapp", event.target.value)}
-                  placeholder="+1 809 000 0000"
+                  placeholder="+1 212 555 0100"
                   inputMode="tel"
                 />
                 <TextField

@@ -68,7 +68,7 @@ export function ProfileDialog({ open, user, onClose }: ProfileDialogProps) {
             label={t("dashboard.professional.phone")}
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
-            placeholder="+1 809 000 0000"
+            placeholder="+1 212 555 0100"
             inputMode="tel"
             hint={t("common.optional")}
           />

@@ -1,6 +1,12 @@
 "use client"
 
-import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react"
+import {
+  useId,
+  useState,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type TextareaHTMLAttributes,
+} from "react"
 
 import { cn } from "@/utils/cn"
 
@@ -155,6 +161,46 @@ export function PasswordField({
           <Icon name={visible ? "eye-off" : "eye"} className="h-[1.15rem] w-[1.15rem]" />
         </button>
       </div>
+    </FieldChrome>
+  )
+}
+
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: ReactNode
+  error?: string
+  hint?: string
+}
+
+/** Multi-line counterpart of `TextField` sharing the same field chrome. */
+export function TextArea({ label, error, hint, id, className, required, ...props }: TextAreaProps) {
+  const autoId = useId()
+  const fieldId = id ?? autoId
+  const errorId = `${fieldId}-error`
+  const hintId = `${fieldId}-hint`
+
+  return (
+    <FieldChrome
+      id={fieldId}
+      label={label}
+      error={error}
+      hint={hint}
+      errorId={errorId}
+      hintId={hintId}
+      required={required}
+    >
+      <textarea
+        id={fieldId}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={cn(error && errorId, hint && !error && hintId) || undefined}
+        className={cn(
+          inputClasses,
+          "h-auto min-h-24 resize-none py-2.5 leading-relaxed",
+          error ? "border-red-400/60" : "border-cream/15",
+          className,
+        )}
+        required={required}
+        {...props}
+      />
     </FieldChrome>
   )
 }

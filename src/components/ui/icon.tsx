@@ -51,6 +51,7 @@ const paths: Record<IconName, React.ReactNode> = {
   star: <path d="M12 3.5l2.7 5.2 5.8.9-4.2 4.1 1 5.8L12 16.8 6.7 19.5l1-5.8-4.2-4.1 5.8-.9Z" />,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   close: <path d="M6 6l12 12M18 6 6 18" />,
+  "chevron-down": <path d="M6 9l6 6 6-6" />,
   "arrow-right": (
     <>
       <path d="M5 12h14" />
@@ -224,6 +225,23 @@ const paths: Record<IconName, React.ReactNode> = {
       <path d="M10 11v5M14 11v5" />
     </>
   ),
+  store: (
+    <>
+      <path d="M4.2 9.5 5.4 4.7A1 1 0 0 1 6.36 4h11.28a1 1 0 0 1 .96.7l1.2 4.8" />
+      <path d="M2.8 9.5h18.4" />
+      <path d="M4.5 9.5V19a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5V9.5" />
+      <path d="M9.5 20.5V14a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v6.5" />
+    </>
+  ),
+  "shopping-bag": (
+    <>
+      <path d="M6.2 2.5 3.5 6.2V19a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V6.2l-2.7-3.7Z" />
+      <path d="M3.5 6.2h17" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </>
+  ),
+  plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
   "check-circle": (
     <>
       <circle cx="12" cy="12" r="9" />
@@ -234,6 +252,48 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <path d="M6 18 18 6M9 6h9v9" />
     </>
+  ),
+  facebook: (
+    <path
+      fill="currentColor"
+      stroke="none"
+      d="M13.5 21v-7h2.3l.4-2.8h-2.7V9.4c0-.8.3-1.4 1.5-1.4h1.4V5.5c-.6-.1-1.3-.1-2.1-.1-2.1 0-3.6 1.3-3.6 3.7v2.1H8.4V14h2.3v7Z"
+    />
+  ),
+  instagram: (
+    <>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+      <circle cx="12" cy="12" r="3.7" />
+      <circle cx="17.2" cy="6.9" r="1.1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  tiktok: (
+    <path
+      fill="currentColor"
+      stroke="none"
+      d="M16.5 3c.3 2 1.4 3.4 3.5 3.7v2.5c-1.3.1-2.5-.3-3.6-1v5.9c0 3.2-2.6 5.4-5.5 5.4A5.3 5.3 0 0 1 5.6 14c0-3 2.4-5.2 5.6-5.1v2.6c-.4-.1-.8-.2-1.2-.2-1.5 0-2.6 1.2-2.6 2.7 0 1.5 1.1 2.7 2.6 2.7 1.6 0 2.7-1.2 2.7-2.9V3Z"
+    />
+  ),
+  youtube: (
+    <path
+      fill="currentColor"
+      stroke="none"
+      d="M21.6 8.2a2.6 2.6 0 0 0-1.8-1.8C18.2 6 12 6 12 6s-6.2 0-7.8.4A2.6 2.6 0 0 0 2.4 8.2 27 27 0 0 0 2 12a27 27 0 0 0 .4 3.8 2.6 2.6 0 0 0 1.8 1.8C5.8 18 12 18 12 18s6.2 0 7.8-.4a2.6 2.6 0 0 0 1.8-1.8A27 27 0 0 0 22 12a27 27 0 0 0-.4-3.8ZM10 15V9l5.2 3Z"
+    />
+  ),
+  whatsapp: (
+    <path
+      fill="currentColor"
+      stroke="none"
+      d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.7-.1a12 12 0 0 1-5.9-5.2c-.5-.9-.6-1.6-.5-2.2.1-.5.6-1.3 1-1.5.3-.2.7-.1.9.2l.9 1.5c.1.2.1.4 0 .6l-.4.6c-.1.2-.2.4 0 .7.4.7 1.5 1.9 2.4 2.3.3.1.5.1.7-.1l.6-.7c.2-.2.4-.2.6-.1l1.5.8c.3.2.4.5.2.9Z"
+    />
+  ),
+  twitter: (
+    <path
+      fill="currentColor"
+      stroke="none"
+      d="M17.7 3h3l-6.6 7.6L22 21h-6.1l-4.8-6.2L5.6 21h-3l7-8.1L2 3h6.2l4.3 5.7Zm-1 16h1.7L7.4 4.8H5.6Z"
+    />
   ),
 }
 

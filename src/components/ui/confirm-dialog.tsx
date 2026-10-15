@@ -10,11 +10,15 @@ export interface ConfirmDialogProps {
   open: boolean
   title: string
   body?: ReactNode
+  /** Extra controls (a reason field, a checkbox…) shown above the actions. */
+  children?: ReactNode
   confirmLabel?: string
   cancelLabel?: string
   /** `danger` styles the confirm action for destructive operations. */
   tone?: "default" | "danger"
   loading?: boolean
+  /** Keeps the confirm action unreachable while a required field is empty. */
+  confirmDisabled?: boolean
   onConfirm: () => void
   onClose: () => void
 }
@@ -28,10 +32,12 @@ export function ConfirmDialog({
   open,
   title,
   body,
+  children,
   confirmLabel,
   cancelLabel,
   tone = "default",
   loading = false,
+  confirmDisabled = false,
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
@@ -45,6 +51,7 @@ export function ConfirmDialog({
           {title}
         </h2>
         {body && <p className="text-cream/60 mt-2 text-sm leading-relaxed">{body}</p>}
+        {children && <div className="mt-4">{children}</div>}
 
         <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <Button variant="ghost" size="sm" onClick={onClose} disabled={loading}>
@@ -55,6 +62,7 @@ export function ConfirmDialog({
             size="sm"
             onClick={onConfirm}
             loading={loading}
+            disabled={confirmDisabled}
           >
             {confirmLabel ?? t("common.confirm")}
           </Button>

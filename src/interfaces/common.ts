@@ -23,6 +23,7 @@ export type IconName =
   | "arrow-left"
   | "arrow-up"
   | "arrow-up-right"
+  | "chevron-down"
   | "check"
   | "check-circle"
   | "alert"
@@ -36,9 +37,19 @@ export type IconName =
   | "users"
   | "sliders"
   | "trash"
+  | "store"
+  | "shopping-bag"
+  | "plus"
+  | "minus"
   | "apple"
   | "google"
   | "play"
+  | "facebook"
+  | "instagram"
+  | "tiktok"
+  | "youtube"
+  | "whatsapp"
+  | "twitter"
 
 export interface Category {
   /** Canonical id — matches `Venue["categoryId"]` (camelCase). */

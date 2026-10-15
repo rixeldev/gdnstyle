@@ -3,9 +3,11 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
+import { AppointmentStatusBadge } from "@/components/dashboard/appointment-status-badge"
 import { Button } from "@/components/ui/button"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Icon } from "@/components/ui/icon"
+import { TextArea } from "@/components/ui/text-field"
 import { toast } from "@/components/ui/toast"
 import { useProviderAppointments } from "@/hooks/use-provider-appointments"
 import { type Booking } from "@/hooks/use-bookings"
@@ -13,30 +15,84 @@ import { useAllVenues } from "@/hooks/use-venues"
 import { parseDateKey } from "@/utils/date"
 import { formatCurrency, formatDate, formatTime, toIntlLocale } from "@/utils/format"
 
-/** Map a stored status onto the translation key, defaulting to pending. */
-function statusKey(status: string | undefined): string {
-  if (status === "confirmed" || status === "completed" || status === "cancelled") return status
-  return "pending"
-}
-
 /** Professional dashboard block: the appointments booked with them. */
 export function ProviderAppointmentsSection() {
   const { t, i18n } = useTranslation()
-  const locale = toIntlLocale(i18n.language ?? "es")
+  const locale = toIntlLocale(i18n.language)
   const venues = useAllVenues()
-  const { upcoming, past, setStatus } = useProviderAppointments()
+  const { upcoming, past, refundRequests, confirmBooking, resolveRefund, cancelBooking } =
+    useProviderAppointments()
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
+  // Both sides must explain themselves: the reason is stored on the row so the
+  // client reads it on theirs.
+  const [cancelReason, setCancelReason] = useState("")
+  const [cancelling, setCancelling] = useState(false)
+  const [resolving, setResolving] = useState(false)
 
-  function handleConfirmCancel() {
-    if (!pendingCancel) return
-    void setStatus(pendingCancel.id, "cancelled")
-    setPendingCancel(null)
-    toast(t("dashboard.professional.appointments.cancelled"))
+  function openCancelDialog(booking: Booking) {
+    setCancelReason("")
+    setPendingCancel(booking)
   }
 
-  function complete(booking: Booking) {
-    void setStatus(booking.id, "completed")
-    toast(t("dashboard.professional.appointments.completed"))
+  async function handleConfirmCancel() {
+    if (!pendingCancel || !cancelReason.trim()) return
+    const id = pendingCancel.id
+    const reason = cancelReason.trim()
+    setCancelling(true)
+    const ok = await cancelBooking(id, reason)
+    setCancelling(false)
+    setPendingCancel(null)
+    setCancelReason("")
+    toast(
+      ok ? t("dashboard.professional.appointments.cancelled") : t("common.tryAgain"),
+      ok ? "success" : "neutral",
+    )
+  }
+
+  function confirm(booking: Booking) {
+    void confirmBooking(booking.id).then((ok) => {
+      toast(
+        ok ? t("dashboard.professional.appointments.confirmed") : t("common.tryAgain"),
+        ok ? "success" : "neutral",
+      )
+    })
+  }
+
+  async function handleRefund(booking: Booking, resolution: "approved" | "rejected") {
+    setResolving(true)
+    const ok = await resolveRefund(booking.id, resolution)
+    setResolving(false)
+    toast(
+      ok
+        ? resolution === "approved"
+          ? t("dashboard.professional.appointments.refundApproved")
+          : t("dashboard.professional.appointments.refundRejected")
+        : t("common.tryAgain"),
+      ok ? "success" : "neutral",
+    )
+  }
+
+  /** Payment lifecycle pill (pending → released → refunded). */
+  function paymentBadge(booking: Booking) {
+    const payment = (booking.paymentStatus ?? "").toLowerCase()
+    if (!payment || payment === "none" || payment === "refunded") return null
+
+    const className =
+      payment === "pending"
+        ? "border-gold/30 bg-gold/10 text-gold"
+        : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+    const label =
+      payment === "pending"
+        ? t("dashboard.customer.badges.paymentPending")
+        : t("dashboard.customer.badges.paymentReleased")
+
+    return (
+      <span
+        className={`rounded-full border px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase ${className}`}
+      >
+        {label}
+      </span>
+    )
   }
 
   function renderBooking(booking: Booking, isUpcoming: boolean) {
@@ -45,7 +101,7 @@ export function ProviderAppointmentsSection() {
       booking.clientName?.trim() || t("dashboard.professional.appointments.clientFallback")
     const service = booking.serviceName ?? t(`venues.services.${booking.serviceId}`)
     const date = parseDateKey(booking.date)
-    const status = statusKey(booking.status)
+    const status = booking.displayStatus ?? "pending"
 
     return (
       <li
@@ -60,7 +116,10 @@ export function ProviderAppointmentsSection() {
         </span>
 
         <span className="min-w-0 flex-1">
-          <span className="text-cream block truncate text-sm font-semibold">{client}</span>
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="text-cream block truncate text-sm font-semibold">{client}</span>
+            <AppointmentStatusBadge status={status} />
+          </span>
           <span className="text-cream/50 mt-1 block text-xs">
             {service} ·{" "}
             {t("dashboard.professional.appointments.atTime", {
@@ -69,36 +128,36 @@ export function ProviderAppointmentsSection() {
             {booking.clientPhone ? ` · ${booking.clientPhone}` : ""}
             {venue ? ` · ${venue.name}` : ""}
           </span>
-        </span>
-
-        <span
-          className={
-            status === "cancelled"
-              ? "text-cream/45 border-cream/20 shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium"
-              : "border-gold/30 bg-gold/10 text-gold-soft shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-medium"
-          }
-        >
-          {t(`dashboard.professional.appointments.status.${status}`)}
+          {paymentBadge(booking)}
+          {status === "cancelled" && booking.cancellationReason && (
+            <span className="text-cream/45 mt-1.5 block text-xs italic">
+              {t("dashboard.professional.appointments.cancelReason", {
+                reason: booking.cancellationReason,
+              })}
+            </span>
+          )}
         </span>
 
         <span className="text-cream/70 text-sm font-semibold">
-          {formatCurrency(booking.price, locale, "DOP", { maximumFractionDigits: 0 })}
+          {formatCurrency(booking.price, locale, "USD", { maximumFractionDigits: 0 })}
         </span>
 
         {isUpcoming && status !== "cancelled" ? (
           <span className="flex gap-2">
+            {(status === "pending" || status === "overdue") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => confirm(booking)}
+                iconLeft={<Icon name="badge-check" className="size-4" />}
+              >
+                {t("dashboard.professional.appointments.confirm")}
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => complete(booking)}
-              iconLeft={<Icon name="check-circle" className="size-4" />}
-            >
-              {t("dashboard.professional.appointments.complete")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setPendingCancel(booking)}
+              onClick={() => openCancelDialog(booking)}
               iconLeft={<Icon name="trash" className="size-4" />}
             >
               {t("dashboard.professional.appointments.cancel")}
@@ -135,6 +194,64 @@ export function ProviderAppointmentsSection() {
         )}
       </div>
 
+      {refundRequests.length > 0 && (
+        <div className="border-gold/25 bg-gold/5 rounded-4xl border p-6">
+          <h2 className="font-display text-xl font-semibold">
+            {t("dashboard.professional.appointments.refundTitle")}
+          </h2>
+          <p className="text-cream/50 mt-1 text-sm">
+            {t("dashboard.professional.appointments.refundBody")}
+          </p>
+          <ul className="mt-5 space-y-3">
+            {refundRequests.map((booking) => {
+              const client =
+                booking.clientName?.trim() ||
+                t("dashboard.professional.appointments.clientFallback")
+              return (
+                <li
+                  key={booking.id}
+                  className="border-cream/10 bg-cream/2 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border px-4 py-3.5"
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="text-cream block truncate text-sm font-semibold">
+                      {client}
+                    </span>
+                    <span className="text-cream/50 mt-1 block text-xs">
+                      {booking.serviceName ?? t(`venues.services.${booking.serviceId}`)} ·{" "}
+                      {formatDate(parseDateKey(booking.date), locale, {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </span>
+                  </span>
+                  <span className="text-cream/70 text-sm font-semibold">
+                    {formatCurrency(booking.price, locale, "USD", { maximumFractionDigits: 0 })}
+                  </span>
+                  <span className="flex gap-2">
+                    <Button
+                      size="sm"
+                      loading={resolving}
+                      onClick={() => handleRefund(booking, "approved")}
+                      iconLeft={<Icon name="check-circle" className="size-4" />}
+                    >
+                      {t("dashboard.professional.appointments.refundApprove")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={resolving}
+                      onClick={() => handleRefund(booking, "rejected")}
+                    >
+                      {t("dashboard.professional.appointments.refundReject")}
+                    </Button>
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        </div>
+      )}
+
       {past.length > 0 && (
         <div className="border-cream/10 bg-ink-card rounded-4xl border p-6">
           <h2 className="font-display text-xl font-semibold">
@@ -164,9 +281,21 @@ export function ProviderAppointmentsSection() {
         }
         confirmLabel={t("dashboard.professional.appointments.cancelConfirm")}
         cancelLabel={t("dashboard.professional.appointments.cancelKeep")}
+        loading={cancelling}
+        confirmDisabled={!cancelReason.trim()}
         onConfirm={handleConfirmCancel}
         onClose={() => setPendingCancel(null)}
-      />
+      >
+        <TextArea
+          label={t("dashboard.professional.appointments.cancelReasonLabel")}
+          hint={t("dashboard.professional.appointments.cancelReasonHint")}
+          placeholder={t("dashboard.professional.appointments.cancelReasonPlaceholder")}
+          rows={3}
+          maxLength={300}
+          value={cancelReason}
+          onChange={(event) => setCancelReason(event.target.value)}
+        />
+      </ConfirmDialog>
     </section>
   )
 }

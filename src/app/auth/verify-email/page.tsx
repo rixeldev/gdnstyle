@@ -4,8 +4,8 @@ import { AuthShell } from "@/components/auth/auth-shell"
 import { VerifyEmailNotice } from "@/components/auth/verify-email-notice"
 
 export const metadata: Metadata = {
-  title: "Confirma tu correo",
-  description: "Confirma tu correo para activar tu cuenta de GDN Style.",
+  title: "Confirm your email",
+  description: "Confirm your email to activate your GDN Style account.",
 }
 
 export default function VerifyEmailPage() {

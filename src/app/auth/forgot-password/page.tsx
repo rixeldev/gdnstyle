@@ -4,8 +4,8 @@ import { AuthShell } from "@/components/auth/auth-shell"
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form"
 
 export const metadata: Metadata = {
-  title: "Recuperar contraseña",
-  description: "Solicita un enlace para restablecer tu contraseña de GDN Style.",
+  title: "Reset password",
+  description: "Request a link to reset your GDN Style password.",
 }
 
 export default function ForgotPasswordPage() {

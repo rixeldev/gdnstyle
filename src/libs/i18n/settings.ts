@@ -1,8 +1,10 @@
-export const LOCALES = ["es", "en"] as const
+/** Supported languages, in the order the switcher lists them. */
+export const LOCALES = ["en", "es"] as const
 
 export type Locale = (typeof LOCALES)[number]
 
-export const DEFAULT_LOCALE: Locale = "es"
+/** English is the default: it is the language a first-time visitor gets. */
+export const DEFAULT_LOCALE: Locale = "en"
 
 /** Cookie + localStorage key used to persist the chosen language. */
 export const LOCALE_STORAGE_KEY = "gdn-style.locale"

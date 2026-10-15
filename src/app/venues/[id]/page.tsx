@@ -35,14 +35,14 @@ function buildJsonLd(venue: Venue) {
     name: venue.name,
     url: `${SITE.url}/venues/${venue.id}`,
     image: venue.gallery.map((photo) => absoluteUrl(photo)),
-    priceRange: `RD$${venue.priceFrom}+`,
+    priceRange: `US$${venue.priceFrom}+`,
     currenciesAccepted: SITE.currency,
     address: {
       "@type": "PostalAddress",
       ...(venue.address ? { streetAddress: venue.address } : {}),
       addressLocality: venue.city,
       ...(venue.source === "database" ? {} : { addressRegion: venue.area }),
-      addressCountry: venue.country ?? "DO",
+      addressCountry: venue.country ?? "US",
     },
     ...(venue.hasCoords === false
       ? {}
@@ -72,11 +72,11 @@ export async function generateMetadata({ params }: VenuePageProps): Promise<Meta
 
   if (!venue) {
     // Locally-created venues are unknown to the server; keep them out of search.
-    return { title: "Local", robots: { index: false, follow: false } }
+    return { title: "Venue", robots: { index: false, follow: false } }
   }
 
   const location = venueLocationLabel(venue)
-  const description = `Reserva cita en ${venue.name} (${location}). Valorado con ${venue.rating} estrellas por ${venue.reviews} clientas. Precios desde RD$${venue.priceFrom} en GDN Style.`
+  const description = `Book an appointment at ${venue.name} (${location}). Rated ${venue.rating} stars by ${venue.reviews} clients. Prices from US$${venue.priceFrom} on GDN Style.`
 
   return {
     title: `${venue.name} · ${location}`,

@@ -3,8 +3,8 @@ import type { Metadata } from "next"
 import { PrivacyPage } from "@/components/legal/privacy-page"
 
 export const metadata: Metadata = {
-  title: "Política de privacidad",
-  description: "Cómo GDN Style trata tus datos personales.",
+  title: "Privacy policy",
+  description: "How GDN Style handles your personal data.",
 }
 
 export default function Policies() {

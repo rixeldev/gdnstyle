@@ -6,7 +6,7 @@ export const SITE = {
   email: "support@gdnstyle.com",
   phone: "+1 (888) 913-5587",
   url: "https://www.gdnstyle.com",
-  currency: "DOP",
+  currency: "USD",
 } as const
 
 export const NAV_LINKS = [

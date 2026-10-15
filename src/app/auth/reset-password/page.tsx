@@ -4,8 +4,8 @@ import { AuthShell } from "@/components/auth/auth-shell"
 import { ResetPasswordForm } from "@/components/auth/reset-password-form"
 
 export const metadata: Metadata = {
-  title: "Nueva contraseña",
-  description: "Elige una nueva contraseña para tu cuenta de GDN Style.",
+  title: "New password",
+  description: "Choose a new password for your GDN Style account.",
 }
 
 export default function ResetPasswordPage() {

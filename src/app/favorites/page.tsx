@@ -4,9 +4,8 @@ import { FavoritesPage } from "@/components/venues/favorites-page"
 import { VenueShell } from "@/components/venues/venue-shell"
 
 export const metadata: Metadata = {
-  title: "Tus favoritos",
-  description:
-    "Los locales que guardaste en GDN Style, listos para reservar en un toque desde tu panel.",
+  title: "Your favorites",
+  description: "The venues you saved on GDN Style, ready to book in one tap from your dashboard.",
   alternates: { canonical: "/favorites" },
 }
 

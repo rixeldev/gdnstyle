@@ -36,21 +36,21 @@ function venueHasCategory(venue: Venue, categoryId: string): boolean {
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
   const { slug } = await params
   const category = getCategoryBySlug(slug)
-  if (!category) return { title: "Categoría no encontrada" }
+  if (!category) return { title: "Category not found" }
 
   const venues = await getServerCatalog()
   const count = venues.filter((venue) => venueHasCategory(venue, category.id)).length
   const name = categoryLabel(category.id)
 
   return {
-    title: `${name} cerca de ti`,
-    description: `Encuentra locales de ${name.toLowerCase()} en GDN Style y reserva tu cita online. ${
-      count === 1 ? "1 local disponible" : `${count} locales disponibles`
-    } en República Dominicana y Estados Unidos.`,
+    title: `${name} near you`,
+    description: `Find ${name.toLowerCase()} venues on GDN Style and book your appointment online. ${
+      count === 1 ? "1 venue available" : `${count} venues available`
+    } in New York and New Jersey.`,
     alternates: { canonical: `/venues/category/${slug}` },
     openGraph: {
       title: `${name} · GDN Style`,
-      description: `Reserva ${name.toLowerCase()} con los mejores locales, valorados por clientas reales.`,
+      description: `Book ${name.toLowerCase()} at the best venues, rated by real clients.`,
     },
   }
 }

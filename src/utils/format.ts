@@ -1,4 +1,4 @@
-/** Locale-aware helpers. Dominican Republic (es-DO) is the primary context. */
+/** Locale-aware helpers. The app sells in the US market (en-US / es-US). */
 
 export type DateInput = Date | string | number
 
@@ -29,13 +29,13 @@ export function formatNumber(
 export function formatCurrency(
   value: number,
   locale: string,
-  currency = "DOP",
+  currency = "USD",
   options?: Intl.NumberFormatOptions,
 ): string {
   return new Intl.NumberFormat(locale, { style: "currency", currency, ...options }).format(value)
 }
 
-/** Map an app locale (`es` / `en`) to an Intl locale for the DR market. */
+/** Map an app locale (`es` / `en`) to an Intl locale for the US market. */
 export function toIntlLocale(locale: string): string {
-  return locale === "en" ? "en-US" : "es-DO"
+  return locale === "es" ? "es-US" : "en-US"
 }

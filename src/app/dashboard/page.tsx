@@ -4,8 +4,8 @@ import { Suspense } from "react"
 import { DashboardPanel } from "@/components/dashboard/dashboard-panel"
 
 export const metadata: Metadata = {
-  title: "Tu panel",
-  description: "Tu panel en GDN Style: citas, favoritos, servicios y más.",
+  title: "Your dashboard",
+  description: "Your GDN Style dashboard: appointments, favorites, services and more.",
 }
 
 export default function DashboardPage() {

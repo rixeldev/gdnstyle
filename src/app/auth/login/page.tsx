@@ -6,8 +6,8 @@ import { AuthShell } from "@/components/auth/auth-shell"
 import { LoginForm } from "@/components/auth/login-form"
 
 export const metadata: Metadata = {
-  title: "Iniciar sesión",
-  description: "Inicia sesión en GDN Style como cliente o profesional.",
+  title: "Sign in",
+  description: "Sign in to GDN Style as a client or a professional.",
 }
 
 export default function LoginPage() {

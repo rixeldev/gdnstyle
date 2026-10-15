@@ -6,8 +6,8 @@ import { AuthShell } from "@/components/auth/auth-shell"
 import { SignUpForm } from "@/components/auth/signup-form"
 
 export const metadata: Metadata = {
-  title: "Crear cuenta",
-  description: "Crea tu cuenta en GDN Style como cliente o profesional.",
+  title: "Create account",
+  description: "Create your GDN Style account as a client or a professional.",
 }
 
 export default function SignUpPage() {

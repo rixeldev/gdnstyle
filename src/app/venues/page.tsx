@@ -5,9 +5,9 @@ import { VenueDirectory } from "@/components/venues/venue-directory"
 import { getServerCatalog } from "@/libs/marketplace/server"
 
 export const metadata: Metadata = {
-  title: "Explora locales de belleza",
+  title: "Explore beauty venues",
   description:
-    "Salones, barberías y estudios de belleza en GDN Style. Busca por nombre, servicio o ciudad y reserva cuando estés listo.",
+    "Salons, barbershops and beauty studios on GDN Style. Search by name, service or city and book when you're ready.",
 }
 
 /**

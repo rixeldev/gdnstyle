@@ -21,19 +21,19 @@ export async function generateMetadata({ params }: CityPageProps): Promise<Metad
   const { slug } = await params
   const venues = await getServerCatalog()
   const city = catalogCities(venues).find((item) => slugify(item) === slug)
-  if (!city) return { title: "Ciudad no encontrada" }
+  if (!city) return { title: "City not found" }
 
   const count = venues.filter((venue) => venue.city === city).length
 
   return {
-    title: `Locales de belleza en ${city}`,
-    description: `Encuentra locales en ${city} en GDN Style y reserva tu cita online. ${
-      count === 1 ? "1 local disponible" : `${count} locales disponibles`
+    title: `Beauty venues in ${city}`,
+    description: `Find venues in ${city} on GDN Style and book your appointment online. ${
+      count === 1 ? "1 venue available" : `${count} venues available`
     }.`,
     alternates: { canonical: `/venues/city/${slug}` },
     openGraph: {
       title: `${city} · GDN Style`,
-      description: `Reserva tu cita en los mejores locales de ${city}.`,
+      description: `Book your appointment at the best venues in ${city}.`,
     },
   }
 }

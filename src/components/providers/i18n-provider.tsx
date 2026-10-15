@@ -3,8 +3,14 @@
 import { useEffect, useMemo } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
 
-import { createI18n } from "@/libs/i18n/client"
-import { DEFAULT_LOCALE, LOCALE_STORAGE_KEY, isLocale, type Locale } from "@/libs/i18n/settings"
+import { getSharedI18n } from "@/libs/i18n/client"
+import {
+  DEFAULT_LOCALE,
+  LOCALE_STORAGE_KEY,
+  LOCALES,
+  isLocale,
+  type Locale,
+} from "@/libs/i18n/settings"
 
 const LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
@@ -55,7 +61,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   // Always boot in the language of the served document (`<html lang>`), so the
   // very first client render matches the server HTML byte-for-byte; the stored
   // preference is applied afterwards, never during hydration.
-  const i18n = useMemo(() => createI18n(readBootLocale()), [])
+  const i18n = useMemo(() => getSharedI18n(readBootLocale()), [])
 
   useEffect(() => {
     const syncDocumentLang = (lng: string) => {
@@ -124,5 +130,5 @@ export function useLocale() {
     void i18n.changeLanguage(locale)
   }
 
-  return { locale: current, setLocale, locales: ["es", "en"] as const }
+  return { locale: current, setLocale, locales: LOCALES }
 }

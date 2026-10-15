@@ -798,6 +798,22 @@
   "dashboard": {
     "title": "Your dashboard",
     "greeting": "Hi, {{name}}",
+    "menu": "Menu",
+    "nav": {
+      "overview": "Overview",
+      "appointments": "Appointments",
+      "favorites": "Favorites",
+      "payments": "Payments",
+      "profile": "Profile",
+      "venues": "Venues",
+      "earnings": "Earnings",
+      "portfolio": "Portfolio",
+      "account": "Account"
+    },
+    "account": {
+      "email": "Email",
+      "phone": "Phone"
+    },
     "appointmentStatus": {
       "pending": "Pending",
       "confirmed": "Confirmed",
@@ -807,6 +823,31 @@
     "customer": {
       "role": "Client",
       "subtitle": "Here you'll see your upcoming appointments, favorites and history.",
+      "overviewTitle": "What's next",
+      "overviewBody": "Your upcoming appointments at a glance, plus everything you have booked before.",
+      "overviewEmptyBody": "Book something and it will show up here with the exact hour and how far away it is.",
+      "overviewActivity": "Recent activity",
+      "overviewActivityBody": "The last appointments you booked.",
+      "overviewActions": "Jump back in",
+      "overviewActionsBody": "The places you go back to most.",
+      "nextUp": "Next up",
+      "viewVenue": "View venue",
+      "appointmentsViewTitle": "Your appointments",
+      "appointmentsViewBody": "Everything you have booked, past and upcoming, with editing and cancellation.",
+      "countdown": {
+        "startsIn": "Starts in {{when}}",
+        "now": "Happening now",
+        "minutes_one": "{{count}} minute",
+        "minutes_other": "{{count}} minutes",
+        "hours_one": "{{count}} hour",
+        "hours_other": "{{count}} hours",
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days"
+      },
+      "quickBookBody": "Find a professional near you and pick an hour that is actually free.",
+      "quickFavoritesBody": "The venues you saved for later.",
+      "quickPaymentsBody": "Cards stored with Stripe, for one-tap booking.",
+      "quickProfileBody": "Your name, phone and how you introduce yourself.",
       "summaryLabel": "Your dashboard summary",
       "statTotal": "Total appointments",
       "statUpcoming": "Upcoming appointments",
@@ -814,6 +855,11 @@
       "statFavorites": "Favorites",
       "appointmentsBody": "Your confirmed bookings, with date, service and venue.",
       "favorites": "Favorites",
+      "favoritesBody": "The venues you saved. Open a card to book it again.",
+      "favoritesEmpty": "Nothing saved yet",
+      "favoritesEmptyBody": "Tap the heart on any venue to keep it here for later.",
+      "favoritesCount_one": "You have {{count}} saved venue",
+      "favoritesCount_other": "You have {{count}} saved venues",
       "upcomingTitle": "Upcoming appointments",
       "upcomingEmpty": "No appointments yet. Explore venues and book your first one.",
       "historyTitle": "Appointment history",
@@ -897,6 +943,38 @@
     "professional": {
       "role": "Professional",
       "subtitle": "Manage your venues, your info and what you offer.",
+      "console": "Console",
+      "overviewTitle": "Today at a glance",
+      "overviewBody": "What needs a decision now: today's bookings, what is waiting on you and what you earned.",
+      "overviewStats": "Professional summary",
+      "kpis": {
+        "today": "Today",
+        "awaiting": "Awaiting confirmation",
+        "attention": "Needs attention",
+        "refundsHint": "{{count}} refund requests",
+        "month": "This month",
+        "venues": "Venues",
+        "rating": "Rating"
+      },
+      "agenda": {
+        "title": "Today's agenda",
+        "body": "Your bookings for today, in the order they happen.",
+        "all": "All appointments",
+        "empty": "Nothing booked for today",
+        "emptyBody": "Confirmations and new bookings will show up here as they come in."
+      },
+      "attention": {
+        "title": "Needs attention",
+        "overdue": "{{count}} unconfirmed appointments whose hour has passed",
+        "refunds": "{{count}} refund requests waiting on you",
+        "awaiting": "{{count}} bookings waiting for your confirmation",
+        "clear": "Nothing is waiting on you right now.",
+        "review": "Review appointments",
+        "recent": "Recent"
+      },
+      "quick": {
+        "title": "Jump to"
+      },
       "editProfile": "Edit profile",
       "editProfileSubtitle": "Update your contact information.",
       "phone": "Phone",
@@ -942,6 +1020,8 @@
       "appointments": {
         "title": "Client appointments",
         "body": "The bookings made with you, with the client's contact details.",
+        "viewTitle": "Appointments",
+        "viewBody": "Bookings made with you: confirm them, read why one was cancelled, or settle a refund.",
         "empty": "You have no bookings yet.",
         "historyTitle": "Past appointments",
         "atTime": "at {{time}}",

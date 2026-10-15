@@ -8,12 +8,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { toast } from "@/components/ui/toast"
-import { ProfileDialog } from "@/components/dashboard/profile-dialog"
-import { ProviderAppointmentsSection } from "@/components/dashboard/provider-appointments-section"
-import { ProviderCardSection } from "@/components/dashboard/provider-card-section"
-import { ProviderEarningsSection } from "@/components/dashboard/provider-earnings-section"
-import { ProviderPortfolioSection } from "@/components/dashboard/provider-portfolio-section"
-import { ProviderVerificationSection } from "@/components/dashboard/provider-verification-section"
+import { ViewHeading } from "@/components/dashboard/view-primitives"
 import { VenueFormDialog } from "@/components/dashboard/venue-form-dialog"
 import { getCategoryById } from "@/constants/categories"
 import type { Venue } from "@/constants/venues"
@@ -29,37 +24,30 @@ import {
 import { useAllVenues, useOwnedVenues } from "@/hooks/use-venues"
 import { cn } from "@/utils/cn"
 import { formatCurrency, toIntlLocale } from "@/utils/format"
-import { initials } from "@/utils/initials"
 
-interface ProfessionalWorkspaceProps {
+interface VenueManagementProps {
   user: SessionUser
 }
 
-interface StatCard {
-  key: string
-  labelKey: string
-  value: string
-  icon: "map-pin" | "list" | "star" | "eye-off"
-}
-
 /**
- * Professional home: their profile plus the venues they own, editable end to
- * end (create, edit, hide, remove, and claim seed records).
+ * Venue desk: the listings this professional owns, editable end to end
+ * (create, edit, hide, remove, and claim seed records).
+ *
+ * Hiding and removing only exist in the local demo store — with Supabase the
+ * catalog is the source of truth — so those actions are withheld in cloud mode
+ * rather than shown as no-ops.
  */
-export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
+export function VenueManagement({ user }: VenueManagementProps) {
   const { t, i18n } = useTranslation()
   const locale = toIntlLocale(i18n.language)
   const owned = useOwnedVenues()
   const allVenues = useAllVenues()
-  // With Supabase the catalog is the source of truth, so the local hide/claim
-  // actions (which only patch the local store) are not offered.
   const cloud = Boolean(getSupabaseBrowserClient())
 
   const [editingVenue, setEditingVenue] = useState<Venue | "new" | null>(null)
-  const [profileOpen, setProfileOpen] = useState(false)
   const [pendingRemove, setPendingRemove] = useState<Venue | null>(null)
 
-  const stats = useMemo<StatCard[]>(() => {
+  const summary = useMemo(() => {
     const services = new Set<string>()
     let ratingTotal = 0
     let rated = 0
@@ -75,40 +63,17 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
       if (venue.hidden) hidden += 1
     }
 
-    return [
-      {
-        key: "venues",
-        labelKey: "dashboard.professional.statVenues",
-        value: String(owned.length),
-        icon: "map-pin",
-      },
-      {
-        key: "services",
-        labelKey: "dashboard.professional.statServices",
-        value: String(services.size),
-        icon: "list",
-      },
-      {
-        key: "rating",
-        labelKey: "dashboard.professional.statRating",
-        value: rated > 0 ? (ratingTotal / rated).toFixed(1) : "—",
-        icon: "star",
-      },
-      {
-        key: "hidden",
-        labelKey: "dashboard.professional.statHidden",
-        value: String(hidden),
-        icon: "eye-off",
-      },
-    ]
+    return {
+      services: services.size,
+      hidden,
+      rating: rated > 0 ? (ratingTotal / rated).toFixed(1) : "—",
+    }
   }, [owned])
 
   const claimable = useMemo(
     () => (cloud ? [] : allVenues.filter((venue) => !venue.ownerId && !venue.hidden)),
     [allVenues, cloud],
   )
-
-  const displayName = user.fullName ?? user.email ?? t("dashboard.professional.role")
 
   function toggleHidden(venue: Venue) {
     setVenueHidden(venue.id, !venue.hidden)
@@ -140,97 +105,87 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
   const removingCustom = pendingRemove ? isCustomVenueId(pendingRemove.id) : false
 
   return (
-    <div className="space-y-8">
-      <section className="border-cream/10 bg-ink-card rounded-3xl border p-6">
-        <div className="flex flex-wrap items-start justify-between gap-5">
-          <div className="flex min-w-0 items-start gap-4">
-            <span className="bg-gold/15 text-gold font-display flex size-14 shrink-0 items-center justify-center rounded-2xl text-lg font-semibold">
-              {initials(displayName)}
-            </span>
-            <div className="min-w-0">
-              <h2 className="font-display truncate text-xl">{displayName}</h2>
-              {user.email && <p className="text-cream/55 mt-0.5 text-sm">{user.email}</p>}
-              <div className="text-cream/65 mt-2 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
-                <span className="inline-flex items-center gap-1.5">
-                  <Icon name="phone" className="text-gold size-4" />
-                  {user.phone ?? t("dashboard.professional.noPhone")}
-                </span>
-              </div>
-              <p className="text-cream/60 mt-3 max-w-xl text-sm leading-relaxed">
-                {user.bio ?? t("dashboard.professional.noBio")}
-              </p>
-            </div>
-          </div>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setProfileOpen(true)}
-            iconLeft={<Icon name="sliders" className="size-4" />}
-          >
-            {t("dashboard.professional.editProfile")}
-          </Button>
-        </div>
-      </section>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <div key={stat.key} className="border-cream/10 bg-ink-card rounded-2xl border p-5">
-            <Icon name={stat.icon} className="text-gold size-5" />
-            <p className="font-display mt-3 text-3xl font-semibold">{stat.value}</p>
-            <p className="text-cream/55 mt-1 text-xs tracking-[0.12em] uppercase">
-              {t(stat.labelKey)}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl">{t("dashboard.professional.venuesTitle")}</h2>
-            <p className="text-cream/55 mt-1 max-w-xl text-sm">
-              {t("dashboard.professional.venuesSubtitle")}
-            </p>
-          </div>
+    <div className="space-y-6">
+      <ViewHeading
+        eyebrow={t("dashboard.professional.role")}
+        title={t("dashboard.professional.venuesTitle")}
+        body={t("dashboard.professional.venuesSubtitle")}
+        actions={
           <Button
             onClick={() => setEditingVenue("new")}
-            iconLeft={<Icon name="sparkles" className="size-4" />}
+            iconLeft={<Icon name="plus" className="size-4" />}
           >
             {t("dashboard.professional.newVenue")}
           </Button>
-        </div>
+        }
+      />
 
-        {owned.length === 0 ? (
-          <div className="border-cream/10 bg-ink-card rounded-3xl border border-dashed p-10 text-center">
-            <Icon name="map-pin" className="text-gold mx-auto size-7" />
-            <h3 className="font-display mt-4 text-lg">{t("dashboard.professional.emptyTitle")}</h3>
-            <p className="text-cream/55 mx-auto mt-2 max-w-md text-sm">
-              {t("dashboard.professional.emptyBody")}
-            </p>
-            <Button className="mt-5" onClick={() => setEditingVenue("new")}>
-              {t("dashboard.professional.newVenue")}
-            </Button>
-          </div>
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {owned.map((venue) => (
-              <OwnedVenueCard
-                key={venue.id}
-                venue={venue}
-                locale={locale}
-                cloud={cloud}
-                onEdit={() => setEditingVenue(venue)}
-                onToggle={() => toggleHidden(venue)}
-                onRemove={() => setPendingRemove(venue)}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      <div className="border-cream/10 bg-ink-card/70 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border px-5 py-4">
+        {[
+          {
+            key: "venues",
+            value: String(owned.length),
+            icon: "map-pin" as const,
+            label: t("dashboard.professional.statVenues"),
+          },
+          {
+            key: "services",
+            value: String(summary.services),
+            icon: "list" as const,
+            label: t("dashboard.professional.statServices"),
+          },
+          {
+            key: "rating",
+            value: summary.rating,
+            icon: "star" as const,
+            label: t("dashboard.professional.statRating"),
+          },
+          {
+            key: "hidden",
+            value: String(summary.hidden),
+            icon: "eye-off" as const,
+            label: t("dashboard.professional.statHidden"),
+          },
+        ].map((item) => (
+          <span key={item.key} className="flex items-center gap-2.5">
+            <Icon name={item.icon} className="text-gold size-4" />
+            <span className="font-display text-xl leading-none font-semibold tabular-nums">
+              {item.value}
+            </span>
+            <span className="text-cream/50 text-xs tracking-[0.12em] uppercase">{item.label}</span>
+          </span>
+        ))}
+      </div>
+
+      {owned.length === 0 ? (
+        <div className="border-cream/10 bg-ink-card/70 rounded-3xl border border-dashed p-10 text-center">
+          <Icon name="store" className="text-gold mx-auto size-8" />
+          <h2 className="font-display mt-4 text-xl">{t("dashboard.professional.emptyTitle")}</h2>
+          <p className="text-cream/55 mx-auto mt-2 max-w-md text-sm">
+            {t("dashboard.professional.emptyBody")}
+          </p>
+          <Button className="mt-5" onClick={() => setEditingVenue("new")}>
+            {t("dashboard.professional.newVenue")}
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {owned.map((venue) => (
+            <OwnedVenueCard
+              key={venue.id}
+              venue={venue}
+              locale={locale}
+              cloud={cloud}
+              onEdit={() => setEditingVenue(venue)}
+              onToggle={() => toggleHidden(venue)}
+              onRemove={() => setPendingRemove(venue)}
+            />
+          ))}
+        </div>
+      )}
 
       {claimable.length > 0 && (
-        <details className="border-cream/10 bg-ink-card group rounded-3xl border p-5">
+        <details className="border-cream/10 bg-ink-card/70 group rounded-3xl border p-5">
           <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold">
             {t("dashboard.professional.claimTitle", { count: claimable.length })}
             <Icon
@@ -278,18 +233,6 @@ export function ProfessionalWorkspace({ user }: ProfessionalWorkspaceProps) {
         />
       )}
 
-      {cloud && user.providerId && <ProviderAppointmentsSection />}
-
-      {cloud && user.providerId && <ProviderVerificationSection />}
-
-      {cloud && user.providerId && <ProviderEarningsSection />}
-
-      {cloud && user.providerId && <ProviderCardSection />}
-
-      {cloud && user.providerId && <ProviderPortfolioSection />}
-
-      {profileOpen && <ProfileDialog open user={user} onClose={() => setProfileOpen(false)} />}
-
       <ConfirmDialog
         open={pendingRemove !== null}
         tone="danger"
@@ -333,7 +276,7 @@ function OwnedVenueCard({ venue, locale, cloud, onEdit, onToggle, onRemove }: Ow
   const serviceCount = venue.serviceList?.length ?? venue.services.length
 
   return (
-    <article className="border-cream/10 bg-ink-card flex flex-col gap-4 rounded-3xl border p-4">
+    <article className="border-cream/10 bg-ink-card/70 flex flex-col gap-4 rounded-3xl border p-4">
       <div className="flex gap-4">
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl">
           <Image src={venue.image} alt="" fill sizes="96px" className="object-cover" />

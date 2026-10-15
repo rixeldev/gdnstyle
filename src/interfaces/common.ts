@@ -50,6 +50,10 @@ export type IconName =
   | "youtube"
   | "whatsapp"
   | "twitter"
+  | "layout-grid"
+  | "trending-up"
+  | "user"
+  | "inbox"
 
 export interface Category {
   /** Canonical id — matches `Venue["categoryId"]` (camelCase). */

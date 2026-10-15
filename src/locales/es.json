@@ -798,6 +798,22 @@
   "dashboard": {
     "title": "Tu panel",
     "greeting": "Hola, {{name}}",
+    "menu": "Menú",
+    "nav": {
+      "overview": "Resumen",
+      "appointments": "Citas",
+      "favorites": "Favoritos",
+      "payments": "Pagos",
+      "profile": "Perfil",
+      "venues": "Locales",
+      "earnings": "Ingresos",
+      "portfolio": "Portafolio",
+      "account": "Cuenta"
+    },
+    "account": {
+      "email": "Correo",
+      "phone": "Teléfono"
+    },
     "appointmentStatus": {
       "pending": "Pendiente",
       "confirmed": "Confirmada",
@@ -807,6 +823,31 @@
     "customer": {
       "role": "Cliente",
       "subtitle": "Aquí verás tus próximas citas, favoritos e historial.",
+      "overviewTitle": "Qué sigue",
+      "overviewBody": "Tus próximas citas de un vistazo y todo lo que ya has reservado.",
+      "overviewEmptyBody": "Reserva algo y aparecerá aquí con la hora exacta y cuánto falta.",
+      "overviewActivity": "Actividad reciente",
+      "overviewActivityBody": "Las últimas citas que reservaste.",
+      "overviewActions": "Retoma donde ibas",
+      "overviewActionsBody": "Los lugares a los que más vuelves.",
+      "nextUp": "A continuación",
+      "viewVenue": "Ver local",
+      "appointmentsViewTitle": "Tus citas",
+      "appointmentsViewBody": "Todo lo que has reservado, pasadas y próximas, con edición y cancelación.",
+      "countdown": {
+        "startsIn": "Empieza en {{when}}",
+        "now": "En curso",
+        "minutes_one": "{{count}} minuto",
+        "minutes_other": "{{count}} minutos",
+        "hours_one": "{{count}} hora",
+        "hours_other": "{{count}} horas",
+        "days_one": "{{count}} día",
+        "days_other": "{{count}} días"
+      },
+      "quickBookBody": "Encuentra un profesional cerca de ti y elige una hora realmente libre.",
+      "quickFavoritesBody": "Los locales que guardaste para después.",
+      "quickPaymentsBody": "Tarjetas guardadas en Stripe para reservar en un toque.",
+      "quickProfileBody": "Tu nombre, tu teléfono y cómo te presentas.",
       "summaryLabel": "Resumen de tu panel",
       "statTotal": "Citas totales",
       "statUpcoming": "Próximas citas",
@@ -814,6 +855,11 @@
       "statFavorites": "Favoritos",
       "appointmentsBody": "Tus reservas confirmadas, con fecha, servicio y local.",
       "favorites": "Favoritos",
+      "favoritesBody": "Los locales que guardaste. Abre una tarjeta para reservarlos de nuevo.",
+      "favoritesEmpty": "Aún no guardaste nada",
+      "favoritesEmptyBody": "Toca el corazón de cualquier local para dejarlo aquí para después.",
+      "favoritesCount_one": "Tienes {{count}} local guardado",
+      "favoritesCount_other": "Tienes {{count}} locales guardados",
       "upcomingTitle": "Próximas citas",
       "upcomingEmpty": "Aún no tienes citas. Explora los locales y reserva la primera.",
       "historyTitle": "Historial de citas",
@@ -897,6 +943,38 @@
     "professional": {
       "role": "Profesional",
       "subtitle": "Gestiona tus locales, tu información y lo que ofreces.",
+      "console": "Consola",
+      "overviewTitle": "El día de hoy",
+      "overviewBody": "Lo que necesita una decisión: las citas de hoy, lo que espera por ti y lo que ganaste.",
+      "overviewStats": "Resumen profesional",
+      "kpis": {
+        "today": "Hoy",
+        "awaiting": "Por confirmar",
+        "attention": "Requiere atención",
+        "refundsHint": "{{count}} solicitudes de reembolso",
+        "month": "Este mes",
+        "venues": "Locales",
+        "rating": "Valoración"
+      },
+      "agenda": {
+        "title": "Agenda de hoy",
+        "body": "Tus citas de hoy, en el orden en que ocurren.",
+        "all": "Todas las citas",
+        "empty": "No hay citas hoy",
+        "emptyBody": "Las confirmaciones y las reservas nuevas aparecerán aquí."
+      },
+      "attention": {
+        "title": "Requiere atención",
+        "overdue": "{{count}} citas sin confirmar cuya hora ya pasó",
+        "refunds": "{{count}} solicitudes de reembolso esperando por ti",
+        "awaiting": "{{count}} reservas esperando tu confirmación",
+        "clear": "No hay nada esperando por ti ahora.",
+        "review": "Revisar citas",
+        "recent": "Reciente"
+      },
+      "quick": {
+        "title": "Ir a"
+      },
       "editProfile": "Editar perfil",
       "editProfileSubtitle": "Actualiza tu información de contacto.",
       "phone": "Teléfono",
@@ -944,6 +1022,8 @@
       "appointments": {
         "title": "Citas de clientes",
         "body": "Las reservas que han hecho contigo, con el contacto de la clienta.",
+        "viewTitle": "Citas",
+        "viewBody": "Reservas hechas contigo: confírmalas, lee el motivo de una cancelación o resuelve un reembolso.",
         "empty": "Todavía no tienes citas reservadas.",
         "historyTitle": "Citas pasadas",
         "atTime": "a las {{time}}",

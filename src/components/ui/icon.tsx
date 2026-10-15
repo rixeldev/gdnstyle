@@ -295,6 +295,32 @@ const paths: Record<IconName, React.ReactNode> = {
       d="M17.7 3h3l-6.6 7.6L22 21h-6.1l-4.8-6.2L5.6 21h-3l7-8.1L2 3h6.2l4.3 5.7Zm-1 16h1.7L7.4 4.8H5.6Z"
     />
   ),
+  "layout-grid": (
+    <>
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" />
+    </>
+  ),
+  "trending-up": (
+    <>
+      <path d="m3 16 5.5-5.5 3.5 3.5L21 5" />
+      <path d="M15 5h6v6" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="3.8" />
+      <path d="M4.5 20.2a7.7 7.7 0 0 1 15 0" />
+    </>
+  ),
+  inbox: (
+    <>
+      <path d="M3 13h4.5l1.6 2.6h5.8L16.5 13H21" />
+      <path d="M5.6 4.5h12.8a2 2 0 0 1 1.9 1.4L21 13v4.5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V13l.7-7.1a2 2 0 0 1 1.9-1.4Z" />
+    </>
+  ),
 }
 
 export interface IconProps extends SVGProps<SVGSVGElement> {

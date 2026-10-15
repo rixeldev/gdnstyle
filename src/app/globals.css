@@ -193,6 +193,28 @@ form[role="search"] input:focus-visible {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Dashboard backdrops. The two roles read as different rooms so the shared
+   `/dashboard` route never feels like one skin with different content:
+   the client gets a warm bloom, the professional a denser console grid.
+--------------------------------------------------------------------------- */
+.dash-concierge {
+  background-image: radial-gradient(
+    58% 42% at 88% -6%,
+    color-mix(in oklab, var(--color-gold) 16%, transparent),
+    transparent 72%
+  );
+}
+
+.dash-console {
+  background-image:
+    linear-gradient(to right, rgba(244, 241, 234, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(244, 241, 234, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  -webkit-mask-image: radial-gradient(ellipse 78% 62% at 62% -8%, black, transparent);
+  mask-image: radial-gradient(ellipse 78% 62% at 62% -8%, black, transparent);
+}
+
 .orbit-ring {
   animation: orbit 90s linear infinite;
 }

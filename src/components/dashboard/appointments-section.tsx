@@ -5,12 +5,13 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 
 import { AppointmentStatusBadge } from "@/components/dashboard/appointment-status-badge"
+import {
+  BookingRowActions,
+  CustomerCancelDialog,
+} from "@/components/dashboard/customer-cancel-dialog"
 import { RescheduleDialog } from "@/components/dashboard/reschedule-dialog"
 import { Button, ButtonLink } from "@/components/ui/button"
-import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 import { Icon } from "@/components/ui/icon"
-import { TextArea } from "@/components/ui/text-field"
-import { toast } from "@/components/ui/toast"
 import { getProfessionalById } from "@/constants/professionals"
 import { useAllVenues } from "@/hooks/use-venues"
 import { type Booking, useBookings } from "@/hooks/use-bookings"
@@ -28,37 +29,7 @@ export function AppointmentsSection() {
   const { upcoming, past, ready, cancel, reschedule } = useBookings()
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
   const [pendingEdit, setPendingEdit] = useState<Booking | null>(null)
-  // Cancelling always asks why; the reason travels with the row so the
-  // professional can read it on their side.
-  const [cancelReason, setCancelReason] = useState("")
-  const [cancelling, setCancelling] = useState(false)
   const [visibleHistory, setVisibleHistory] = useState(HISTORY_PAGE)
-
-  function openCancelDialog(booking: Booking) {
-    setCancelReason("")
-    setPendingCancel(booking)
-  }
-
-  async function handleConfirmCancel() {
-    if (!pendingCancel || !cancelReason.trim()) return
-    const booking = pendingCancel
-    const reason = cancelReason.trim()
-    setCancelling(true)
-    const outcome = await cancel(booking.id, reason)
-    setCancelling(false)
-    setPendingCancel(null)
-    setCancelReason("")
-    if (outcome === "refund-requested") {
-      toast(t("dashboard.customer.cancelRefundRequested"))
-    } else if (outcome === "cancelled") {
-      toast(t("dashboard.customer.cancelled"))
-    } else if (outcome === "too-late") {
-      // Raced the 1h30m window while the dialog was open.
-      toast(t("dashboard.customer.changesLockedToast"), "neutral")
-    } else {
-      toast(t("common.tryAgain"), "neutral")
-    }
-  }
 
   /** Small status pill for the payment/refund lifecycle of a booking. */
   function lifecycleBadge(booking: Booking) {
@@ -130,7 +101,7 @@ export function AppointmentsSection() {
         className="border-cream/10 bg-cream/2 flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl border px-4 py-3.5"
       >
         <span className="border-gold/25 bg-gold/10 text-gold flex size-12 shrink-0 flex-col items-center justify-center rounded-2xl border text-[10px] leading-tight uppercase">
-          <span className="text-base font-semibold">
+          <span className="text-base font-semibold tabular-nums">
             {formatDate(date, locale, { day: "numeric" })}
           </span>
           <span>{formatDate(date, locale, { month: "short" })}</span>
@@ -178,31 +149,16 @@ export function AppointmentsSection() {
           )}
         </span>
 
-        <span className="text-cream/70 text-sm font-semibold">
+        <span className="text-cream/70 text-sm font-semibold tabular-nums">
           {formatCurrency(booking.price, locale, "USD", { maximumFractionDigits: 0 })}
         </span>
 
         {isUpcoming ? (
-          <span className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPendingEdit(booking)}
-              disabled={!canModify}
-              iconLeft={<Icon name="calendar" className="size-4" />}
-            >
-              {t("dashboard.customer.edit")}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => openCancelDialog(booking)}
-              disabled={!canModify}
-              iconLeft={<Icon name="trash" className="size-4" />}
-            >
-              {t("dashboard.customer.cancel")}
-            </Button>
-          </span>
+          <BookingRowActions
+            canModify={canModify}
+            onEdit={() => setPendingEdit(booking)}
+            onCancel={() => setPendingCancel(booking)}
+          />
         ) : (
           <ButtonLink
             href={`/venues/${booking.venueId}?service=${encodeURIComponent(booking.serviceId)}`}
@@ -290,46 +246,13 @@ export function AppointmentsSection() {
         )}
       </div>
 
-      <ConfirmDialog
-        open={pendingCancel !== null}
-        title={t("dashboard.customer.cancelConfirmTitle")}
-        body={
-          pendingCancel
-            ? `${t("dashboard.customer.cancelConfirmBody", {
-                service:
-                  pendingCancel.serviceName ?? t(`venues.services.${pendingCancel.serviceId}`),
-                date: formatDate(parseDateKey(pendingCancel.date), locale, {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                }),
-              })} ${
-                pendingCancel.paymentStatus &&
-                pendingCancel.paymentStatus !== "none" &&
-                pendingCancel.paymentStatus !== "refunded"
-                  ? t("dashboard.customer.cancelRefundNote")
-                  : ""
-              }`
-            : undefined
-        }
-        confirmLabel={t("dashboard.customer.cancelConfirm")}
-        cancelLabel={t("dashboard.customer.cancelKeep")}
-        tone="danger"
-        loading={cancelling}
-        confirmDisabled={!cancelReason.trim()}
-        onConfirm={handleConfirmCancel}
+      {/* Reason-prompting cancel, shared with the overview hero so both entry
+          points enforce the same rule and store the same reason. */}
+      <CustomerCancelDialog
+        booking={pendingCancel}
+        cancel={cancel}
         onClose={() => setPendingCancel(null)}
-      >
-        <TextArea
-          label={t("dashboard.customer.cancelReasonLabel")}
-          hint={t("dashboard.customer.cancelReasonHint")}
-          placeholder={t("dashboard.customer.cancelReasonPlaceholder")}
-          rows={3}
-          maxLength={300}
-          value={cancelReason}
-          onChange={(event) => setCancelReason(event.target.value)}
-        />
-      </ConfirmDialog>
+      />
 
       {pendingEdit && (
         <RescheduleDialog

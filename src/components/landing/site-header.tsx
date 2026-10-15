@@ -110,9 +110,12 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/venues" }: SiteHea
             </ButtonLink>
           )}
           <LanguageSwitcher />
-          {/* Signed-in visitors never see an auth CTA: the "Mi panel" button
-              already covers the account, and professionals keep browsing. */}
-          {(professional || !authenticated || !ctaHref.startsWith("/auth")) && (
+          {/* The account button above already covers auth: it reads "Sign in"
+              for a visitor and "My panel" when signed in. Rendering a second
+              auth CTA here repeated it verbatim on every VenueShell route
+              (which passes `nav.signIn` -> `/auth/login`), so the page CTA only
+              appears when it offers something else, or for a professional. */}
+          {(professional || !ctaHref.startsWith("/auth")) && (
             <ButtonLink href={professional ? "/venues" : ctaHref} size="sm">
               {professional ? t("nav.explore") : t(ctaKey)}
             </ButtonLink>

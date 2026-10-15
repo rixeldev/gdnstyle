@@ -31,8 +31,15 @@ export function getStripePromise(publishableKey: string = STRIPE_PUBLISHABLE_KEY
 interface StripePaymentCardFormProps {
   clientSecret: string
   buttonLabel: string
-  /** Receives the PaymentIntent id when the charge succeeds. */
-  onSuccess: (paymentIntentId: string | null) => void | Promise<void>
+  /**
+   * Receives the PaymentIntent id when the charge succeeds, plus the payment
+   * method that carried it — the booking flow stores that card when the
+   * visitor asked to keep it.
+   */
+  onSuccess: (
+    paymentIntentId: string | null,
+    paymentMethodId?: string | null,
+  ) => void | Promise<void>
   onError: (message: string) => void
 }
 
@@ -100,8 +107,14 @@ function PaymentCardInner({
     // The charge already went through, so never leave the button spinning:
     // release it whatever the post-payment bookkeeping does, and report a
     // rejection instead of letting it disappear as an unhandled rejection.
+    // `payment_method` is the plain id because the intent was not expanded.
+    const paymentMethodId =
+      typeof result.paymentIntent?.payment_method === "string"
+        ? result.paymentIntent.payment_method
+        : null
+
     try {
-      await onSuccess(result.paymentIntent?.id ?? null)
+      await onSuccess(result.paymentIntent?.id ?? null, paymentMethodId)
     } catch (error) {
       onError((error as Error)?.message || "Card payment failed")
     } finally {

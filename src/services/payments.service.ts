@@ -143,6 +143,21 @@ export function setDefaultPaymentMethod(paymentMethodId: string) {
   })
 }
 
+/**
+ * Attach a card that was just charged to the Stripe customer, so the next
+ * booking can offer it as a saved card. Done after the payment instead of
+ * through `setup_future_usage` on the PaymentIntent: the card is only worth
+ * keeping once it worked, and the "save this card" choice can then be changed
+ * at any moment without invalidating the form the visitor is already typing in.
+ */
+export function attachPaymentMethod(paymentMethodId: string) {
+  return invokeFunction<{ success: boolean }>("manage-client-payment-methods", {
+    action: "attach",
+    paymentMethodId,
+    shopContext: "client",
+  })
+}
+
 /** SetupIntent (no charge) so the dashboard can register a new card. */
 export function createSetupIntent(shopContext: "client" | "provider" = "client") {
   return invokeFunction<{ clientSecret: string; setupIntentId: string }>("create-setup-intent", {

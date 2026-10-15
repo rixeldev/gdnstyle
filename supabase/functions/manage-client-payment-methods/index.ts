@@ -227,6 +227,49 @@ serve(async (req) => {
       })
     }
 
+    if (action === "attach") {
+      if (!paymentMethodId) {
+        throw new Error("Payment method ID is required")
+      }
+
+      let stripeCustomerId: string | null = null
+
+      if (shopContext === "provider") {
+        const { data: prov } = await supabase
+          .from("providers")
+          .select("stripe_customer_id")
+          .eq("user_id", user.id)
+          .maybeSingle()
+        stripeCustomerId = prov?.stripe_customer_id ?? null
+      } else {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("stripe_customer_id")
+          .eq("id", user.id)
+          .maybeSingle()
+        stripeCustomerId = profile?.stripe_customer_id ?? null
+      }
+
+      if (!stripeCustomerId) {
+        throw new Error("No se encontró el cliente en Stripe")
+      }
+
+      // El método ya cobró con éxito: adjuntarlo al cliente es lo que permite
+      // ofrecerlo como tarjeta guardada en la próxima reserva. Un método ya
+      // adjunto no se vuelve a adjuntar.
+      const attached = await stripe.paymentMethods.retrieve(paymentMethodId)
+      if (!attached.customer || attached.customer !== stripeCustomerId) {
+        await stripe.paymentMethods.attach(paymentMethodId, {
+          customer: stripeCustomerId,
+        })
+      }
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      })
+    }
+
     throw new Error("Invalid action")
   } catch (error) {
     console.error("Error:", error)

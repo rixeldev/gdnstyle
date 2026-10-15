@@ -22,6 +22,7 @@
     "close": "Close",
     "backToTop": "Back to top",
     "confirm": "Confirm",
+    "retry": "Try again",
     "tryAgain": "Something went wrong. Please try again."
   },
   "functions": {
@@ -495,6 +496,8 @@
       "savedCards": "Your saved cards",
       "defaultCard": "Default",
       "newCard": "Use a new card",
+      "saveCard": "Save this card for future payments",
+      "preparingCardForm": "Preparing the secure form…",
       "payInPerson": "Pay in person",
       "payInPersonHint": "The professional confirms the booking and you pay at the appointment.",
       "continue": "Continue to payment",

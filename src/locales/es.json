@@ -22,6 +22,7 @@
     "close": "Cerrar",
     "backToTop": "Volver arriba",
     "confirm": "Confirmar",
+    "retry": "Reintentar",
     "tryAgain": "Algo salió mal. Inténtalo de nuevo."
   },
   "functions": {
@@ -495,6 +496,8 @@
       "savedCards": "Tus tarjetas guardadas",
       "defaultCard": "Predeterminada",
       "newCard": "Usar una tarjeta nueva",
+      "saveCard": "Guardar esta tarjeta para próximos pagos",
+      "preparingCardForm": "Preparando el formulario seguro…",
       "payInPerson": "Pagar al llegar",
       "payInPersonHint": "El profesional confirma la cita y el pago se hace al momento del servicio.",
       "continue": "Continuar al pago",

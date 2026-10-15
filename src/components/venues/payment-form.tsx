@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react"
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
@@ -15,6 +15,7 @@ import type { DbAppointment } from "@/interfaces/appointments"
 import { isSlotAvailable } from "@/services/availability.service"
 import { SlotUnavailableError } from "@/services/appointments.service"
 import {
+  attachPaymentMethod,
   createAppointmentViaFunction,
   createBookingPayment,
   ensureStripeCustomer,
@@ -142,8 +143,17 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
   const [method, setMethod] = useState<CloudMethod>(STRIPE_PUBLISHABLE_KEY ? "new" : "in_person")
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [saveCard, setSaveCard] = useState(true)
+  const [preparingCard, setPreparingCard] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  // One PaymentIntent per visit to the new-card step: the parent re-renders
+  // for reasons of its own, and a second intent would be a second charge
+  // sitting there unconfirmed.
+  const intentRequested = useRef(false)
+  // Bumped by "try again" after a failed intent: the ref above is what allows
+  // another attempt, this is what starts it.
+  const [intentAttempt, setIntentAttempt] = useState(0)
 
   useEffect(() => {
     // Card payments need the publishable key; without it only "pay in person"
@@ -170,6 +180,62 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
     }
   }, [])
 
+  // Stripe Elements can only mount once a PaymentIntent exists, so creating it
+  // is what "use a new card" actually means. It runs the moment the option is
+  // picked, instead of waiting for a second click whose only job was to say
+  // "yes, now".
+  useEffect(() => {
+    // Wait for the saved-card list before doing anything: it decides whether
+    // this visitor lands on a saved card or on "new card", and creating an
+    // intent for an option that is about to be deselected is a charge waiting
+    // to be wasted.
+    if (cards === null || method !== "new" || clientSecret || intentRequested.current) return
+
+    let cancelled = false
+    intentRequested.current = true
+    setMessage(null)
+    setPreparingCard(true)
+
+    void (async () => {
+      try {
+        await assertSlotAvailable()
+        await ensureStripeCustomer(user?.email ?? "", user?.fullName ?? undefined)
+        const payment = await createBookingPayment({
+          amount,
+          providerId: booking.providerId,
+          metadata: {
+            flow: "booking",
+            service_id: booking.serviceId,
+            client_user_id: user?.id ?? "",
+          },
+        })
+        if (cancelled) return
+        if (!payment.clientSecret) {
+          intentRequested.current = false
+          setMessage(t("venues.booking.paymentCardDeclined"))
+          return
+        }
+        setClientSecret(payment.clientSecret)
+      } catch (error) {
+        if (cancelled) return
+        intentRequested.current = false
+        setMessage(failureMessage(error))
+      } finally {
+        if (!cancelled) setPreparingCard(false)
+      }
+    })()
+
+    return () => {
+      // Picked another option while the intent was being created (or clicked
+      // retry): the answer gets thrown away, so the next visit to "new card"
+      // has to be free to start over instead of waiting on a response nobody
+      // will read, spinner included.
+      cancelled = true
+      intentRequested.current = false
+      setPreparingCard(false)
+    }
+  }, [cards, method, clientSecret, intentAttempt])
+
   const appointmentInput = useMemo(
     () => ({
       serviceId: booking.serviceId,
@@ -191,6 +257,21 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
       paymentMethod,
     })
     await onCloudPaid(result.appointment)
+  }
+
+  /**
+   * Keep the card that just worked so the next booking can offer it as a saved
+   * one. The charge is already done by this point, so a failure here is logged
+   * and swallowed: a card that could not be stored must not turn a paid
+   * booking into an error.
+   */
+  async function rememberCard(paymentMethodId: string) {
+    try {
+      await ensureStripeCustomer(user?.email ?? "", user?.fullName ?? undefined)
+      await attachPaymentMethod(paymentMethodId)
+    } catch (error) {
+      console.error("[payments] the card was not saved for next time", error)
+    }
   }
 
   /**
@@ -224,6 +305,11 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
     }
   }
 
+  /**
+   * Saved card and pay-in-person. The new card is not here: picking it creates
+   * its own PaymentIntent (see the effect above) and Stripe's own form is what
+   * the visitor submits, so this submit button never shows for it.
+   */
   async function handleChoosePay(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage(null)
@@ -257,25 +343,7 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
           return
         }
         await finishWithAppointment(payment.paymentIntentId, "stripe")
-        return
       }
-
-      // New card: create the PaymentIntent, then mount the Stripe form.
-      await ensureStripeCustomer(user?.email ?? "", user?.fullName ?? undefined)
-      const payment = await createBookingPayment({
-        amount,
-        providerId: booking.providerId,
-        metadata: {
-          flow: "booking",
-          service_id: booking.serviceId,
-          client_user_id: user?.id ?? "",
-        },
-      })
-      if (!payment.clientSecret) {
-        setMessage(t("venues.booking.paymentCardDeclined"))
-        return
-      }
-      setClientSecret(payment.clientSecret)
     } catch (error) {
       setMessage(failureMessage(error))
     } finally {
@@ -285,6 +353,19 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
 
   const savedCards = cards ?? []
   const cardless = method === "in_person"
+  // The card form replaces the method picker, but the "save this card" choice
+  // belongs to both: it is decided in the picker and can still be changed while
+  // the number is being typed, because the card is only stored after it works.
+  const saveCardField = (
+    <label className="text-cream/60 inline-flex cursor-pointer items-center gap-2 text-xs">
+      <input
+        type="checkbox"
+        checked={saveCard}
+        onChange={(event) => setSaveCard(event.target.checked)}
+      />
+      {t("venues.booking.saveCard")}
+    </label>
+  )
 
   return (
     <form onSubmit={handleChoosePay} noValidate className="mt-4 space-y-4">
@@ -310,15 +391,22 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
 
       {clientSecret ? (
         <>
+          {saveCardField}
           <StripePaymentCardForm
             clientSecret={clientSecret}
             buttonLabel={t("venues.booking.payAmount", { amount: money(charge.totalCents) })}
-            onSuccess={async (paymentIntentId) => {
+            onSuccess={async (paymentIntentId, paymentMethodId) => {
               setMessage(null)
               // The charge already succeeded; a slot-taken answer here must be
-              // surfaced instead of vanishing as an unhandled rejection.
+              // surfaced instead of vanishing as an unhandled rejection. The
+              // card is stored alongside the booking rather than after it:
+              // `onCloudPaid` can navigate away, and a card that was proven
+              // good by a successful charge should not depend on that.
               try {
-                await finishWithAppointment(paymentIntentId, "stripe")
+                await Promise.all([
+                  finishWithAppointment(paymentIntentId, "stripe"),
+                  saveCard && paymentMethodId ? rememberCard(paymentMethodId) : Promise.resolve(),
+                ])
               } catch (error) {
                 setMessage(failureMessage(error))
               }
@@ -378,6 +466,29 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
             {t("venues.booking.newCard")}
           </label>
 
+          {method === "new" && (
+            <div className="border-cream/10 bg-cream/3 space-y-3 rounded-2xl border px-4 py-3 pl-12">
+              {saveCardField}
+              {preparingCard ? (
+                <p className="text-cream/50 inline-flex items-center gap-2 text-xs">
+                  <Icon name="clock" className="size-4" />
+                  {t("venues.booking.preparingCardForm")}
+                </p>
+              ) : (
+                !clientSecret && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIntentAttempt((value) => value + 1)}
+                  >
+                    {t("common.retry")}
+                  </Button>
+                )
+              )}
+            </div>
+          )}
+
           <label className="border-cream/10 bg-cream/3 flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
             <input
               type="radio"
@@ -394,9 +505,13 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
             </span>
           </label>
 
-          <Button type="submit" loading={busy} className="w-full">
-            {method === "new" ? t("venues.booking.continue") : t("venues.booking.pay")}
-          </Button>
+          {/* The new card submits through Stripe's own form, which mounts with
+              its own button; this one only serves the other two methods. */}
+          {method !== "new" && (
+            <Button type="submit" loading={busy} className="w-full">
+              {t("venues.booking.pay")}
+            </Button>
+          )}
         </>
       )}
 

@@ -10,12 +10,18 @@ export function BackToTop() {
   const { t } = useTranslation()
   const visible = useScrolled(600)
 
-  function handleClick() {
+  const handleClick = () => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     window.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" })
 
     // Drop any section hash so the URL matches the top of the page again.
     window.history.replaceState(null, "", window.location.pathname + window.location.search)
+  }
+
+  const checkShopRoute = (): boolean => {
+    const shopRoutes = ["/shop", "/shop/collections", "/shop/products"]
+
+    return shopRoutes.some((route) => window.location.pathname.startsWith(route))
   }
 
   if (!visible) return null
@@ -26,7 +32,7 @@ export function BackToTop() {
       onClick={handleClick}
       aria-label={t("common.backToTop")}
       title={t("common.backToTop")}
-      className="border-gold/40 bg-ink-card/90 text-gold hover:bg-gold hover:text-gold-ink shadow-luxe motion-safe:animate-fade-in-up animate-duration-fast fixed right-5 bottom-5 z-40 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border backdrop-blur-md transition-colors md:right-8 md:bottom-8"
+      className={`border-gold/40 bg-ink-card/90 text-gold hover:bg-gold hover:text-gold-ink shadow-luxe motion-safe:animate-fade-in-up animate-duration-fast fixed right-5 bottom-${!checkShopRoute() ? "5" : "18"} z-40 flex size-11 cursor-pointer items-center justify-center rounded-full border backdrop-blur-md transition-colors md:right-8 md:bottom-${checkShopRoute() ? "22" : "8"}`}
     >
       <Icon name="arrow-up" className="size-5" />
     </button>

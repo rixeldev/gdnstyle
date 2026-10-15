@@ -8,16 +8,22 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { TextField } from "@/components/ui/text-field"
 import { SITE } from "@/constants/site"
+import { useSession } from "@/libs/session"
+import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import { createContactSchema, type ContactValues } from "@/libs/validation/contact"
+import { sendSupportMessage } from "@/services/payments.service"
 import { fieldErrorsFrom } from "@/utils/zod"
 
 /**
- * Contact form validated with Zod, embedded in the landing page. There is no
- * backend of record yet, so submitting opens the visitor's mail client with a
- * pre-filled message — an honest flow that never pretends data was stored.
+ * Contact form validated with Zod, embedded in the landing page. Signed-in
+ * visitors send the message through the `send-support-message` function
+ * (arrives at the support inbox); everyone else gets the honest mailto
+ * fallback that opens their mail client pre-filled.
  */
 export function ContactForm() {
   const { t } = useTranslation()
+  const supabase = getSupabaseBrowserClient()
+  const { user } = useSession()
 
   const schema = useMemo(() => createContactSchema((key) => t(key)), [t])
   const [values, setValues] = useState<ContactValues>({
@@ -29,6 +35,8 @@ export function ContactForm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
   const [sent, setSent] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   function handleChange(field: keyof ContactValues) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -41,7 +49,7 @@ export function ContactForm() {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSubmitted(true)
 
@@ -55,6 +63,26 @@ export function ContactForm() {
     }
 
     setErrors({})
+    setFailed(false)
+
+    // Signed-in visitors: send the message straight to the support inbox.
+    if (supabase && user) {
+      setBusy(true)
+      try {
+        await sendSupportMessage({
+          subject: parsed.data.subject.slice(0, 200),
+          message: parsed.data.message.slice(0, 500),
+          role: user.role === "professional" ? "provider" : "client",
+        })
+        setSent(true)
+      } catch {
+        setFailed(true)
+      } finally {
+        setBusy(false)
+      }
+      return
+    }
+
     const subject = encodeURIComponent(`[GDN Style] ${parsed.data.subject}`)
     const body = encodeURIComponent(
       `${parsed.data.message}\n\n— ${parsed.data.name} <${parsed.data.email}>`,
@@ -133,9 +161,18 @@ export function ContactForm() {
           )}
         </div>
 
-        {sent && <Alert tone="success">{t("landing.contact.note", { email: SITE.email })}</Alert>}
+        {sent && (
+          <Alert tone="success">
+            {supabase && user
+              ? t("landing.contact.sent")
+              : t("landing.contact.note", { email: SITE.email })}
+          </Alert>
+        )}
+        {failed && <Alert tone="error">{t("common.tryAgain")}</Alert>}
 
-        <Button type="submit">{t("landing.contact.submit")}</Button>
+        <Button type="submit" loading={busy}>
+          {t("landing.contact.submit")}
+        </Button>
       </form>
     </div>
   )

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next"
 
 import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { Logo } from "@/components/ui/logo"
+import { useSession } from "@/libs/session"
 
 interface LegalShellProps {
   title: string
@@ -15,6 +16,7 @@ interface LegalShellProps {
 /** Shared frame for marketing/legal pages (contact, FAQ, policies, terms). */
 export function LegalShell({ title, subtitle, children }: LegalShellProps) {
   const { t } = useTranslation()
+  const { authenticated } = useSession()
 
   return (
     <div className="grain bg-ink text-cream relative min-h-dvh overflow-hidden">
@@ -33,10 +35,10 @@ export function LegalShell({ title, subtitle, children }: LegalShellProps) {
         </Link>
         <div className="flex items-center gap-4">
           <Link
-            href="/auth/login?role=customer"
+            href={authenticated ? "/dashboard" : "/auth/login?role=customer"}
             className="text-cream/70 hover:text-gold hidden text-sm font-semibold transition sm:block"
           >
-            {t("nav.book")}
+            {authenticated ? t("nav.dashboard") : t("nav.book")}
           </Link>
           <LanguageSwitcher />
         </div>

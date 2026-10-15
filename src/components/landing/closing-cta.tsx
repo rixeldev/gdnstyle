@@ -5,9 +5,11 @@ import { useTranslation } from "react-i18next"
 import { ButtonLink, buttonClasses } from "@/components/ui/button"
 import { Reveal } from "@/components/ui/reveal"
 import { SectionLink } from "@/components/ui/section-link"
+import { useSession } from "@/libs/session"
 
 export function ClosingCta() {
   const { t } = useTranslation()
+  const { authenticated } = useSession()
 
   return (
     <section className="px-5 pb-24 md:px-8">
@@ -24,8 +26,8 @@ export function ClosingCta() {
             <p className="text-cream/65 mt-3 max-w-md">{t("landing.closing.supporting")}</p>
           </div>
           <div className="relative flex flex-wrap gap-3">
-            <ButtonLink href="/auth/login?role=customer">
-              {t("landing.closing.primaryCta")}
+            <ButtonLink href={authenticated ? "/dashboard" : "/auth/login?role=customer"}>
+              {authenticated ? t("nav.dashboard") : t("landing.closing.primaryCta")}
             </ButtonLink>
             <SectionLink href="/#contact" className={buttonClasses({ variant: "outline" })}>
               {t("landing.closing.secondaryCta")}

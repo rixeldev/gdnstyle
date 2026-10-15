@@ -13,6 +13,7 @@ import { SectionLink } from "@/components/ui/section-link"
 import { NAV_LINKS } from "@/constants/site"
 import { useFavorites } from "@/hooks/use-favorites"
 import { useScrolled } from "@/hooks/use-scrolled"
+import { useShopCart } from "@/hooks/use-shop-cart"
 import { useSession } from "@/libs/session"
 import { signOut } from "@/services/auth.service"
 import { cn } from "@/utils/cn"
@@ -32,6 +33,7 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/venues" }: SiteHea
   const [open, setOpen] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const { count: favoritesCount } = useFavorites()
+  const { count: cartCount } = useShopCart()
 
   async function handleSignOut() {
     setSigningOut(true)
@@ -69,7 +71,19 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/venues" }: SiteHea
         </nav>
 
         <div className="hidden items-center gap-3 md:flex lg:gap-4">
-          {!professional && (
+          <Link
+            href="/shop"
+            aria-label={t("nav.shop")}
+            className="text-cream/70 hover:text-gold relative inline-flex items-center transition"
+          >
+            <Icon name="store" className="size-5" />
+            {cartCount > 0 && (
+              <span className="bg-gold text-gold-ink absolute -top-1.5 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
+                {cartCount}
+              </span>
+            )}
+          </Link>
+          {authenticated && !professional && (
             <Link
               href="/favorites"
               aria-label={t("favorites.title")}
@@ -96,9 +110,13 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/venues" }: SiteHea
             </ButtonLink>
           )}
           <LanguageSwitcher />
-          <ButtonLink href={professional ? "/venues" : ctaHref} size="sm">
-            {professional ? t("nav.explore") : t(ctaKey)}
-          </ButtonLink>
+          {/* Signed-in visitors never see an auth CTA: the "Mi panel" button
+              already covers the account, and professionals keep browsing. */}
+          {(professional || !authenticated || !ctaHref.startsWith("/auth")) && (
+            <ButtonLink href={professional ? "/venues" : ctaHref} size="sm">
+              {professional ? t("nav.explore") : t(ctaKey)}
+            </ButtonLink>
+          )}
         </div>
 
         <button
@@ -133,7 +151,21 @@ export function SiteHeader({ ctaKey = "nav.book", ctaHref = "/venues" }: SiteHea
               </SectionLink>
             ))}
 
-            {!professional && (
+            <Link
+              href="/shop"
+              onClick={() => setOpen(false)}
+              className="text-cream/80 hover:bg-cream/5 hover:text-cream inline-flex items-center gap-2 rounded-lg px-2 py-3 text-base transition"
+            >
+              <Icon name="store" className="size-5" />
+              {t("nav.shop")}
+              {cartCount > 0 && (
+                <span className="bg-gold text-gold-ink inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
+
+            {authenticated && !professional && (
               <Link
                 href="/favorites"
                 onClick={() => setOpen(false)}

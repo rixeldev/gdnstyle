@@ -7,9 +7,12 @@ import { Icon } from "@/components/ui/icon"
 import { Reveal } from "@/components/ui/reveal"
 import { CATEGORIES } from "@/constants/categories"
 import { CUSTOMER_FEATURES } from "@/constants/site"
+import { useSession } from "@/libs/session"
 
 export function ClientsSection() {
   const { t } = useTranslation()
+  const { authenticated, user } = useSession()
+  const professional = user?.role === "professional"
 
   return (
     <section
@@ -49,18 +52,24 @@ export function ClientsSection() {
           {CATEGORIES.map((category) => (
             <Link
               key={category.id}
-              href="/auth/login?role=customer"
+              href={
+                authenticated ? `/venues/category/${category.slug}` : "/auth/login?role=customer"
+              }
               className="group border-cream/10 bg-cream/3 hover:border-gold/50 hover:bg-cream/5 rounded-3xl border px-5 py-6 transition duration-300 hover:-translate-y-1"
             >
               <Icon name={category.icon} className="text-gold size-6" />
               <p className="font-display mt-4 text-xl">{t(category.labelKey)}</p>
-              <span className="text-cream/40 group-hover:text-gold mt-2 inline-flex items-center gap-1 text-xs tracking-[0.18em] uppercase transition">
-                {t("landing.clients.bookAction")}
-                <Icon
-                  name="arrow-right"
-                  className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
-                />
-              </span>
+              {/* No booking affordance for professionals — the card stays a
+                  plain link into the category listing. */}
+              {!professional && (
+                <span className="text-cream/40 group-hover:text-gold mt-2 inline-flex items-center gap-1 text-xs tracking-[0.18em] uppercase transition">
+                  {t("landing.clients.bookAction")}
+                  <Icon
+                    name="arrow-right"
+                    className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
+                  />
+                </span>
+              )}
             </Link>
           ))}
         </Reveal>

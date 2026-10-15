@@ -6,12 +6,15 @@ import { useTranslation } from "react-i18next"
 import { ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { TRUST_ITEMS } from "@/constants/site"
+import { useSession } from "@/libs/session"
 
 import { HeroSearch } from "./hero-search"
 import { PhoneCarousel } from "./phone-carousel"
 
 export function Hero() {
   const { t } = useTranslation()
+  const { authenticated, user } = useSession()
+  const professional = user?.role === "professional"
   const spotRef = useRef<HTMLDivElement>(null)
   const reducedMotionRef = useRef<boolean | null>(null)
 
@@ -82,14 +85,22 @@ export function Hero() {
 
           <HeroSearch />
 
-          <div className="animate-fade-in-up animate-delay-500 animate-fill-mode-both mt-6 flex flex-wrap gap-3">
-            <ButtonLink href="/venues" size="lg" className="shadow-gold">
-              {t("landing.hero.primaryCta")}
-            </ButtonLink>
-            <ButtonLink href="/auth/login?role=professional" variant="outline" size="lg">
-              {t("landing.hero.secondaryCta")}
-            </ButtonLink>
-          </div>
+          {/* Booking CTAs make no sense for professionals: they browse and
+              manage their own venues from the dashboard. */}
+          {!professional && (
+            <div className="animate-fade-in-up animate-delay-500 animate-fill-mode-both mt-6 flex flex-wrap gap-3">
+              <ButtonLink href="/venues" size="lg" className="shadow-gold">
+                {t("landing.hero.primaryCta")}
+              </ButtonLink>
+              {/* The professional entry only makes sense for visitors without a
+                  session; signed-in users already have their dashboard. */}
+              {!authenticated && (
+                <ButtonLink href="/auth/login?role=professional" variant="outline" size="lg">
+                  {t("landing.hero.secondaryCta")}
+                </ButtonLink>
+              )}
+            </div>
+          )}
 
           <div className="animate-fade-in-up animate-delay-500 animate-fill-mode-both text-cream/55 mt-8 flex flex-wrap items-center gap-x-5 gap-y-3 text-xs">
             <span className="border-cream/10 bg-cream/5 inline-flex items-center gap-2 rounded-full border px-3 py-1.5">

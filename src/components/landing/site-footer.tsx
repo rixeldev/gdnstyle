@@ -8,9 +8,11 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher"
 import { Logo } from "@/components/ui/logo"
 import { SectionLink } from "@/components/ui/section-link"
 import { FOOTER_NAV, SITE } from "@/constants/site"
+import { useSession } from "@/libs/session"
 
 export function SiteFooter() {
   const { t } = useTranslation()
+  const { authenticated } = useSession()
 
   const contactItems = [
     { icon: "mail", value: SITE.email, href: `mailto:${SITE.email}`, external: false },
@@ -90,8 +92,12 @@ export function SiteFooter() {
                 </li>
               ))}
             </ul>
-            <ButtonLink href="/auth/login?role=customer" size="sm" className="mt-6">
-              {t("nav.book")}
+            <ButtonLink
+              href={authenticated ? "/dashboard" : "/auth/login?role=customer"}
+              size="sm"
+              className="mt-6"
+            >
+              {authenticated ? t("nav.dashboard") : t("nav.book")}
             </ButtonLink>
           </div>
         </div>

@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Reveal } from "@/components/ui/reveal"
 import { APP_SCREENS, STORE_LINKS } from "@/constants/site"
+import { useSession } from "@/libs/session"
 import { cn } from "@/utils/cn"
 
 const BULLETS = [
@@ -25,6 +26,7 @@ const PHONE_FRAMES = [
 /** "The app" section: real screenshots shown in a fan of tilted phones. */
 export function AppShowcase() {
   const { t } = useTranslation()
+  const { authenticated } = useSession()
 
   return (
     <section
@@ -68,8 +70,12 @@ export function AppShowcase() {
             ))}
           </div>
 
-          <ButtonLink href="/auth/signup?role=customer" size="lg" className="mt-8">
-            {t("landing.app.cta")}
+          <ButtonLink
+            href={authenticated ? "/dashboard" : "/auth/signup?role=customer"}
+            size="lg"
+            className="mt-8"
+          >
+            {authenticated ? t("nav.dashboard") : t("landing.app.cta")}
           </ButtonLink>
 
           <div className="mt-6">

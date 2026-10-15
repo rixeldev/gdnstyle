@@ -22,9 +22,9 @@ export default function Home() {
         <CategoryMarquee />
         <ClientsSection />
         <ProfessionalsSection />
+        <AppShowcase />
         <HowItWorks />
         <StatsBand />
-        <AppShowcase />
         <TerminalsSection />
         <TestimonialsSection />
         <ClosingCta />

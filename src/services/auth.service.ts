@@ -1,10 +1,18 @@
-import type { AuthResult, Credentials, Profile, SignUpInput, UserRole } from "@/interfaces/auth"
+import type {
+  AccountAddress,
+  AuthResult,
+  Credentials,
+  Profile,
+  SignUpInput,
+  UserRole,
+} from "@/interfaces/auth"
 import {
   authenticateDemo,
   clearDemoSession,
   googleDemoSession,
   registerDemoUser,
   saveDemoProfile,
+  updateDemoPassword,
 } from "@/libs/auth/demo"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 
@@ -116,32 +124,51 @@ export async function sendPasswordReset(email: string, redirectTo: string): Prom
   return normalize(error)
 }
 
-export async function updatePassword(password: string): Promise<AuthResult> {
+/**
+ * Set a new password for a signed-in account. Supabase has no "confirm the old
+ * one" call, so the account dialog verifies the current password first (a
+ * `signInWithPassword` with the same email) and this only applies the new one.
+ * Without a backend, `demoUserId` names the local account to update; callers
+ * that have no session to speak of (the reset-password flow) leave it out and
+ * keep getting `unavailable`.
+ */
+export async function updatePassword(password: string, demoUserId?: string): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
-  if (!supabase) return unavailable
+  if (!supabase) {
+    if (!demoUserId) return unavailable
+    updateDemoPassword(demoUserId, password)
+    return { ok: true }
+  }
 
   const { error } = await supabase.auth.updateUser({ password })
   return normalize(error)
 }
 
-export async function signOut(): Promise<AuthResult> {
+/**
+ * End the session. `global` also ends every other session of the account, which
+ * is what the account dialog's "sign out of all devices" asks for.
+ */
+export async function signOut(scope: "local" | "global" = "local"): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
-  if (supabase) await supabase.auth.signOut()
+  if (supabase) await supabase.auth.signOut(scope === "global" ? { scope: "global" } : undefined)
   clearDemoSession()
   return { ok: true }
 }
 
-/** Fields a signed-in professional can edit from their dashboard. */
+/** Fields a signed-in user can edit from the account dialog. */
 export interface ProfileUpdate {
   fullName?: string
   phone?: string | null
   bio?: string | null
+  /** Where a customer lives. Professionals keep theirs on the `providers` row. */
+  address?: AccountAddress
 }
 
 /**
  * Update the current user's profile. Uses the local demo profile store without
- * Supabase (so the professional dashboard is editable end to end), and the
- * `profiles` table when configured. `bio` is demo-only for now.
+ * Supabase (so the dashboard is editable end to end), and the `profiles` table
+ * when configured. Only the keys present in the patch are written, so a partial
+ * update never blanks a column.
  */
 export async function updateProfile(userId: string, patch: ProfileUpdate): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
@@ -150,10 +177,20 @@ export async function updateProfile(userId: string, patch: ProfileUpdate): Promi
     return { ok: true }
   }
 
-  const { error } = await supabase
-    .from("profiles")
-    .update({ full_name: patch.fullName, phone: patch.phone })
-    .eq("id", userId)
+  const row: Record<string, unknown> = {}
+  if (patch.fullName !== undefined) row.full_name = patch.fullName
+  if (patch.phone !== undefined) row.phone = patch.phone
+  if (patch.bio !== undefined) row.bio = patch.bio
+  if (patch.address) {
+    row.address_line1 = patch.address.line1
+    row.address_line2 = patch.address.line2
+    row.address_city = patch.address.city
+    row.address_state = patch.address.state
+    row.address_postal_code = patch.address.postalCode
+    row.address_country = patch.address.country
+  }
+
+  const { error } = await supabase.from("profiles").update(row).eq("id", userId)
 
   return normalize(error)
 }
@@ -172,14 +209,21 @@ export async function fetchRolePermissions(role: string): Promise<string[]> {
   return Array.isArray(data?.permissions) ? (data.permissions as string[]) : []
 }
 
-/** Fetch the current user's profile row (RLS lets users read only their own). */
+/**
+ * Fetch the current user's profile row (RLS lets users read only their own).
+ * `bio` and the `address_*` columns come from migration 0007: a database that
+ * has not applied it fails this select, and the session falls back to the
+ * static role map instead of breaking.
+ */
 export async function fetchProfile(userId: string): Promise<Profile | null> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) return null
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, role, full_name, email, phone, avatar_url, created_at, updated_at")
+    .select(
+      "id,role,full_name,email,phone,bio,avatar_url,address_line1,address_line2,address_city,address_state,address_postal_code,address_country,created_at,updated_at",
+    )
     .eq("id", userId)
     .maybeSingle()
 
@@ -193,6 +237,15 @@ export async function fetchProfile(userId: string): Promise<Profile | null> {
     fullName: data.full_name,
     email: data.email,
     phone: data.phone,
+    bio: data.bio,
+    address: {
+      line1: data.address_line1,
+      line2: data.address_line2,
+      city: data.address_city,
+      state: data.address_state,
+      postalCode: data.address_postal_code,
+      country: data.address_country,
+    },
     avatarUrl: data.avatar_url,
     createdAt: data.created_at,
     updatedAt: data.updated_at,

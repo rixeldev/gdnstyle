@@ -10,12 +10,13 @@
  * When Supabase *is* configured the auth service ignores this layer and talks to
  * the real provider instead.
  */
-import type { UserRole } from "@/interfaces/auth"
+import type { AccountAddress, AccountSocials, UserRole } from "@/interfaces/auth"
 import { broadcastStorageChange, readStorage, writeStorage } from "@/libs/storage"
 
 const SESSION_KEY = "gdn.session"
 const USERS_KEY = "gdn.users"
 const PROFILES_KEY = "gdn.profiles"
+const PASSWORDS_KEY = "gdn.passwords"
 
 export type DemoAuthMethod = "password" | "google"
 
@@ -52,6 +53,11 @@ export interface DemoProfilePatch {
   phone?: string | null
   bio?: string | null
   avatarUrl?: string | null
+  /** Account address (`profiles` for customers, `providers` for professionals). */
+  address?: AccountAddress | null
+  /** Professionals publish a business name on their card. */
+  businessName?: string | null
+  socials?: AccountSocials | null
 }
 
 /** Seed accounts documented in the UI so reviewers can sign in instantly. */
@@ -91,6 +97,21 @@ export function demoProfile(userId: string): DemoProfilePatch {
   return readProfiles()[userId] ?? {}
 }
 
+function readPasswordOverrides(): Record<string, string> {
+  const stored = readStorage<Record<string, string>>(PASSWORDS_KEY, {})
+  return stored && typeof stored === "object" ? stored : {}
+}
+
+/**
+ * Change a demo account's password. It lives in its own store so the seed
+ * accounts -- whose passwords sit in the const above -- can be changed without
+ * rewriting the seeds or colliding with a locally registered user of the same
+ * email.
+ */
+export function updateDemoPassword(userId: string, password: string): void {
+  writeStorage(PASSWORDS_KEY, { ...readPasswordOverrides(), [userId]: password })
+}
+
 /**
  * Persist profile edits. When the edited user is the one signed in, the open
  * session is refreshed too so the dashboard reflects the change immediately.
@@ -115,10 +136,13 @@ export function saveDemoProfile(userId: string, patch: DemoProfilePatch): void {
 
 /** Seed accounts plus any locally-registered ones, with profile edits applied. */
 export function listDemoUsers(): DemoUser[] {
+  const passwords = readPasswordOverrides()
+
   return [...DEMO_USERS, ...readCustomUsers()].map((user) => {
     const profile = demoProfile(user.id)
     return {
       ...user,
+      password: passwords[user.id] ?? user.password,
       fullName: profile.fullName ?? user.fullName,
       phone: profile.phone ?? user.phone,
       bio: profile.bio ?? user.bio,

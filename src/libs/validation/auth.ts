@@ -85,3 +85,37 @@ export function createResetPasswordSchema(t: TranslateFn) {
 }
 
 export type ResetPasswordValues = z.infer<ReturnType<typeof createResetPasswordSchema>>
+
+/**
+ * Password change from the signed-in account: same rules as a reset plus the
+ * current password, which the dialog verifies against the auth backend before
+ * applying the new one.
+ */
+export function createChangePasswordSchema(t: TranslateFn) {
+  return z
+    .object({
+      currentPassword: z.string().min(1, t("validation.passwordRequired")),
+      password: passwordField(t),
+      confirmPassword: z.string().min(1, t("validation.passwordRequired")),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      error: t("validation.passwordMismatch"),
+      path: ["confirmPassword"],
+    })
+}
+
+export type ChangePasswordValues = z.infer<ReturnType<typeof createChangePasswordSchema>>
+
+/** Personal details editable from the dashboard's account dialog. */
+export function createAccountSchema(t: TranslateFn) {
+  return z.object({
+    fullName: z.string().trim().min(2, t("validation.fullNameMin")),
+    // Optional: booking can collect it later, so only a malformed one fails.
+    phone: z
+      .string()
+      .trim()
+      .regex(/^$|^[\d\s()+-]{7,20}$/, t("validation.phoneInvalid")),
+  })
+}
+
+export type AccountValues = z.infer<ReturnType<typeof createAccountSchema>>

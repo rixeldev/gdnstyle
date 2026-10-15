@@ -120,7 +120,9 @@ export async function fetchProviderProfileData(
 
 /**
  * The `providers` row owned by `auth.uid()`. Its presence is what makes a
- * signed-in visitor a professional (never `profiles.role`).
+ * signed-in visitor a professional (never `profiles.role`). The address columns
+ * are read too: they are the ones the public card renders, so the account
+ * dialog edits the row the marketplace actually shows.
  */
 export async function fetchProviderForUser(
   client: SupabaseClient,
@@ -129,7 +131,7 @@ export async function fetchProviderForUser(
   const { data, error } = await client
     .from("providers")
     .select(
-      "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,social_instagram,social_whatsapp",
+      "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,address_line1,address_line2,address_city,address_state,address_postal_code,address_country,social_instagram,social_tiktok,social_whatsapp",
     )
     .eq("user_id", userId)
     .limit(1)
@@ -141,6 +143,46 @@ export async function fetchProviderForUser(
   }
 
   return (data as DbProvider | null) ?? null
+}
+
+/** Columns a professional may change on the `providers` row they own. */
+export interface OwnedProviderPatch {
+  full_name?: string | null
+  business_name?: string | null
+  phone?: string | null
+  address_line1?: string | null
+  address_line2?: string | null
+  address_city?: string | null
+  address_state?: string | null
+  address_postal_code?: string | null
+  address_country?: string | null
+  social_instagram?: string | null
+  social_tiktok?: string | null
+  social_whatsapp?: string | null
+}
+
+/**
+ * Save the professional's public card. Possible since migration 0007: until it,
+ * the row was written once by the signup trigger (`security definer`) and no
+ * policy let its owner touch it again, so the name, the address and the socials
+ * collected at signup were frozen forever.
+ *
+ * Returns `false` when PostgREST rejects the write (RLS, missing row), which is
+ * what a rejected update looks like from the client.
+ */
+export async function updateOwnedProvider(
+  client: SupabaseClient,
+  providerId: string,
+  patch: OwnedProviderPatch,
+): Promise<boolean> {
+  const { error } = await client.from("providers").update(patch).eq("id", providerId)
+
+  if (error) {
+    console.error("[providers] failed to save the card", error)
+    return false
+  }
+
+  return true
 }
 
 /** Venues linked to a provider (the professional's own listings). */

@@ -16,9 +16,20 @@ interface AccountViewProps {
   children?: ReactNode
 }
 
+/** One-line summary of the account address, `null` when nothing is on file. */
+function accountAddressLine(user: SessionUser): string | null {
+  const { line1, line2, city, state, postalCode } = user.address
+  const street = [line1, line2].filter(Boolean).join(", ")
+  const locality = [city, [state, postalCode].filter(Boolean).join(" ")].filter(Boolean).join(", ")
+  // The country is the same everywhere in this marketplace, so it stays out.
+  const line = [street, locality].filter(Boolean).join(" · ")
+  return line || null
+}
+
 /**
- * Identity card plus whatever the role needs to configure. Both roles edit the
- * same three fields, so only the blocks underneath differ.
+ * Identity card plus whatever the role needs to configure. The card summarises
+ * what the dialog edits — contact details, where the account is and the short
+ * bio — so nothing in there is a surprise after saving.
  */
 export function AccountView({ user, children }: AccountViewProps) {
   const { t } = useTranslation()
@@ -32,20 +43,26 @@ export function AccountView({ user, children }: AccountViewProps) {
       label: t("dashboard.account.phone"),
       value: user.phone,
     },
+    {
+      key: "address",
+      icon: "map-pin" as const,
+      label: t("dashboard.account.addressLabel"),
+      value: accountAddressLine(user),
+    },
   ].filter((row) => row.value)
 
   return (
     <div className="space-y-6">
       <ViewHeading
         eyebrow={t("dashboard.nav.account")}
-        title={t("dashboard.professional.editProfile")}
-        body={t("dashboard.professional.editProfileSubtitle")}
+        title={t("dashboard.account.title")}
+        body={t("dashboard.account.subtitle")}
         actions={
           <Button
             onClick={() => setEditing(true)}
             iconLeft={<Icon name="sliders" className="size-4" />}
           >
-            {t("dashboard.professional.editProfile")}
+            {t("dashboard.account.editTitle")}
           </Button>
         }
       />

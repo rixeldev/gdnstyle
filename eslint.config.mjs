@@ -17,7 +17,9 @@ const eslintConfig = defineConfig([
       "no-warning-comments": "off",
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  // Supabase Edge Functions run on Deno with their own toolchain; the app's
+  // Next.js lint/type rules don't apply to them (mirrors the tsconfig exclude).
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts", "supabase/**"]),
 ])
 
 export default eslintConfig

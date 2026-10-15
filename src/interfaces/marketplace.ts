@@ -17,6 +17,7 @@ export interface DbLocation {
   city: string | null
   state: string | null
   country: string | null
+  postal_code: string | null
   latitude: number | null
   longitude: number | null
   image_url: string | null

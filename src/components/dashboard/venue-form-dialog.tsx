@@ -1,10 +1,11 @@
 "use client"
 
 import Image from "next/image"
-import { useId, useState, type FormEvent } from "react"
+import { useId, useRef, useState, type ChangeEvent, type FormEvent } from "react"
 import { useTranslation } from "react-i18next"
 
 import { Button } from "@/components/ui/button"
+import { Icon } from "@/components/ui/icon"
 import { Modal } from "@/components/ui/modal"
 import { Select } from "@/components/ui/select"
 import { TextField } from "@/components/ui/text-field"
@@ -19,7 +20,13 @@ import { invalidateProviderLinks } from "@/libs/provider-links-store"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import { createDatabaseVenueSchema, createVenueSchema } from "@/libs/validation/venue"
 import { createVenue, updateVenue, type VenueDraft } from "@/libs/venue-store"
-import { createProviderLocation, updateProviderLocation } from "@/services/provider.service"
+import {
+  createProviderLocation,
+  updateOwnedLocation,
+  updateProviderLocation,
+  type LocationAddressPatch,
+} from "@/services/provider.service"
+import { uploadVenueImage } from "@/services/venue-images.service"
 import { cn } from "@/utils/cn"
 import { fieldErrorsFrom } from "@/utils/zod"
 
@@ -43,11 +50,19 @@ const PHOTO_SETS = VENUES.map((venue, index) => ({
   gallery: venue.gallery,
 }))
 
+/** New venues without an address of their own still land in one country. */
+const DEFAULT_COUNTRY = "United States"
+
 interface FormState {
   name: string
   categoryId: string
   city: string
   area: string
+  state: string
+  country: string
+  postalCode: string
+  latitude: string
+  longitude: string
   priceFrom: string
   services: string[]
   description: string
@@ -64,6 +79,13 @@ function initialValues(venue: Venue | null): FormState {
     categoryId: venue?.categoryId ?? ALL_CATEGORIES[0]?.id ?? "barberia",
     city: venue?.city ?? VENUE_CITIES[0] ?? "Manhattan",
     area: venue?.area ?? "",
+    state: venue?.state ?? "",
+    country: venue?.country ?? DEFAULT_COUNTRY,
+    postalCode: venue?.postalCode ?? "",
+    // Blank rather than "0" when the row has no coordinates: 0,0 is a point in
+    // the Atlantic, not an address, and the form must not invent one.
+    latitude: venue?.hasCoords ? String(venue.lat) : "",
+    longitude: venue?.hasCoords ? String(venue.lon) : "",
     priceFrom: String(venue?.priceFrom ?? 50),
     services: venue ? [...venue.services] : [],
     description: venue?.description ?? "",
@@ -79,10 +101,12 @@ function initialValues(venue: Venue | null): FormState {
  * Create/edit venue modal used by the professional dashboard.
  *
  * Without Supabase it persists to the local store (services, price, contact…
- * all editable). With Supabase the database only stores the `locations` columns
- * (name/address/city/category/photos) plus the `provider_locations` link
- * (category/photos), so services/price/description/contact are hidden and an
- * existing venue only allows changing its category and photos.
+ * all editable). With Supabase the row lives in `locations` -- the whole
+ * address (street, city, state, country, ZIP, coordinates), the category and
+ * the photos -- plus the `provider_locations` link that owns it, while
+ * services, price, description and contact stay provider columns and remain
+ * hidden. An existing venue is now editable end to end: migration 0006 added
+ * the owner UPDATE that the address was missing.
  */
 export function VenueFormDialog({
   open,
@@ -97,6 +121,8 @@ export function VenueFormDialog({
   const [values, setValues] = useState<FormState>(() => initialValues(venue))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement | null>(null)
 
   const supabase = getSupabaseBrowserClient()
   const cloud = Boolean(supabase)
@@ -109,6 +135,9 @@ export function VenueFormDialog({
     ? (links.find((item) => item.location_id === venue.id) ?? null)
     : null
   const cityOptions = venue && !VENUE_CITIES.includes(venue.city) ? [venue.city] : VENUE_CITIES
+  /** The cover when it is none of the ten sets: the professional's own upload. */
+  const customImage =
+    values.image && !PHOTO_SETS.some((set) => set.image === values.image) ? values.image : null
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setValues((current) => ({ ...current, [key]: value }))
@@ -132,29 +161,85 @@ export function VenueFormDialog({
     }))
   }
 
-  /** Database write: create a location, or update the provider's own link. */
+  /** Upload the professional's own photo and make it the cover of the venue. */
+  async function handlePhotoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    // Reset so picking the same file twice still fires a change event.
+    event.target.value = ""
+    if (!file || !supabase) return
+
+    setUploading(true)
+    try {
+      const result = await uploadVenueImage(supabase, providerId ?? ownerId, file)
+      if ("error" in result) {
+        setErrors((current) => ({
+          ...current,
+          image: t(
+            result.error === "rejected" ? "venues.form.photoRejected" : "venues.form.uploadFailed",
+          ),
+        }))
+        return
+      }
+      setErrors((current) => ({ ...current, image: "" }))
+      // One uploaded photo, so it is the whole gallery: a second slot would
+      // otherwise keep pointing at the previous photo set.
+      setValues((current) => ({ ...current, image: result.url, gallery: [result.url] }))
+      toast(t("venues.form.photoUploaded"))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  /**
+   * Database write. Creating inserts the `locations` row and its link;
+   * editing now corrects both, since migration 0006 grants the owner an
+   * UPDATE that did not exist before -- until then an address was write-once.
+   * The link keeps `category` and the cover in step because the dashboard
+   * reads `provider_locations`, while everything clients see comes from
+   * `locations`.
+   */
   async function persistToDatabase(data: {
     name: string
     categoryId: string
     city: string
     area: string
+    state: string
+    country: string
+    postalCode: string
+    latitude: number | null
+    longitude: number | null
     image: string
   }) {
     if (!supabase) return
     setSaving(true)
     try {
       const category = CATEGORY_ID_TO_NAME[data.categoryId] ?? data.categoryId
+      const address: LocationAddressPatch = {
+        name: data.name,
+        address: data.area,
+        city: data.city,
+        state: data.state || null,
+        country: data.country || null,
+        postal_code: data.postalCode || null,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        image_url: data.image,
+        image_alt: values.gallery[1] ?? null,
+      }
 
       if (cloudEdit) {
-        if (!link) {
+        if (!link || !venue) {
           toast(t("errors.generic"), "neutral")
           return
         }
-        const updated = await updateProviderLocation(supabase, link.id, {
-          category,
-          image: data.image,
-        })
-        if (!updated) {
+        // Sequential on purpose: a failed address write must not leave the
+        // link updated with a category the row no longer agrees with, and both
+        // are idempotent, so retrying after an error simply converges.
+        if (!(await updateOwnedLocation(supabase, venue.id, address))) {
+          toast(t("errors.generic"), "neutral")
+          return
+        }
+        if (!(await updateProviderLocation(supabase, link.id, { category, image: data.image }))) {
           toast(t("errors.generic"), "neutral")
           return
         }
@@ -169,6 +254,11 @@ export function VenueFormDialog({
           name: data.name,
           address: data.area,
           city: data.city,
+          state: data.state || null,
+          country: data.country || null,
+          postalCode: data.postalCode || null,
+          latitude: data.latitude,
+          longitude: data.longitude,
           category,
           image: data.image,
           imageAlt: values.gallery[1] ?? null,
@@ -269,7 +359,6 @@ export function VenueFormDialog({
             onChange={(event) => set("name", event.target.value)}
             placeholder={t("venues.form.namePlaceholder")}
             error={errors.name}
-            disabled={cloudEdit}
             required
           />
 
@@ -304,7 +393,6 @@ export function VenueFormDialog({
                 value={values.city}
                 options={cityOptions.map((city) => ({ value: city, label: city }))}
                 onChange={(value) => set("city", value)}
-                disabled={cloudEdit}
                 ariaLabel={t("venues.form.city")}
                 className="w-full"
                 triggerClassName="h-11 w-full rounded-xl pl-3.5 text-sm"
@@ -319,7 +407,6 @@ export function VenueFormDialog({
               onChange={(event) => set("area", event.target.value)}
               placeholder={t("venues.form.areaPlaceholder")}
               error={errors.area}
-              disabled={cloudEdit}
               required
             />
             {!cloud && (
@@ -335,6 +422,56 @@ export function VenueFormDialog({
               />
             )}
           </div>
+
+          {/*
+            The rest of the address, all `locations` columns. These were not
+            part of the form when the row was write-once; migration 0006 gives
+            the owner an UPDATE, so a professional can now fill in and correct
+            the whole address instead of only naming the place.
+          */}
+          {cloud && (
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-3">
+                <TextField
+                  label={t("venues.form.state")}
+                  value={values.state}
+                  onChange={(event) => set("state", event.target.value)}
+                  placeholder="NY"
+                />
+                <TextField
+                  label={t("venues.form.country")}
+                  value={values.country}
+                  onChange={(event) => set("country", event.target.value)}
+                />
+                <TextField
+                  label={t("venues.form.postalCode")}
+                  value={values.postalCode}
+                  onChange={(event) => set("postalCode", event.target.value)}
+                  placeholder="10011"
+                  inputMode="numeric"
+                />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <TextField
+                  label={t("venues.form.latitude")}
+                  value={values.latitude}
+                  onChange={(event) => set("latitude", event.target.value)}
+                  placeholder="40.7128"
+                  inputMode="decimal"
+                  error={errors.latitude}
+                />
+                <TextField
+                  label={t("venues.form.longitude")}
+                  value={values.longitude}
+                  onChange={(event) => set("longitude", event.target.value)}
+                  placeholder="-74.0060"
+                  inputMode="decimal"
+                  error={errors.longitude}
+                />
+              </div>
+            </div>
+          )}
 
           {!cloud && (
             <fieldset className="space-y-2">
@@ -419,10 +556,56 @@ export function VenueFormDialog({
             </>
           )}
 
-          <fieldset className="space-y-2">
+          {/* Disabled while an upload is in flight so the cover cannot change
+              underneath a request that is about to overwrite it. */}
+          <fieldset className="space-y-2 disabled:opacity-60" disabled={uploading}>
             <legend className="text-cream/80 text-sm font-medium">{t("venues.form.photos")}</legend>
             <p className="text-cream/45 text-xs">{t("venues.form.photosHint")}</p>
+
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(event) => void handlePhotoUpload(event)}
+            />
+
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+              {/*
+                The professional's own photo comes first: until they have one
+                it is the upload affordance, and afterwards it becomes their
+                picture with the selected marker -- otherwise a custom cover
+                would vanish from the picker the moment it was chosen.
+              */}
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                aria-label={t("venues.form.uploadPhoto")}
+                aria-pressed={Boolean(customImage)}
+                className={cn(
+                  "relative h-16 overflow-hidden rounded-xl border transition",
+                  customImage
+                    ? "border-gold ring-gold/40 ring-2"
+                    : "border-cream/12 hover:border-cream/30",
+                )}
+              >
+                {customImage ? (
+                  <Image src={customImage} alt="" fill sizes="120px" className="object-cover" />
+                ) : (
+                  <span className="text-cream/55 flex h-full w-full flex-col items-center justify-center gap-1">
+                    <Icon name="plus" className="size-5" />
+                    <span className="text-[9px] font-semibold tracking-[0.08em] uppercase">
+                      {t("venues.form.uploadShort")}
+                    </span>
+                  </span>
+                )}
+                {customImage && (
+                  <span className="bg-gold text-gold-ink absolute right-1 bottom-1 flex size-4 items-center justify-center rounded-full text-[10px] font-bold">
+                    ✓
+                  </span>
+                )}
+              </button>
+
               {PHOTO_SETS.map((set) => {
                 const active = values.image === set.image
                 return (
@@ -457,7 +640,7 @@ export function VenueFormDialog({
           <Button type="button" variant="ghost" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button type="submit" loading={saving}>
+          <Button type="submit" loading={saving || uploading}>
             {isEdit ? t("venues.form.save") : t("venues.form.create")}
           </Button>
         </div>

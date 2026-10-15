@@ -534,6 +534,11 @@
       "city": "City",
       "area": "Area or neighborhood",
       "areaPlaceholder": "e.g. Bushwick",
+      "state": "State",
+      "country": "Country",
+      "postalCode": "ZIP code",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
       "phone": "Phone",
       "whatsapp": "WhatsApp",
       "instagram": "Instagram",
@@ -543,14 +548,19 @@
       "description": "Description",
       "descriptionPlaceholder": "Tell your clients what makes your venue special.",
       "photos": "Photos",
-      "photosHint": "Pick a photo set for the cover and gallery.",
+      "photosHint": "Pick a photo set, or press the + tile to upload your own (JPG, PNG or WebP, up to 5 MB).",
       "photoOption": "Photo set {{index}}",
+      "uploadShort": "Upload",
+      "uploadPhoto": "Upload your own photo",
+      "photoUploaded": "Photo uploaded",
+      "photoRejected": "Use a JPG, PNG or WebP image under 5 MB.",
+      "uploadFailed": "The photo couldn't be uploaded. Try again.",
       "save": "Save changes",
       "create": "Publish venue",
       "saved": "Venue updated",
       "created": "Venue published",
-      "databaseHint": "With Supabase connected, the venue stores its name, address, city, category and photos.",
-      "databaseEditHint": "On an existing venue you can only change the category and photos."
+      "databaseHint": "With Supabase connected, the venue stores its name, the full address and the photos.",
+      "databaseEditHint": "Everything here can be corrected: address, coordinates and photos."
     }
   },
   "professionals": {
@@ -778,7 +788,8 @@
     "venuePriceMin": "The price can't be negative.",
     "venueServicesRequired": "Pick at least one service.",
     "venueDescriptionMax": "The description can't exceed 400 characters.",
-    "venuePhotoRequired": "Choose a photo set."
+    "venuePhotoRequired": "Choose a photo or upload your own.",
+    "venueCoordinateInvalid": "Enter a valid latitude or longitude."
   },
   "errors": {
     "auth": {

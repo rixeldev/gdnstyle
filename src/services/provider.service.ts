@@ -54,7 +54,7 @@ const PROFILE_REVIEW_COLUMNS =
 const PROFILE_PORTFOLIO_COLUMNS =
   "id,provider_id,image_url,title,description,likes_count,comments_count,created_at"
 const PROFILE_LOCATION_COLUMNS =
-  "id,name,address,city,state,country,latitude,longitude,image_url,image_alt,category"
+  "id,name,address,city,state,country,postal_code,latitude,longitude,image_url,image_alt,category"
 
 /**
  * Load a professional's public profile in as few round-trips as possible:
@@ -188,6 +188,46 @@ export async function updateProviderLocation(
   return true
 }
 
+/** Address columns a professional may write on a `locations` row they own. */
+export interface LocationAddressPatch {
+  name?: string | null
+  /** The form's "area" maps to the location address. */
+  address?: string | null
+  city?: string | null
+  state?: string | null
+  country?: string | null
+  postal_code?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  image_url?: string | null
+  image_alt?: string | null
+}
+
+/**
+ * Save the address of a `locations` row the professional owns. Only possible
+ * since migration 0006: before it, `locations` accepted an INSERT and exposed
+ * a public SELECT but had no UPDATE policy, so an address was write-once. The
+ * policy reaches ownership through `provider_locations`, because the table has
+ * no owner column of its own.
+ *
+ * Returns `false` when PostgREST rejects the write (RLS, missing row), which is
+ * what a rejected update looks like from the client.
+ */
+export async function updateOwnedLocation(
+  client: SupabaseClient,
+  locationId: string,
+  patch: LocationAddressPatch,
+): Promise<boolean> {
+  const { error } = await client.from("locations").update(patch).eq("id", locationId)
+
+  if (error) {
+    console.error("[locations] failed to save the address", error)
+    return false
+  }
+
+  return true
+}
+
 /** A venue a professional is creating: a `locations` row plus the ownership link. */
 export interface NewProviderLocation {
   providerId: string
@@ -195,6 +235,12 @@ export interface NewProviderLocation {
   /** The form's "area" maps to the location address. */
   address: string | null
   city: string
+  state: string | null
+  country: string | null
+  /** ZIP code, or `null` when the professional left it blank. */
+  postalCode: string | null
+  latitude: number | null
+  longitude: number | null
   /** Comma-separated `business_categories.category` values. */
   category: string
   image: string | null
@@ -216,6 +262,11 @@ export async function createProviderLocation(
       name: input.name,
       address: input.address,
       city: input.city,
+      state: input.state,
+      country: input.country,
+      postal_code: input.postalCode,
+      latitude: input.latitude,
+      longitude: input.longitude,
       category: input.category,
       image_url: input.image,
       image_alt: input.imageAlt,

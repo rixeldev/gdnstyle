@@ -534,6 +534,11 @@
       "city": "Ciudad",
       "area": "Zona o barrio",
       "areaPlaceholder": "Ej. Bushwick",
+      "state": "Estado",
+      "country": "País",
+      "postalCode": "Código postal",
+      "latitude": "Latitud",
+      "longitude": "Longitud",
       "phone": "Teléfono",
       "whatsapp": "WhatsApp",
       "instagram": "Instagram",
@@ -543,14 +548,19 @@
       "description": "Descripción",
       "descriptionPlaceholder": "Cuéntale a tus clientas qué hace especial a tu local.",
       "photos": "Fotos",
-      "photosHint": "Elige un conjunto de fotos para la portada y la galería.",
+      "photosHint": "Elige un conjunto de fotos o pulsa el botón + para subir el tuyo (JPG, PNG o WebP, hasta 5 MB).",
       "photoOption": "Conjunto de fotos {{index}}",
+      "uploadShort": "Subir",
+      "uploadPhoto": "Sube tu propia foto",
+      "photoUploaded": "Foto subida",
+      "photoRejected": "Usa una imagen JPG, PNG o WebP de menos de 5 MB.",
+      "uploadFailed": "No se pudo subir la foto. Inténtalo de nuevo.",
       "save": "Guardar cambios",
       "create": "Publicar local",
       "saved": "Local actualizado",
       "created": "Local publicado",
-      "databaseHint": "Con Supabase conectado, el local guarda su nombre, dirección, ciudad, categoría y fotos.",
-      "databaseEditHint": "En un local existente solo puedes cambiar la categoría y las fotos."
+      "databaseHint": "Con Supabase conectado, el local guarda su nombre, la dirección completa y las fotos.",
+      "databaseEditHint": "Aquí puedes corregir todo: dirección, coordenadas y fotos."
     }
   },
   "professionals": {
@@ -778,7 +788,8 @@
     "venuePriceMin": "El precio no puede ser negativo.",
     "venueServicesRequired": "Elige al menos un servicio.",
     "venueDescriptionMax": "La descripción no puede superar los 400 caracteres.",
-    "venuePhotoRequired": "Elige un conjunto de fotos."
+    "venuePhotoRequired": "Elige una foto o sube la tuya.",
+    "venueCoordinateInvalid": "Introduce una latitud o longitud válida."
   },
   "errors": {
     "auth": {

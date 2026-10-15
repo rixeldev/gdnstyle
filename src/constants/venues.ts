@@ -81,6 +81,10 @@ export interface Venue {
   categoryNames?: string[]
   /** Street address from the database (static records have none). */
   address?: string
+  /** State / province from the database (static records have none). */
+  state?: string
+  /** ZIP / postal code from the database (static records have none). */
+  postalCode?: string
   /** Country name from the database (used by structured data). */
   country?: string
   /** Professionals working at this location (database records). */

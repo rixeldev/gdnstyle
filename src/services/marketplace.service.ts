@@ -21,7 +21,7 @@ export interface CatalogData {
 
 const CATEGORY_COLUMNS = "id,category,image_category"
 const LOCATION_COLUMNS =
-  "id,name,address,city,state,country,latitude,longitude,image_url,image_alt,category"
+  "id,name,address,city,state,country,postal_code,latitude,longitude,image_url,image_alt,category"
 const PROVIDER_COLUMNS =
   "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,social_instagram,social_whatsapp"
 const PROVIDER_LOCATION_COLUMNS = "id,provider_id,location_id,category,image"

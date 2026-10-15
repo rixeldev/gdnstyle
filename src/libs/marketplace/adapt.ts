@@ -221,6 +221,8 @@ function adaptVenue({
     city: normalizeCity(location.city),
     area: location.address?.trim() || location.city?.trim() || "",
     address: location.address ?? undefined,
+    state: location.state ?? undefined,
+    postalCode: location.postal_code ?? undefined,
     country: location.country ?? undefined,
     rating,
     reviews: reviewCount,

@@ -1,6 +1,8 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
+import { Suspense } from "react"
 import { useTranslation } from "react-i18next"
 
 import { BookingForm } from "@/components/venues/booking-form"
@@ -26,7 +28,7 @@ interface VenueDetailProps {
 /** Single venue page: gallery, services, team, reviews, map and booking card. */
 export function VenueDetail({ venue }: VenueDetailProps) {
   const { t, i18n } = useTranslation()
-  const locale = toIntlLocale(i18n.language ?? "es")
+  const locale = toIntlLocale(i18n.language)
   const category = getCategoryById(venue.categoryId)
   const categoryLabel = category ? t(category.labelKey) : (venue.categoryNames?.[0] ?? "")
   const databaseProfessionals = venue.professionals ?? []
@@ -54,7 +56,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   })
-  const priceFrom = formatCurrency(venue.priceFrom, locale, "DOP", { maximumFractionDigits: 0 })
+  const priceFrom = formatCurrency(venue.priceFrom, locale, "USD", { maximumFractionDigits: 0 })
   const mapPoints = [{ id: venue.id, name: venue.name, lat: venue.lat, lon: venue.lon }]
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${venue.lat},${venue.lon}`
 
@@ -251,7 +253,7 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                           {t("venues.booking.duration", { count: service.durationMin })}
                         </span>
                         <span className="text-cream font-semibold">
-                          {formatCurrency(service.price, locale, "DOP", {
+                          {formatCurrency(service.price, locale, "USD", {
                             maximumFractionDigits: 0,
                           })}
                         </span>
@@ -268,9 +270,10 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                 </h2>
                 <div className="mt-4 flex flex-wrap gap-3">
                   {professionals.map((professional) => (
-                    <div
+                    <Link
                       key={professional.id}
-                      className="border-cream/10 bg-cream/2 flex min-w-60 items-center gap-3 rounded-2xl border px-4 py-3"
+                      href={`/professionals/${professional.id}`}
+                      className="border-cream/10 bg-cream/2 hover:border-gold/40 flex min-w-60 items-center gap-3 rounded-2xl border px-4 py-3 transition"
                     >
                       <span className="border-gold/30 bg-gold/10 text-gold flex size-11 shrink-0 items-center justify-center rounded-full border text-sm font-semibold">
                         {initials(professional.name)}
@@ -281,7 +284,8 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                         </span>
                         <span className="text-cream/50 block text-xs">{professional.meta}</span>
                       </span>
-                    </div>
+                      <Icon name="arrow-right" className="text-gold ml-auto size-4 shrink-0" />
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -352,7 +356,18 @@ export function VenueDetail({ venue }: VenueDetailProps) {
                   {t("venues.detail.bookSupporting")}
                 </p>
 
-                <BookingForm venue={venue} locale={locale} />
+                {/* Suspense: BookingForm reads `useSearchParams` for the
+                    `?service=` deep link (e.g. "Book again"). */}
+                <Suspense
+                  fallback={
+                    <div
+                      aria-hidden="true"
+                      className="bg-cream/5 mt-5 h-64 animate-pulse rounded-2xl"
+                    />
+                  }
+                >
+                  <BookingForm venue={venue} locale={locale} />
+                </Suspense>
 
                 <ul className="text-cream/55 border-cream/10 mt-6 space-y-2.5 border-t pt-5 text-xs">
                   <li className="flex items-center gap-2.5">

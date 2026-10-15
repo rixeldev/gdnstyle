@@ -38,8 +38,45 @@ export interface DbProvider {
   reviews: number | null
   charges_enabled: boolean | null
   stripe_onboarding_completed: boolean | null
+  identity_verified: boolean | null
+  address_line1: string | null
+  address_line2: string | null
+  address_city: string | null
+  address_state: string | null
+  address_postal_code: string | null
+  address_country: string | null
+  social_facebook: string | null
   social_instagram: string | null
+  social_tiktok: string | null
+  social_twitter: string | null
+  social_youtube: string | null
   social_whatsapp: string | null
+}
+
+/** A work sample shown in a professional's portfolio (`provider_portfolio`). */
+export interface DbProviderPortfolio {
+  id: string
+  provider_id: string
+  image_url: string | null
+  title: string | null
+  description: string | null
+  likes_count: number | null
+  comments_count: number | null
+  created_at: string | null
+}
+
+/** A customer review of a professional (`provider_reviews`). */
+export interface DbProviderReview {
+  id: string
+  provider_id: string
+  client_id: string | null
+  appointment_id: string | null
+  rating: number
+  comment: string | null
+  service_name: string | null
+  reviewer_name: string | null
+  reviewer_avatar_url: string | null
+  created_at: string | null
 }
 
 export interface DbProviderLocation {

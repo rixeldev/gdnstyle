@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next"
 import { Breadcrumbs, type Crumb } from "@/components/ui/breadcrumbs"
 import { Button, ButtonLink } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
+import { Select } from "@/components/ui/select"
 import { VenueCard } from "@/components/venues/venue-card"
 import { VenueMap } from "@/components/venues/venue-map"
 import { useCatalogReady, usePublicVenues } from "@/hooks/use-venues"
@@ -14,6 +15,7 @@ import { ALL_CATEGORIES, getCategoryById } from "@/constants/categories"
 import type { Venue } from "@/constants/venues"
 import { useFavorites } from "@/hooks/use-favorites"
 import { useIsClient } from "@/hooks/use-is-client"
+import { useSession } from "@/libs/session"
 import { cn } from "@/utils/cn"
 import { dayNumber } from "@/utils/date"
 import { toIntlLocale } from "@/utils/format"
@@ -66,13 +68,14 @@ export function VenueDirectory({
   const [sort, setSort] = useState<SortKey>("relevance")
   const [showMap, setShowMap] = useState(false)
   const { count: favoritesCount } = useFavorites()
+  const { authenticated } = useSession()
   const storeVenues = usePublicVenues()
   const ready = useCatalogReady()
   // Server-resolved records paint immediately; the live store takes over once
   // the catalog finishes loading on the client.
   const venues = storeVenues.length > 0 ? storeVenues : (initialVenues ?? [])
   const isClient = useIsClient()
-  const locale = toIntlLocale(i18n.language ?? "es")
+  const locale = toIntlLocale(i18n.language)
 
   const availableCategories = useMemo(() => {
     const present = new Set<string>()
@@ -310,18 +313,12 @@ export function VenueDirectory({
             <label className="text-cream/60 inline-flex items-center gap-2 text-xs">
               <Icon name="sliders" className="text-cream/40 size-4" />
               <span className="sr-only">{t("directory.sortLabel")}</span>
-              <select
+              <Select
                 value={sort}
-                onChange={(event) => setSort(event.target.value as SortKey)}
-                aria-label={t("directory.sortLabel")}
-                className="border-cream/15 bg-ink-card text-cream focus:border-gold/60 h-9 rounded-full border px-3 text-xs outline-none"
-              >
-                {SORT_KEYS.map((item) => (
-                  <option key={item.key} value={item.key}>
-                    {t(item.labelKey)}
-                  </option>
-                ))}
-              </select>
+                options={SORT_KEYS.map((item) => ({ value: item.key, label: t(item.labelKey) }))}
+                onChange={(value) => setSort(value as SortKey)}
+                ariaLabel={t("directory.sortLabel")}
+              />
             </label>
 
             <Button
@@ -426,10 +423,16 @@ export function VenueDirectory({
             <p className="text-cream/60 mt-2 max-w-md text-sm">{t("directory.accountBody")}</p>
           </div>
           <div className="relative flex flex-wrap gap-3">
-            <ButtonLink href="/auth/login">{t("nav.signIn")}</ButtonLink>
-            <ButtonLink href="/auth/signup?role=customer" variant="outline">
-              {t("directory.createAccount")}
-            </ButtonLink>
+            {authenticated ? (
+              <ButtonLink href="/dashboard">{t("nav.dashboard")}</ButtonLink>
+            ) : (
+              <>
+                <ButtonLink href="/auth/login">{t("nav.signIn")}</ButtonLink>
+                <ButtonLink href="/auth/signup?role=customer" variant="outline">
+                  {t("directory.createAccount")}
+                </ButtonLink>
+              </>
+            )}
           </div>
         </div>
       </section>

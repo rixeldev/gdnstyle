@@ -15,7 +15,7 @@ import { toIntlLocale } from "@/utils/format"
 /** Saved venues page: the account's favourited records, in the saved order. */
 export function FavoritesPage() {
   const { t, i18n } = useTranslation()
-  const locale = toIntlLocale(i18n.language ?? "es")
+  const locale = toIntlLocale(i18n.language)
   const { ready: sessionReady, authenticated } = useSession()
   const { favorites, ready, count } = useFavorites()
   const allVenues = usePublicVenues()
@@ -71,7 +71,7 @@ export function FavoritesPage() {
         </div>
       </section>
 
-      <section className="px-5 pb-24 md:px-8">
+      <section className="px-5 pt-12 pb-24 md:px-8">
         <div className="mx-auto max-w-6xl">
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

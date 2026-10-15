@@ -346,7 +346,7 @@ export function VenueFormDialog({
           </Button>
         </div>
 
-        <div className="space-y-5 overflow-y-auto px-5 py-5">
+        <div className="space-y-4 overflow-y-auto px-5 py-5">
           {cloud && (
             <p className="border-gold/25 bg-gold/5 text-gold-soft rounded-2xl border px-4 py-3 text-xs leading-relaxed">
               {cloudEdit ? t("venues.form.databaseEditHint") : t("venues.form.databaseHint")}
@@ -362,7 +362,7 @@ export function VenueFormDialog({
             required
           />
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <label htmlFor="venue-category" className="text-cream/80 block text-sm font-medium">
                 {t("venues.form.category")}
@@ -377,7 +377,7 @@ export function VenueFormDialog({
                 onChange={(value) => set("categoryId", value)}
                 ariaLabel={t("venues.form.category")}
                 className="w-full"
-                triggerClassName="h-11 w-full rounded-xl pl-3.5 text-sm"
+                triggerClassName="max-w-none h-11 w-full rounded-xl pl-3.5 text-sm"
               />
               {errors.categoryId && (
                 <p className="text-xs font-medium text-red-300">{errors.categoryId}</p>
@@ -395,12 +395,12 @@ export function VenueFormDialog({
                 onChange={(value) => set("city", value)}
                 ariaLabel={t("venues.form.city")}
                 className="w-full"
-                triggerClassName="h-11 w-full rounded-xl pl-3.5 text-sm"
+                triggerClassName="max-w-none h-11 w-full rounded-xl pl-3.5 text-sm"
               />
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <TextField
               label={t("venues.form.area")}
               value={values.area}
@@ -431,7 +431,7 @@ export function VenueFormDialog({
           */}
           {cloud && (
             <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <TextField
                   label={t("venues.form.state")}
                   value={values.state}
@@ -452,7 +452,7 @@ export function VenueFormDialog({
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <TextField
                   label={t("venues.form.latitude")}
                   value={values.latitude}
@@ -531,7 +531,7 @@ export function VenueFormDialog({
                 )}
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <TextField
                   label={t("venues.form.phone")}
                   value={values.phone}

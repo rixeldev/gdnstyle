@@ -60,13 +60,17 @@ const PROFILE_LOCATION_COLUMNS =
  * Load a professional's public profile in as few round-trips as possible:
  * the provider row, its active services, reviews and portfolio, plus the
  * venues it is linked to through `provider_locations`.
+ *
+ * The provider row comes from the `provider_public` view (migration 0012):
+ * it projects the card, contact and address columns this page renders, while
+ * the `providers` table answers only its own owner.
  */
 export async function fetchProviderProfileData(
   client: SupabaseClient,
   providerId: string,
 ): Promise<ProviderProfileData | null> {
   const providerResult = await client
-    .from("providers")
+    .from("provider_public")
     .select(PROFILE_PROVIDER_COLUMNS)
     .eq("id", providerId)
     .maybeSingle()

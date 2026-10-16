@@ -22,6 +22,9 @@ export interface CatalogData {
 const CATEGORY_COLUMNS = "id,category,image_category"
 const LOCATION_COLUMNS =
   "id,name,address,city,state,country,postal_code,latitude,longitude,image_url,image_alt,category"
+// The public catalog reads the `provider_public` view (migration 0012), which
+// projects exactly these columns: `providers` itself answers only its owner,
+// so the Stripe and identity columns never leave the table.
 const PROVIDER_COLUMNS =
   "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,social_instagram,social_whatsapp"
 const PROVIDER_LOCATION_COLUMNS = "id,provider_id,location_id,category,image"
@@ -50,7 +53,7 @@ export async function fetchCatalogData(client: SupabaseClient): Promise<CatalogD
     await Promise.all([
       client.from("business_categories").select(CATEGORY_COLUMNS).order("category"),
       client.from("locations").select(LOCATION_COLUMNS),
-      client.from("providers").select(PROVIDER_COLUMNS),
+      client.from("provider_public").select(PROVIDER_COLUMNS),
       client.from("provider_locations").select(PROVIDER_LOCATION_COLUMNS),
       client.from("provider_services").select(PROVIDER_SERVICE_COLUMNS).eq("is_active", true),
       client.from("location_reviews").select(REVIEW_COLUMNS),
@@ -99,7 +102,7 @@ export async function fetchCatalogForLocation(
 
   const [providers, services, reviews] = await Promise.all([
     providerIds.length
-      ? client.from("providers").select(PROVIDER_COLUMNS).in("id", providerIds)
+      ? client.from("provider_public").select(PROVIDER_COLUMNS).in("id", providerIds)
       : Promise.resolve({ data: [], error: null }),
     providerIds.length
       ? client

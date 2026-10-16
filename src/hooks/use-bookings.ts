@@ -211,7 +211,6 @@ export function useBookings() {
       if (cloud && supabase && clientId && target.database) {
         const updated = await rescheduleAppointment(supabase, {
           id,
-          locationId: target.venueId,
           providerId: target.professionalId,
           currentDate: target.date,
           currentTime: target.time,

@@ -331,7 +331,6 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
     if (!client) return
     const available = await isSlotAvailable(client, {
       providerId: booking.providerId,
-      locationId: booking.locationId,
       dateKey: booking.date,
       time: booking.time,
       durationMinutes: booking.durationMinutes ?? 30,

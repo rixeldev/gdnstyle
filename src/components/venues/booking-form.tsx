@@ -135,7 +135,6 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     let active = true
     void Promise.all([
       fetchOccupiedSlots(supabase, {
-        locationId: venue.id,
         providerId: provider,
         date,
       }),
@@ -158,7 +157,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
     return () => {
       active = false
     }
-  }, [availabilityKey, supabase, venue.id])
+  }, [availabilityKey, supabase])
 
   // Derived straight from the loaded key: no extra render just to clear state.
   const loaded = daySlots && daySlots.key === availabilityKey ? daySlots : null

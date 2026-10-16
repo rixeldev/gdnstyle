@@ -155,7 +155,6 @@ export function buildDaySlots(input: DaySlotsInput): string[] {
 
 export interface SlotCheckInput {
   providerId: string
-  locationId: string
   /** `YYYY-MM-DD`. */
   dateKey: string
   /** `HH:MM`. */
@@ -175,7 +174,6 @@ export async function isSlotAvailable(
 ): Promise<boolean> {
   const [occupied, schedule] = await Promise.all([
     fetchOccupiedSlots(client, {
-      locationId: input.locationId,
       providerId: input.providerId,
       date: input.dateKey,
     }),

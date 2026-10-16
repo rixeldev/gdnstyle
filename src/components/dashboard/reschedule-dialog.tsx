@@ -89,13 +89,11 @@ export function RescheduleDialog({ booking, reschedule, onClose }: RescheduleDia
     const separator = availabilityKey.indexOf("|")
     const date = availabilityKey.slice(0, separator)
     const provider = availabilityKey.slice(separator + 1)
-    const locationId = booking.venueId
     const appointmentId = booking.id
 
     let active = true
     void Promise.all([
       fetchOccupiedSlots(supabase, {
-        locationId,
         providerId: provider || null,
         date,
         excludeId: appointmentId,
@@ -115,7 +113,7 @@ export function RescheduleDialog({ booking, reschedule, onClose }: RescheduleDia
     return () => {
       active = false
     }
-  }, [availabilityKey, supabase, booking.venueId, booking.id])
+  }, [availabilityKey, supabase, booking.id])
 
   // Derived straight from the loaded key: no extra render just to clear state.
   const loaded = day && day.key === availabilityKey ? day : null

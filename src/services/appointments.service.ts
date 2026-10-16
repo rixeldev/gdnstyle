@@ -64,26 +64,46 @@ export interface OccupiedSlot {
 }
 
 /**
- * Times already booked at a venue, optionally narrowed to one professional.
- *
- * RLS grants every authenticated user the "Clients can view occupied time
- * slots" policy, so this select is safe from the browser and only reads the
- * two columns the grid needs (no client data).
+ * Times already booked for one professional on one day, read through the
+ * `occupied_appointment_slots` RPC (migration 0011). The RPC returns only the
+ * two columns the grid needs: the direct table read this replaces let every
+ * signed-in visitor see every booking's client name, email and notes.
  */
 export async function fetchOccupiedSlots(
   client: SupabaseClient,
   input: {
-    locationId: string
     providerId?: string | null
     date: string
     /** Appointment being moved: its own slot must not block the new one. */
     excludeId?: string | null
   },
 ): Promise<OccupiedSlot[]> {
+  const map = (rows: Array<{ scheduled_time: string; duration_minutes: number | null }>) =>
+    rows.map((row) => ({
+      time: toHhMm(row.scheduled_time),
+      durationMinutes: Number(row.duration_minutes) || 30,
+    }))
+
+  if (input.providerId) {
+    const { data, error } = await client.rpc("occupied_appointment_slots", {
+      p_provider_id: input.providerId,
+      p_date: input.date,
+      p_exclude_id: input.excludeId ?? null,
+    })
+
+    if (!error) return map(data ?? [])
+
+    // The RPC ships with migration 0011. Databases that do not have it yet
+    // still allow the old direct read, so the grid stays correct on both
+    // sides of the deploy; other failures fall through to it as well.
+    if (error.code !== "PGRST202" && error.code !== "42883") {
+      console.error("[appointments] failed to load the occupied slots", error)
+    }
+  }
+
   let query = client
     .from("appointments")
     .select("scheduled_time, duration_minutes")
-    .eq("location_id", input.locationId)
     .eq("scheduled_date", input.date)
     .neq("status", "cancelled")
 
@@ -97,10 +117,7 @@ export async function fetchOccupiedSlots(
     return []
   }
 
-  return (data ?? []).map((row) => ({
-    time: toHhMm(row.scheduled_time),
-    durationMinutes: Number(row.duration_minutes) || 30,
-  }))
+  return map(data ?? [])
 }
 
 /**
@@ -180,7 +197,6 @@ export async function createAppointment(
   input: NewAppointment,
 ): Promise<DbAppointment | null> {
   const occupied = await fetchOccupiedSlots(client, {
-    locationId: input.locationId,
     providerId: input.providerId,
     date: input.date,
   })
@@ -221,7 +237,6 @@ export async function createAppointment(
 /** Everything needed to move an existing appointment to a new day/time. */
 export interface RescheduleInput {
   id: string
-  locationId: string
   providerId?: string | null
   /** Slot the appointment has now: it decides whether the lock is still open. */
   currentDate: string
@@ -250,7 +265,6 @@ export async function rescheduleAppointment(
   }
 
   const occupied = await fetchOccupiedSlots(client, {
-    locationId: input.locationId,
     providerId: input.providerId,
     date: input.date,
     excludeId: input.id,
@@ -305,16 +319,6 @@ export async function fetchClientAppointments(
   return (data ?? []) as DbAppointment[]
 }
 
-/** Delete one of the client's own appointments. */
-export async function cancelAppointment(client: SupabaseClient, id: string): Promise<boolean> {
-  const { error } = await client.from("appointments").delete().eq("id", id)
-  if (error) {
-    console.error("[appointments] failed to cancel the appointment", error)
-    return false
-  }
-  return true
-}
-
 /** Appointments booked with one provider (RLS scopes the select to its owner). */
 export async function fetchProviderAppointments(
   client: SupabaseClient,
@@ -342,22 +346,6 @@ export async function fetchProviderAppointments(
   return (data ?? []) as DbAppointment[]
 }
 
-/** Move an appointment to a new status (the provider confirms/completes it). */
-export async function setAppointmentStatus(
-  client: SupabaseClient,
-  id: string,
-  status: string,
-): Promise<boolean> {
-  const { error } = await client.from("appointments").update({ status }).eq("id", id)
-
-  if (error) {
-    console.error("[appointments] failed to update the appointment", error)
-    return false
-  }
-
-  return true
-}
-
 /** Result of a client-side cancellation, used to pick the toast message. */
 export type CancellationOutcome = "refund-requested" | "cancelled" | "too-late" | null
 
@@ -368,9 +356,10 @@ const REFUNDABLE_STATUSES = new Set(["pending", "released", "paid"])
  * deleted: the row moves to `cancelled` and a refund request is opened for
  * the professional to approve (payment stays pending/released until then).
  *
- * Preferred path is the `request_appointment_cancellation` RPC (migration
- * 0003, SECURITY DEFINER with its own ownership check); a direct update is
- * used as a fallback for databases that allow it through RLS.
+ * The 1h30m lock window is closed on both sides: the slot is read up front so
+ * a normal visit never reaches the write, and the RPC refuses on its own with
+ * SQLSTATE GDN90 for everything else (wrong clock, modified client). A direct
+ * update remains as a fallback for databases whose RLS still allows it.
  */
 export async function requestAppointmentCancellation(
   client: SupabaseClient,
@@ -381,7 +370,7 @@ export async function requestAppointmentCancellation(
 
   // Inside the 1h30m lock window the client can no longer cancel, so read the
   // slot before the RPC: cancelling first and undoing afterwards is not an
-  // option, and the database function itself knows nothing about the window.
+  // option, and showing the right message beats surfacing a database error.
   const { data: slot, error: slotError } = await client
     .from("appointments")
     .select("scheduled_date, scheduled_time")
@@ -407,6 +396,12 @@ export async function requestAppointmentCancellation(
     "request_appointment_cancellation",
     value ? { p_id: id, p_reason: value } : { p_id: id },
   )
+
+  // The database closed the window itself (migration 0011): no fallback write
+  // may try to undo that answer.
+  if (rpcError && rpcError.code === "GDN90") {
+    return "too-late"
+  }
 
   if (rpcError && value) {
     const { data: legacyOutcome, error: legacyError } = await client.rpc(
@@ -442,7 +437,7 @@ export async function requestAppointmentCancellation(
 
   // Paid money already captured → keep history and open a refund request.
   if (REFUNDABLE_STATUSES.has(paymentStatus) && refundStatus !== "approved") {
-    const { error } = await client
+    const { data: updated, error } = await client
       .from("appointments")
       .update({
         status: "cancelled",
@@ -452,8 +447,14 @@ export async function requestAppointmentCancellation(
         refund_requested_at: now,
       })
       .eq("id", id)
+      .select("id")
 
-    if (!error) return "refund-requested"
+    if (!error) {
+      // RLS hides the row instead of failing once the window closes
+      // (migration 0011): nothing matched means the change was refused.
+      if (updated?.length) return "refund-requested"
+      return "too-late"
+    }
     // Migration 0003 missing: fall through to a plain status cancel.
     if (!isMissingColumn(error)) {
       console.error("[appointments] failed to cancel the paid appointment", error)
@@ -461,15 +462,17 @@ export async function requestAppointmentCancellation(
     }
   }
 
-  const { error } = await client
+  const { data: updated, error } = await client
     .from("appointments")
     .update({ status: "cancelled", cancelled_at: now, cancellation_reason: reasonValue })
     .eq("id", id)
+    .select("id")
 
   if (error) {
     console.error("[appointments] failed to cancel the appointment", error)
     return null
   }
+  if (!updated?.length) return "too-late"
 
   return "cancelled"
 }

@@ -29,7 +29,16 @@
     "notDeployed": "La función «{{name}}» no está desplegada en Supabase. Ejecuta: supabase functions deploy {{name}}",
     "unreachable": "No se pudo contactar con la función «{{name}}». Si aún no la has desplegado, ejecuta: supabase functions deploy {{name}}. Si ya lo está, revisa tu conexión.",
     "failed": "La función «{{name}}» devolvió un error. Inténtalo de nuevo.",
-    "unavailable": "Supabase no está disponible en esta sesión."
+    "unavailable": "Supabase no está disponible en esta sesión.",
+    "codes": {
+      "duplicate": "Eso ya estaba guardado.",
+      "notAuthenticated": "Tu sesión expiró. Entra de nuevo.",
+      "noStripeCustomer": "No pudimos preparar tu tarjeta. Inténtalo de nuevo.",
+      "providerNotConfigured": "Este profesional aún no tiene pagos configurados. Puedes pagar al llegar.",
+      "rateLimited": "Demasiados intentos. Espera un momento y vuelve a intentarlo.",
+      "serviceNotFound": "Ese servicio ya no está disponible. Elige otro.",
+      "servicePriceMissing": "Ese servicio todavía no tiene precio y no se puede reservar."
+    }
   },
   "nav": {
     "clients": "Clientes",

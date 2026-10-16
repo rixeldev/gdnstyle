@@ -54,6 +54,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
+/**
+ * Fallo con causa conocida. El frontend la traduce por `code`, en vez de
+ * mostrar el texto de aquí — que sale en español a una interfaz en inglés.
+ */
+class FunctionFailure extends Error {
+  readonly code: string
+
+  constructor(code: string, message: string) {
+    super(message)
+    this.name = "FunctionFailure"
+    this.code = code
+  }
+}
+
 /** `HH:MM` o `HH:MM:SS` → minutos desde medianoche. */
 function toMinutes(value: string): number {
   const [hours, minutes] = value.split(":").map(Number)
@@ -142,11 +156,11 @@ serve(async (req) => {
 
     if (serviceError || !serviceRow || serviceRow.is_active === false) {
       console.error("❌ Servicio inexistente o inactivo:", serviceId, serviceError)
-      throw new Error("El servicio no existe o no está activo")
+      throw new FunctionFailure("SERVICE_NOT_FOUND", "El servicio no existe o no está activo")
     }
 
     if (serviceRow.provider_id !== providerId) {
-      throw new Error("El servicio no pertenece a este proveedor")
+      throw new FunctionFailure("PROVIDER_MISMATCH", "El servicio no pertenece a este proveedor")
     }
 
     const servicePrice = Number(serviceRow.price) || 0
@@ -405,10 +419,13 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error("❌ Error en create-appointment:", error)
+    // `code` is what the frontend translates; the message stays for the logs.
+    const code = error instanceof FunctionFailure ? { code: error.code } : null
     return new Response(
       JSON.stringify({
         success: false,
         error: error.message,
+        ...code,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

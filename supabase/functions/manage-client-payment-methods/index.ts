@@ -7,6 +7,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
+/**
+ * Fallo con causa conocida. El frontend la traduce por `code`, en vez de
+ * mostrar el texto de aquí — que sale en español a una interfaz en inglés.
+ */
+class FunctionFailure extends Error {
+  readonly code: string
+
+  constructor(code: string, message: string) {
+    super(message)
+    this.name = "FunctionFailure"
+    this.code = code
+  }
+}
+
 type ShopContext = "client" | "provider"
 
 function parseShopContext(body: Record<string, unknown>): ShopContext {
@@ -212,7 +226,7 @@ serve(async (req) => {
       }
 
       if (!stripeCustomerId) {
-        throw new Error("No se encontró el cliente en Stripe")
+        throw new FunctionFailure("NO_STRIPE_CUSTOMER", "No se encontró el cliente en Stripe")
       }
 
       await stripe.customers.update(stripeCustomerId, {
@@ -251,7 +265,7 @@ serve(async (req) => {
       }
 
       if (!stripeCustomerId) {
-        throw new Error("No se encontró el cliente en Stripe")
+        throw new FunctionFailure("NO_STRIPE_CUSTOMER", "No se encontró el cliente en Stripe")
       }
 
       // El método ya cobró con éxito: adjuntarlo al cliente es lo que permite
@@ -273,9 +287,18 @@ serve(async (req) => {
     throw new Error("Invalid action")
   } catch (error) {
     console.error("Error:", error)
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
-    })
+    // `code` is what the frontend translates; the message stays for the logs.
+    const code = error instanceof FunctionFailure ? { code: error.code } : null
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: (error as Error).message,
+        ...code,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      },
+    )
   }
 })

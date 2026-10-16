@@ -9,6 +9,7 @@ import { Icon } from "@/components/ui/icon"
 import { StripePaymentCardForm, STRIPE_PUBLISHABLE_KEY } from "@/components/ui/stripe-elements"
 import { TextField } from "@/components/ui/text-field"
 import { FunctionError } from "@/libs/functions/invoke"
+import { serverErrorMessage } from "@/libs/functions/server-errors"
 import { useSession } from "@/libs/session"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import type { DbAppointment } from "@/interfaces/appointments"
@@ -301,14 +302,23 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
   }
 
   /**
-   * Error message for a failed payment/booking step. A slot that filled up
-   * while the form was open gets its own copy instead of a generic failure.
+   * Error message for a failed payment/booking step.
+   *
+   * Business failures arrive as a code and are translated here, so the Spanish
+   * text written inside the Edge Functions never reaches the visitor.
+   * Infrastructural failures (function not deployed, host unreachable) already
+   * carry a localized, actionable message of their own.
    */
   function failureMessage(error: unknown): string {
-    const slotTaken =
-      error instanceof SlotUnavailableError ||
-      (error instanceof FunctionError && error.serverCode === "SLOT_TAKEN")
-    if (slotTaken) return t("venues.booking.slotTaken")
+    if (error instanceof SlotUnavailableError) return t("venues.booking.slotTaken")
+
+    if (error instanceof FunctionError) {
+      const localized = serverErrorMessage(error.serverCode)
+      if (localized) return localized
+      if (error.code !== "failed") return error.message
+      return t("common.tryAgain")
+    }
+
     return (error as Error)?.message || t("common.tryAgain")
   }
 

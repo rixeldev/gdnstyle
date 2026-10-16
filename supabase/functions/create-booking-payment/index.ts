@@ -7,6 +7,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
+/**
+ * Fallo con causa conocida. El frontend la traduce por `code`, en vez de
+ * mostrar el texto de aquí — que sale en español a una interfaz en inglés.
+ */
+class FunctionFailure extends Error {
+  readonly code: string
+
+  constructor(code: string, message: string) {
+    super(message)
+    this.name = "FunctionFailure"
+    this.code = code
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders })
@@ -54,7 +68,7 @@ serve(async (req) => {
     } = body
 
     if (!providerId) {
-      throw new Error("Provider ID is required")
+      throw new FunctionFailure("PROVIDER_NOT_FOUND", "Provider ID is required")
     }
 
     // El precio lo decide la base, no el cliente. La llamada solo aporta el
@@ -64,7 +78,7 @@ serve(async (req) => {
     const serviceId = appointmentData?.serviceId ?? body.serviceId ?? metadata?.service_id
 
     if (!serviceId) {
-      throw new Error("serviceId is required")
+      throw new FunctionFailure("SERVICE_REQUIRED", "serviceId is required")
     }
 
     const { data: serviceRow, error: serviceError } = await supabase
@@ -75,16 +89,22 @@ serve(async (req) => {
 
     if (serviceError || !serviceRow || serviceRow.is_active === false) {
       console.error("❌ Servicio inexistente o inactivo:", serviceId, serviceError)
-      throw new Error("El servicio no existe o no está activo")
+      throw new FunctionFailure("SERVICE_NOT_FOUND", "El servicio no existe o no está activo")
     }
 
     if (serviceRow.provider_id !== providerId) {
-      throw new Error("El servicio no pertenece a este proveedor")
+      throw new FunctionFailure(
+        "PROVIDER_MISMATCH",
+        "El servicio no pertenece a este proveedor",
+      )
     }
 
     const servicePrice = Number(serviceRow.price) || 0
     if (servicePrice <= 0) {
-      throw new Error("El servicio no tiene precio configurado")
+      throw new FunctionFailure(
+        "SERVICE_PRICE_MISSING",
+        "El servicio no tiene precio configurado",
+      )
     }
 
     // Útil para detectar clientes desactualizados (pantalla abierta con otro
@@ -103,11 +123,14 @@ serve(async (req) => {
       .single()
 
     if (providerError || !providerData) {
-      throw new Error("Provider not found")
+      throw new FunctionFailure("PROVIDER_NOT_FOUND", "Provider not found")
     }
 
     if (!providerData.stripe_account_id) {
-      throw new Error("Provider does not have a Stripe account configured")
+      throw new FunctionFailure(
+        "PROVIDER_NOT_CONFIGURED",
+        "Provider does not have a Stripe account configured",
+      )
     }
 
     // Calcular montos.
@@ -254,9 +277,17 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error("Error creating payment intent:", error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 400,
+    // `code` is what the frontend translates; the message stays for the logs.
+    const code = error instanceof FunctionFailure ? { code: error.code } : null
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message,
+        ...code,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
     })
   }
 })

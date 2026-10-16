@@ -29,7 +29,16 @@
     "notDeployed": "The “{{name}}” function is not deployed on Supabase. Run: supabase functions deploy {{name}}",
     "unreachable": "Could not reach the “{{name}}” function. If you have not deployed it yet, run: supabase functions deploy {{name}}. If you have, check your connection.",
     "failed": "The “{{name}}” function returned an error. Please try again.",
-    "unavailable": "Supabase is not available in this session."
+    "unavailable": "Supabase is not available in this session.",
+    "codes": {
+      "duplicate": "That was already saved.",
+      "notAuthenticated": "Your session has expired. Sign in again.",
+      "noStripeCustomer": "We could not set up your card. Try again.",
+      "providerNotConfigured": "This professional has not set up payments yet. You can pay in person instead.",
+      "rateLimited": "Too many attempts. Wait a moment and try again.",
+      "serviceNotFound": "That service is no longer available. Pick another one.",
+      "servicePriceMissing": "That service has no price yet, so it cannot be booked."
+    }
   },
   "nav": {
     "clients": "Clients",

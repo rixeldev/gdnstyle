@@ -2,8 +2,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno"
 
-import { underRateLimit } from "../_shared/rate-limit.ts"
-
 /**
  * Guarda el UUID de appointments.id en provider_payments.appointment_id.
  * El webhook puede insertar la fila unos ms después del pago: primer intento al instante,
@@ -67,6 +65,39 @@ class FunctionFailure extends Error {
     super(message)
     this.name = "FunctionFailure"
     this.code = code
+  }
+}
+
+/**
+ * Fixed-window budget for this function's calls, backed by the
+ * `consume_rate_limit` RPC (migration 0008). Inlined per function on purpose:
+ * the deploy bundles a single folder, so a shared module never reaches the
+ * platform. Fails open — until that migration exists, or if the database
+ * blips, the request goes through, because refusing a payment is a worse
+ * outcome than a short burst of calls.
+ */
+async function underRateLimit(
+  supabase: ReturnType<typeof createClient>,
+  key: string,
+  maxAttempts: number,
+  windowSeconds: number,
+): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.rpc("consume_rate_limit", {
+      p_key: key,
+      p_max_attempts: maxAttempts,
+      p_window_seconds: windowSeconds,
+    })
+
+    if (error) {
+      console.warn(`[rate-limit] ${error.message} — continuing without a limit for ${key}`)
+      return true
+    }
+
+    return data !== false
+  } catch (cause) {
+    console.warn(`[rate-limit] ${String(cause)} — continuing without a limit for ${key}`)
+    return true
   }
 }
 

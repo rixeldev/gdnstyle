@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
+import { underRateLimit } from "../_shared/rate-limit.ts"
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -56,6 +58,13 @@ serve(async (req) => {
 
     if (authError || !user) {
       throw new Error("Unauthorized")
+    }
+
+    // Cada llamada crea un PaymentIntent real en Stripe. Veinte por usuario y
+    // ventana es holgado para una persona que reserva, y corta la mano de
+    // quien quiera repetirlo a costa de la plataforma.
+    if (!(await underRateLimit(supabase, `booking-payment:${user.id}`, 20, 600))) {
+      throw new FunctionFailure("RATE_LIMITED", "Demasiadas solicitudes de pago")
     }
 
     const body = await req.json()

@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
+import { underRateLimit } from "../_shared/rate-limit.ts"
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -247,6 +249,13 @@ serve(async (req) => {
 
     if (userError || !user) {
       throw new Error("Usuario no autenticado")
+    }
+
+    // Cada mensaje sale por correo real (Resend). Cinco por hora y usuario es
+    // más que suficiente para soporte legítimo y evita usar el formulario como
+    // servicio de correo.
+    if (!(await underRateLimit(supabase, `support:${user.id}`, 5, 3600))) {
+      throw new Error("Demasiados mensajes. Espera unos minutos y vuelve a intentarlo.")
     }
 
     const payload = (await req.json()) as Body

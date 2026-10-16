@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
+import { underRateLimit } from "../_shared/rate-limit.ts"
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -130,6 +132,12 @@ serve(async (req) => {
 
     if (!user) {
       throw new Error("Usuario no autenticado - token inválido")
+    }
+
+    // Crear la cuenta Connect y activar Issuing son llamadas caras en Stripe.
+    // Diez por usuario y hora deja el onboarding holgado y corta los bucles.
+    if (!(await underRateLimit(supabase, `connect-onboarding:${user.id}`, 10, 3600))) {
+      throw new Error("Demasiadas solicitudes. Espera unos minutos y vuelve a intentarlo.")
     }
 
     console.log("✅ Usuario autenticado:", user.id, user.email)

@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 
+import { underRateLimit } from "../_shared/rate-limit.ts"
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -59,6 +61,13 @@ serve(async (req) => {
 
     if (authError || !user) {
       throw new Error("Unauthorized")
+    }
+
+    // Cada acción habla con la API de Stripe (listar, crear o fijar tarjetas).
+    // El presupuesto es amplio porque la propia interfaz lista las tarjetas al
+    // cargar la página, pero corta cualquier aluvión automatizado.
+    if (!(await underRateLimit(supabase, `payment-methods:${user.id}`, 60, 600))) {
+      throw new FunctionFailure("RATE_LIMITED", "Demasiadas operaciones con tarjetas")
     }
 
     const body = await req.json()

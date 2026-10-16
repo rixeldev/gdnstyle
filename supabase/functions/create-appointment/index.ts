@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient, type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
 import Stripe from "https://esm.sh/stripe@14.21.0?target=deno"
 
+import { underRateLimit } from "../_shared/rate-limit.ts"
+
 /**
  * Guarda el UUID de appointments.id en provider_payments.appointment_id.
  * El webhook puede insertar la fila unos ms después del pago: primer intento al instante,
@@ -120,6 +122,12 @@ serve(async (req) => {
 
     if (userError || !user) {
       throw new Error("Usuario no autenticado")
+    }
+
+    // Cada llamada consulta y cobra un intent de pago en Stripe y escribe una
+    // fila: un puñado por usuario y ventana cubre cualquier reserva real.
+    if (!(await underRateLimit(supabase, `appointment:${user.id}`, 20, 600))) {
+      throw new FunctionFailure("RATE_LIMITED", "Demasiadas solicitudes de reserva")
     }
 
     const {

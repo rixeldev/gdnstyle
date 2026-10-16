@@ -13,6 +13,7 @@ const CODE_TO_KEY: Record<string, string> = {
   session_not_found: "errors.auth.sessionExpired",
   refresh_token_not_found: "errors.auth.sessionExpired",
   unavailable: "errors.auth.unavailable",
+  demo_disabled: "errors.auth.demoDisabled",
 }
 
 function keyFromMessage(message?: string): string | null {

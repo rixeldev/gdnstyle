@@ -18,6 +18,19 @@ const USERS_KEY = "gdn.users"
 const PROFILES_KEY = "gdn.profiles"
 const PASSWORDS_KEY = "gdn.passwords"
 
+/**
+ * Whether this build may use the demo layer at all.
+ *
+ * It keeps its accounts — passwords included — in this browser's localStorage,
+ * with the seed credentials in the source. Fine for a review, unacceptable
+ * wherever real user data lives, so it only runs when the build opts in
+ * explicitly: a deployment without Supabase configured is simply *not
+ * configured*, never a demo.
+ */
+export function isDemoEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ALLOW_DEMO === "1"
+}
+
 export type DemoAuthMethod = "password" | "google"
 
 export interface DemoUser {
@@ -136,6 +149,8 @@ export function saveDemoProfile(userId: string, patch: DemoProfilePatch): void {
 
 /** Seed accounts plus any locally-registered ones, with profile edits applied. */
 export function listDemoUsers(): DemoUser[] {
+  if (!isDemoEnabled()) return []
+
   const passwords = readPasswordOverrides()
 
   return [...DEMO_USERS, ...readCustomUsers()].map((user) => {
@@ -151,6 +166,10 @@ export function listDemoUsers(): DemoUser[] {
 }
 
 export function readDemoSession(): DemoSession | null {
+  // A stale session written by an older build must not survive the flag being
+  // turned off: without the flag there is no demo account to speak of.
+  if (!isDemoEnabled()) return null
+
   const session = readStorage<DemoSession | null>(SESSION_KEY, null)
   return session && session.id ? session : null
 }

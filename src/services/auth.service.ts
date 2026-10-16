@@ -10,6 +10,7 @@ import {
   authenticateDemo,
   clearDemoSession,
   googleDemoSession,
+  isDemoEnabled,
   registerDemoUser,
   saveDemoProfile,
   updateDemoPassword,
@@ -29,6 +30,9 @@ export async function signInWithPassword({ email, password }: Credentials): Prom
   const supabase = getSupabaseBrowserClient()
 
   if (!supabase) {
+    // Without a backend there is no auth either, unless the build explicitly
+    // opted into the demo layer.
+    if (!isDemoEnabled()) return { ok: false, errorCode: "demo_disabled" }
     return authenticateDemo(email, password)
       ? { ok: true }
       : { ok: false, errorCode: "invalid_credentials" }
@@ -46,6 +50,7 @@ export async function signInWithGoogle(role: UserRole, redirectTo: string): Prom
   const supabase = getSupabaseBrowserClient()
 
   if (!supabase) {
+    if (!isDemoEnabled()) return { ok: false, errorCode: "demo_disabled" }
     googleDemoSession(role)
     return { ok: true }
   }
@@ -65,6 +70,7 @@ export async function signUpWithPassword(
   const supabase = getSupabaseBrowserClient()
 
   if (!supabase) {
+    if (!isDemoEnabled()) return { ok: false, errorCode: "demo_disabled" }
     const result = registerDemoUser({
       email: input.email,
       password: input.password,
@@ -135,7 +141,7 @@ export async function sendPasswordReset(email: string, redirectTo: string): Prom
 export async function updatePassword(password: string, demoUserId?: string): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) {
-    if (!demoUserId) return unavailable
+    if (!demoUserId || !isDemoEnabled()) return unavailable
     updateDemoPassword(demoUserId, password)
     return { ok: true }
   }
@@ -173,6 +179,7 @@ export interface ProfileUpdate {
 export async function updateProfile(userId: string, patch: ProfileUpdate): Promise<AuthResult> {
   const supabase = getSupabaseBrowserClient()
   if (!supabase) {
+    if (!isDemoEnabled()) return unavailable
     saveDemoProfile(userId, patch)
     return { ok: true }
   }

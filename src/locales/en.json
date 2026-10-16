@@ -815,6 +815,7 @@
       "rateLimit": "Too many attempts. Wait a moment and try again.",
       "sessionExpired": "Your session expired. Please sign in again.",
       "unavailable": "Authentication is not available right now.",
+      "demoDisabled": "This deployment has neither Supabase nor demo mode configured.",
       "unknown": "We couldn't complete the operation. Please try again."
     },
     "network": "Connection problem. Check your internet and try again.",

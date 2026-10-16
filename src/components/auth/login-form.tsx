@@ -13,7 +13,7 @@ import { PasswordField, TextField } from "@/components/ui/text-field"
 import { toast } from "@/components/ui/toast"
 import { useAuthedRedirect } from "@/hooks/use-authed-redirect"
 import type { UserRole } from "@/interfaces/auth"
-import { DEMO_USERS, type DemoUser } from "@/libs/auth/demo"
+import { DEMO_USERS, isDemoEnabled, type DemoUser } from "@/libs/auth/demo"
 import { isSupabaseConfigured } from "@/libs/supabase/env"
 import { createSignInSchema, type SignInValues } from "@/libs/validation/auth"
 import { signInWithGoogle, signInWithPassword } from "@/services/auth.service"
@@ -142,7 +142,9 @@ export function LoginForm() {
 
       <RoleSwitch value={role} onChange={handleRoleChange} />
 
-      {!isSupabaseConfigured && (
+      {/* The demo credentials panel is part of the demo layer itself: a build
+          without Supabase and without the flag must look unconfigured. */}
+      {!isSupabaseConfigured && isDemoEnabled() && (
         <div className="border-cream/10 bg-cream/3 rounded-2xl border p-4">
           <p className="text-cream/60 text-[11px] font-semibold tracking-[0.16em] uppercase">
             {t("auth.demo.credentialsTitle")}

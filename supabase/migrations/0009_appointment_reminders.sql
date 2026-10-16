@@ -27,10 +27,6 @@
 -- ⚠ The URL below carries this project's reference
 -- (qzdzjdulvgktzfbspofo, the same one in `.env`). If the project ever changes,
 -- edit it here before running the migration.
---
--- If the editor reports that `extensions.cron` or `extensions.net` does not
--- exist, pg_cron was installed elsewhere: run the same statement with plain
--- `cron.schedule` / `net.http_post` instead.
 
 -- 1. Column -----------------------------------------------------------------
 alter table public.appointments
@@ -44,14 +40,20 @@ create extension if not exists pg_cron with schema extensions;
 create extension if not exists pg_net with schema extensions;
 
 -- 3. Daily job ---------------------------------------------------------------
--- Both extensions land in the `extensions` schema on Supabase, and pg_cron
--- does not inherit the caller's search_path when it runs the command, so the
--- call inside the job is qualified too.
-select extensions.cron.schedule(
+-- Both extensions were created (the statement above is Supabase's own), but
+-- their objects live in the schemas their own control files pin: `cron` for
+-- pg_cron and `net` for pg_net. The two-part qualified names below work
+-- whatever the search_path is, including inside the job's own command, where
+-- pg_cron does not inherit the caller's settings.
+--
+-- If the editor still reports that `cron.schedule` or `net.http_post` does not
+-- exist, the extensions are not installed: enable pg_cron and pg_net under
+-- Database → Extensions and run this again.
+select cron.schedule(
   'gdn-appointment-reminders',
   '15 6 * * *',
   $$
-  select extensions.net.http_post(
+  select net.http_post(
     url := 'https://qzdzjdulvgktzfbspofo.supabase.co/functions/v1/send-appointment-reminders',
     headers := '{"Content-Type": "application/json"}'::jsonb,
     body := '{"source": "pg_cron"}'::jsonb

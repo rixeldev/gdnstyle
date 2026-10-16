@@ -417,6 +417,23 @@ serve(async (req) => {
       .single()
 
     if (appointmentError) {
+      // 23P01 = exclusion violation: the no-overlap lock (migration 0010)
+      // rejected the insert because another request took the hour between the
+      // check above and this write. Same answer as the check itself.
+      if (appointmentError.code === "23P01") {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            code: "SLOT_TAKEN",
+            error: "La hora seleccionada ya está reservada",
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 409,
+          },
+        )
+      }
+
       console.error("❌ Error creando cita:", appointmentError)
       throw new Error("Error al crear la cita: " + appointmentError.message)
     }

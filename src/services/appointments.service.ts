@@ -16,6 +16,14 @@ function isMissingColumn(error: { code?: string } | null): boolean {
   return error?.code === "42703"
 }
 
+/**
+ * True when Postgres refused the write because the hour already overlapped
+ * (23P01, the no-overlap constraint from migration 0010).
+ */
+function isSlotConflict(error: { code?: string } | null): boolean {
+  return error?.code === "23P01"
+}
+
 /** Everything needed to create an `appointments` row for the signed-in client. */
 export interface NewAppointment {
   clientId: string
@@ -200,6 +208,9 @@ export async function createAppointment(
     .single()
 
   if (error) {
+    // The no-overlap constraint (migration 0010) is the last line of defence:
+    // if two visitors raced for the hour, the loser is told it is taken.
+    if (isSlotConflict(error)) throw new SlotUnavailableError()
     console.error("[appointments] failed to create the appointment", error)
     return null
   }
@@ -256,6 +267,9 @@ export async function rescheduleAppointment(
     .single()
 
   if (error) {
+    // Same lock as the insert: moving onto an hour that filled up meanwhile
+    // surfaces as a conflict, not as a silent failure.
+    if (isSlotConflict(error)) throw new SlotUnavailableError()
     console.error("[appointments] failed to move the appointment", error)
     return null
   }

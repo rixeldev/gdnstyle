@@ -224,6 +224,11 @@ serve(async (req) => {
         .single()
 
       if (pendingAppointmentError || !pendingAppointment) {
+        // 23P01 = the no-overlap lock (migration 0010) rejected a taken hour,
+        // so the client is told the slot is gone instead of a generic failure.
+        if (pendingAppointmentError?.code === "23P01") {
+          throw new FunctionFailure("SLOT_TAKEN", "La hora seleccionada ya está reservada")
+        }
         console.error("❌ Error creando cita pending:", pendingAppointmentError)
         throw new Error("No se pudo crear la cita pendiente")
       }

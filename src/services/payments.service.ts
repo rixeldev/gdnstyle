@@ -23,6 +23,15 @@ export interface BookingPaymentResult {
   paymentIntentId: string | null
   appointmentId: string | null
   status: string
+  /**
+   * What the server actually charged, in cents. Present once the pricing lives
+   * in the Edge Function; the form prefers these over its own mirror of the
+   * fee math, so the number on the button and the number charged cannot drift
+   * apart when the service price changes mid-checkout.
+   */
+  serviceCents?: number | null
+  feeCents?: number | null
+  totalCents?: number | null
 }
 
 export interface ProviderPaymentRow {

@@ -118,7 +118,6 @@ serve(async (req) => {
       scheduledDate,
       scheduledTime,
       durationMinutes,
-      price,
       notes,
     } = await req.json()
     const paymentMethod = paymentMethodRaw === "in_person" ? "in_person" : "stripe"
@@ -130,6 +129,28 @@ serve(async (req) => {
     if (paymentMethod === "stripe" && !paymentIntentId) {
       throw new Error("paymentIntentId es requerido para pagos con tarjeta")
     }
+
+    // Precio y duración los decide `provider_services`, no el cliente: los
+    // campos `price` y `durationMinutes` que manda el formulario se ignoran,
+    // así una llamada modificada no puede registrar un importe distinto al
+    // que se cobró (ni alargar un servicio para bloquear más horas ajenas).
+    const { data: serviceRow, error: serviceError } = await supabase
+      .from("provider_services")
+      .select("id, provider_id, name, price, duration, is_active")
+      .eq("id", serviceId)
+      .maybeSingle()
+
+    if (serviceError || !serviceRow || serviceRow.is_active === false) {
+      console.error("❌ Servicio inexistente o inactivo:", serviceId, serviceError)
+      throw new Error("El servicio no existe o no está activo")
+    }
+
+    if (serviceRow.provider_id !== providerId) {
+      throw new Error("El servicio no pertenece a este proveedor")
+    }
+
+    const servicePrice = Number(serviceRow.price) || 0
+    const serviceDuration = Number(serviceRow.duration) || Number(durationMinutes) || 30
 
     console.log("📝 Creando cita para:", {
       client_id: user.id,
@@ -163,19 +184,9 @@ serve(async (req) => {
       canonicalPaymentIntentId = paymentIntent.id
     }
 
-    // Si no viene el nombre del servicio, buscarlo en la base de datos
-    let finalServiceName = serviceName
-    if (!finalServiceName && serviceId) {
-      const { data: serviceData } = await supabase
-        .from("provider_services")
-        .select("name")
-        .eq("id", serviceId)
-        .single()
-
-      if (serviceData) {
-        finalServiceName = serviceData.name
-      }
-    }
+    // El nombre que viaja en la cita sale de la fila del servicio: el
+    // formulario ya lo lee de ahí, pero no es la fuente de verdad.
+    const finalServiceName = serviceRow.name || serviceName || "Servicio"
 
     // Obtener el nombre del cliente desde la tabla profiles
     const { data: clientProfile } = await supabase
@@ -304,7 +315,7 @@ serve(async (req) => {
     // (dos clientes a la vez) y el pago ya ocurrió, así que esta comprobación
     // es la autoritativa. Responde 409 con `code: SLOT_TAKEN` para que el
     // frontend muestre su propio mensaje localizado.
-    const slotDuration = durationMinutes || 30
+    const slotDuration = serviceDuration
     const { data: occupiedRows, error: occupiedError } = await supabase
       .from("appointments")
       .select("scheduled_time, duration_minutes")
@@ -343,8 +354,8 @@ serve(async (req) => {
         client_name: clientName,
         scheduled_date: scheduledDate,
         scheduled_time: scheduledTime,
-        duration_minutes: durationMinutes || 30,
-        price: price,
+        duration_minutes: serviceDuration,
+        price: servicePrice,
         notes: notes || null,
         status: "pending",
         payment_method: paymentMethod,

@@ -44,21 +44,55 @@ serve(async (req) => {
       throw new Error("Unauthorized")
     }
 
+    const body = await req.json()
     const {
-      amount,
       currency = "usd",
       metadata,
       providerId,
       paymentMethodId,
       appointmentData,
-    } = await req.json()
-
-    if (!amount || amount <= 0) {
-      throw new Error("Invalid amount")
-    }
+    } = body
 
     if (!providerId) {
       throw new Error("Provider ID is required")
+    }
+
+    // El precio lo decide la base, no el cliente. La llamada solo aporta el
+    // servicio elegido — el importe (`amount`) que mandaba el frontend se
+    // ignora — porque con un `amount` inventado cualquiera podía reservar un
+    // servicio de $500 pagando un dólar.
+    const serviceId = appointmentData?.serviceId ?? body.serviceId ?? metadata?.service_id
+
+    if (!serviceId) {
+      throw new Error("serviceId is required")
+    }
+
+    const { data: serviceRow, error: serviceError } = await supabase
+      .from("provider_services")
+      .select("id, provider_id, name, price, duration, is_active")
+      .eq("id", serviceId)
+      .maybeSingle()
+
+    if (serviceError || !serviceRow || serviceRow.is_active === false) {
+      console.error("❌ Servicio inexistente o inactivo:", serviceId, serviceError)
+      throw new Error("El servicio no existe o no está activo")
+    }
+
+    if (serviceRow.provider_id !== providerId) {
+      throw new Error("El servicio no pertenece a este proveedor")
+    }
+
+    const servicePrice = Number(serviceRow.price) || 0
+    if (servicePrice <= 0) {
+      throw new Error("El servicio no tiene precio configurado")
+    }
+
+    // Útil para detectar clientes desactualizados (pantalla abierta con otro
+    // precio); no corta el pago, que usa siempre `servicePrice`.
+    if (typeof body.amount === "number" && body.amount !== servicePrice) {
+      console.log(
+        `⚠️ El cliente propuso amount=${body.amount}; el precio del servicio es ${servicePrice}`,
+      )
     }
 
     // Obtener el stripe_account_id del proveedor
@@ -83,7 +117,7 @@ serve(async (req) => {
     // El checkout calcula este mismo número con `bookingCharge` en
     // `src/utils/payment-fees.ts` para poder mostrarlo antes de cobrar, así
     // que cualquier cambio aquí tiene que repetirse allí — y al revés.
-    const serviceAmount = amount
+    const serviceAmount = servicePrice
     const platformFee = 0.5
     const targetNet = serviceAmount + platformFee
     const totalAmount = (targetNet + 0.3) / (1 - 0.029)
@@ -101,19 +135,10 @@ serve(async (req) => {
 
     // Si el proveedor está generando un enlace de pago, crear la cita en estado pending
     if (appointmentData && metadata?.appointment_type === "provider_created") {
-      const {
-        locationId,
-        serviceId,
-        serviceName,
-        scheduledDate,
-        scheduledTime,
-        durationMinutes,
-        price,
-        notes,
-        clientName,
-      } = appointmentData
+      const { locationId, serviceName, scheduledDate, scheduledTime, notes, clientName } =
+        appointmentData
 
-      if (!locationId || !serviceId || !scheduledDate || !scheduledTime) {
+      if (!locationId || !scheduledDate || !scheduledTime) {
         throw new Error("Missing appointment data for provider-created payment link")
       }
 
@@ -123,12 +148,12 @@ serve(async (req) => {
           provider_id: providerId,
           location_id: locationId,
           service_ids: [serviceId],
-          service_name: serviceName || "Servicio",
+          service_name: serviceRow.name || serviceName || "Servicio",
           client_name: clientName || "Cliente",
           scheduled_date: scheduledDate,
           scheduled_time: scheduledTime,
-          duration_minutes: durationMinutes || 30,
-          price: price || amount,
+          duration_minutes: Number(serviceRow.duration) || 30,
+          price: servicePrice,
           notes: notes || null,
           status: "pending",
         })
@@ -207,6 +232,11 @@ serve(async (req) => {
         paymentIntentId: paymentIntent.id,
         appointmentId: pendingAppointmentId,
         status: paymentIntent.status,
+        // Cifras exactas que se cobraron, en centavos: el formulario las
+        // adopta para mostrar el mismo número que Stripe va a cobrar.
+        serviceCents: Math.round(serviceAmount * 100),
+        feeCents: totalAmountCents - Math.round(serviceAmount * 100),
+        totalCents: totalAmountCents,
         breakdown: {
           serviceAmount: serviceAmount.toFixed(2),
           platformFee: platformFee.toFixed(2),

@@ -20,10 +20,11 @@ import {
   createBookingPayment,
   ensureStripeCustomer,
   listPaymentMethods,
+  type BookingPaymentResult,
   type StripePaymentMethodSummary,
 } from "@/services/payments.service"
 import { formatCurrency } from "@/utils/format"
-import { bookingCharge } from "@/utils/payment-fees"
+import { bookingCharge, type BookingCharge } from "@/utils/payment-fees"
 import { fieldErrorsFrom } from "@/utils/zod"
 
 /** Everything the Edge Function needs to create the `appointments` row. */
@@ -136,7 +137,13 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
   // What the card is really charged: the service price grossed up for the
   // platform cut and Stripe's processing. The Edge Function charges exactly
   // this, so the checkout has to show it rather than the service price.
-  const charge = useMemo(() => bookingCharge(amount), [amount])
+  const localCharge = useMemo(() => bookingCharge(amount), [amount])
+  // The price lives in the database, and the Edge Function reads it there. As
+  // soon as it answers with the cents it charged, those take over from the
+  // local mirror of the math — the button must never name a figure Stripe is
+  // not going to charge.
+  const [serverCharge, setServerCharge] = useState<BookingCharge | null>(null)
+  const charge = serverCharge ?? localCharge
   const money = (cents: number) => formatCurrency(cents / 100, locale, "USD")
 
   const [cards, setCards] = useState<StripePaymentMethodSummary[] | null>(null)
@@ -210,6 +217,7 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
           },
         })
         if (cancelled) return
+        readServerCharge(payment)
         if (!payment.clientSecret) {
           intentRequested.current = false
           setMessage(t("venues.booking.paymentCardDeclined"))
@@ -257,6 +265,24 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
       paymentMethod,
     })
     await onCloudPaid(result.appointment)
+  }
+
+  /**
+   * Adopt the exact figures the Edge Function charged with, so the total and
+   * the pay button show what Stripe is really going to take. Older deploys do
+   * not send them, in which case the local mirror stays in place.
+   */
+  function readServerCharge(payment: BookingPaymentResult) {
+    if (typeof payment.totalCents !== "number" || typeof payment.serviceCents !== "number") return
+    const feeCents =
+      typeof payment.feeCents === "number"
+        ? payment.feeCents
+        : payment.totalCents - payment.serviceCents
+    setServerCharge({
+      serviceCents: payment.serviceCents,
+      feeCents,
+      totalCents: payment.totalCents,
+    })
   }
 
   /**
@@ -342,6 +368,7 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
           setMessage(t("venues.booking.paymentCardDeclined"))
           return
         }
+        readServerCharge(payment)
         await finishWithAppointment(payment.paymentIntentId, "stripe")
       }
     } catch (error) {

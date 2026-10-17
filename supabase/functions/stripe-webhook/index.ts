@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3"
+import Stripe from "https://esm.sh/stripe@14.21.0"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,12 @@ Deno.serve(async (req) => {
 
   try {
     const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY")
-    const stripeWebhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET")
+    // Every Stripe endpoint has its own signing secret. STRIPE_WEBHOOK_SECRET_SHOP
+    // is the one issued for the endpoint that points at this function;
+    // STRIPE_WEBHOOK_SECRET remains as a fallback for setups where both shop
+    // webhooks were registered from a single endpoint secret.
+    const stripeWebhookSecret =
+      Deno.env.get("STRIPE_WEBHOOK_SECRET_SHOP") || Deno.env.get("STRIPE_WEBHOOK_SECRET")
 
     if (!stripeSecretKey || !stripeWebhookSecret) {
       return new Response(
@@ -34,14 +40,18 @@ Deno.serve(async (req) => {
       })
     }
 
-    // Verificar webhook signature (simplificado - en producción usar librería oficial)
-    let event
+    // Signature verified cryptographically, the same way handle-payment-webhook
+    // and handle-appointment-payment-webhook already do it. Until now the body
+    // was only JSON.parsed: anyone who could reach the URL could post a forged
+    // payment_intent.succeeded and make the shop mark a session completed,
+    // create an order and hand it to CJ Dropshipping.
+    const stripe = new Stripe(stripeSecretKey, { apiVersion: "2023-10-16" })
+    let event: Stripe.Event
     try {
-      // Nota: En producción deberías usar la librería oficial de Stripe para verificar
-      // Por ahora verificamos que el webhook viene de Stripe mediante el secret
-      event = JSON.parse(body)
+      event = await stripe.webhooks.constructEventAsync(body, signature, stripeWebhookSecret)
     } catch (err) {
-      return new Response(JSON.stringify({ success: false, error: "Invalid payload" }), {
+      console.error("stripe-webhook: firma inválida:", err)
+      return new Response(JSON.stringify({ success: false, error: "Invalid signature" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       })

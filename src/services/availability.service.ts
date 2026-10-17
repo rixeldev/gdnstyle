@@ -93,6 +93,12 @@ export interface DaySlotsInput {
   occupied: OccupiedSlot[]
   /** The provider's `provider_schedule` rows (empty for demo venues). */
   schedule: ProviderScheduleRow[]
+  /**
+   * The provider's zone, which the stored hours are written in; the past-slot
+   * filter compares against that clock. Without it the browser's own is used,
+   * which is the right reading whenever the client sits in the venue's zone.
+   */
+  timeZone?: string | null
   /** Demo venues keep a deterministic ~20% of slots taken. */
   demo?: boolean
 }
@@ -103,7 +109,7 @@ export interface DaySlotsInput {
  * simply absent, so the grid never offers an hour that would be refused.
  */
 export function buildDaySlots(input: DaySlotsInput): string[] {
-  const { dateKey, durationMinutes, occupied, schedule, demo = false } = input
+  const { dateKey, durationMinutes, occupied, schedule, timeZone, demo = false } = input
   const duration = Math.max(1, durationMinutes || 30)
   const day = parseDateKey(dateKey)
   // `Date.getDay()` is already 0 = Sunday, matching `day_of_week`.
@@ -145,7 +151,7 @@ export function buildDaySlots(input: DaySlotsInput): string[] {
     // Another appointment occupies its whole duration, so a 9:00 booking of
     // 45 min removes 9:30 too even without a row of its own.
     if (!slotIsFree(occupied, time, duration)) continue
-    if (timeslotEpoch(dateKey, time) <= now) continue
+    if (timeslotEpoch(dateKey, time, timeZone) <= now) continue
 
     slots.push(time)
   }
@@ -160,6 +166,8 @@ export interface SlotCheckInput {
   /** `HH:MM`. */
   time: string
   durationMinutes: number
+  /** The provider's zone: the past-hour rule is measured in the venue's clock. */
+  timeZone?: string | null
 }
 
 /**
@@ -185,5 +193,6 @@ export async function isSlotAvailable(
     durationMinutes: input.durationMinutes,
     occupied,
     schedule,
+    timeZone: input.timeZone,
   }).includes(input.time)
 }

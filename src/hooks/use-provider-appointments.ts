@@ -20,7 +20,7 @@ import { timeslotEpoch } from "@/utils/date"
 const NO_BOOKINGS: Booking[] = []
 
 function sortByWhen(a: Booking, b: Booking): number {
-  return timeslotEpoch(a.date, a.time) - timeslotEpoch(b.date, b.time)
+  return timeslotEpoch(a.date, a.time, a.timeZone) - timeslotEpoch(b.date, b.time, b.timeZone)
 }
 
 /**
@@ -160,7 +160,8 @@ export function useProviderAppointments() {
   }))
   // Same rule as the client dashboard (see `isHistoryBooking`): overdue stays
   // active so the professional can still confirm it late.
-  const isPast = (b: Booking) => isHistoryBooking(b.displayStatus ?? "pending", b.date, b.time, now)
+  const isPast = (b: Booking) =>
+    isHistoryBooking(b.displayStatus ?? "pending", b.date, b.time, now, b.timeZone)
 
   const upcoming = withStatus.filter((b) => !isPast(b)).sort(sortByWhen)
   const past = withStatus.filter(isPast).sort(sortByWhen).reverse()

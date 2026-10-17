@@ -855,6 +855,8 @@
       "instagram": "Instagram",
       "tiktok": "TikTok",
       "whatsapp": "WhatsApp",
+      "timeZone": "Zona horaria",
+      "timeZoneHint": "Tu horario y las horas que reservan tus clientes siguen este reloj.",
       "addressLine1": "Dirección",
       "addressLine2": "Apartamento, suite, piso",
       "addressLine2Placeholder": "Apt 4B",

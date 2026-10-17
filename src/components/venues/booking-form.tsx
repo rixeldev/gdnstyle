@@ -117,6 +117,11 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
   const providerId =
     professionalId ?? selectedService?.professionalId ?? professionals[0]?.id ?? null
   const serviceDuration = selectedService?.durationMin ?? 0
+  // The zone the venue's stored hours belong to: the grid drops hours already
+  // past in that clock, and the booking keeps it so its own countdown and lock
+  // run on the same clock (static demo venues have none → the browser's).
+  const providerTimeZone =
+    databaseProfessionals.find((professional) => professional.id === providerId)?.timeZone ?? null
   // Live catalog venues have real appointments/schedules to check against; demo
   // venues keep the deterministic test availability (no tables behind them).
   const live = venue.source === "database" && Boolean(supabase)
@@ -212,6 +217,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
         durationMinutes: serviceDuration,
         occupied,
         schedule,
+        timeZone: providerTimeZone,
         demo: !live,
       })
     : []
@@ -243,6 +249,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
       clientName: user?.fullName ?? undefined,
       clientEmail: user?.email ?? undefined,
       clientPhone: user?.phone ?? undefined,
+      ...(providerTimeZone ? { timeZone: providerTimeZone } : {}),
       database: venue.source === "database",
     }
 
@@ -340,6 +347,7 @@ export function BookingForm({ venue, locale }: BookingFormProps) {
           clientName: user?.fullName ?? null,
           clientEmail: user?.email ?? null,
           clientPhone: user?.phone ? Number(user.phone.replace(/\D/g, "")) : null,
+          timeZone: providerTimeZone,
         }
       : null
 

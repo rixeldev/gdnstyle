@@ -47,6 +47,48 @@ function toHhMm(value: string | null | undefined): string {
   return (value ?? "").slice(0, 5)
 }
 
+/**
+ * The IANA zone each professional writes their hours in, read from the
+ * `provider_public` view (migration 0013). Browsers classify a booking —
+ * overdue, countdown, the 1h30m lock — against this clock, the same one the
+ * database compares it to. An empty map is a valid answer: databases without
+ * the view (or the column) simply keep the browser-local reading they had.
+ */
+export async function fetchProviderTimeZones(
+  client: SupabaseClient,
+  providerIds: string[],
+): Promise<Record<string, string>> {
+  const ids = [...new Set(providerIds.filter(Boolean))]
+  if (ids.length === 0) return {}
+
+  const { data, error } = await client.from("provider_public").select("id,timezone").in("id", ids)
+
+  if (error) {
+    // Migration 0013 not applied yet: fall back to the browser's own clock.
+    if (error.code !== "PGRST204" && error.code !== "42703") {
+      console.error("[providers] failed to load the provider time zones", error)
+    }
+    return {}
+  }
+
+  const zones: Record<string, string> = {}
+  for (const row of (data ?? []) as Array<{ id: string; timezone: string | null }>) {
+    if (row.timezone) zones[row.id] = row.timezone
+  }
+  return zones
+}
+
+/** Merge the fetched zones onto the rows so `appointmentToBooking` can read them. */
+function withProviderTimeZones(
+  rows: DbAppointment[],
+  zones: Record<string, string>,
+): DbAppointment[] {
+  return rows.map((row) => ({
+    ...row,
+    ...(zones[row.provider_id] ? { provider_timezone: zones[row.provider_id] } : {}),
+  }))
+}
+
 /** `HH:MM` → minutes since midnight (used by the overlap check). */
 function minutesOfDay(time: string): number {
   const [hours, minutes] = time.split(":").map(Number)
@@ -179,6 +221,9 @@ export function appointmentToBooking(row: DbAppointment): Booking {
     refundStatus: row.refund_status ?? undefined,
     refundReason: row.refund_reason ?? undefined,
     cancellationReason: row.cancellation_reason ?? undefined,
+    // Only set when the service merged a zone onto the row, so a merge over an
+    // existing booking keeps the zone it already had.
+    ...(row.provider_timezone ? { timeZone: row.provider_timezone } : {}),
     database: true,
   }
 }
@@ -231,7 +276,7 @@ export async function createAppointment(
     return null
   }
 
-  return data as DbAppointment
+  return (await mergeTimeZones(client, [data as DbAppointment]))[0]
 }
 
 /** Everything needed to move an existing appointment to a new day/time. */
@@ -245,6 +290,8 @@ export interface RescheduleInput {
   date: string
   time: string
   durationMinutes: number
+  /** The provider's zone, so the pre-check below uses the venue's clock. */
+  timeZone?: string | null
 }
 
 /**
@@ -260,7 +307,12 @@ export async function rescheduleAppointment(
   client: SupabaseClient,
   input: RescheduleInput,
 ): Promise<DbAppointment | null> {
-  if (!canClientModify({ date: input.currentDate, time: input.currentTime }, Date.now())) {
+  if (
+    !canClientModify(
+      { date: input.currentDate, time: input.currentTime, timeZone: input.timeZone },
+      Date.now(),
+    )
+  ) {
     throw new ChangeWindowClosedError()
   }
 
@@ -288,7 +340,7 @@ export async function rescheduleAppointment(
     return null
   }
 
-  return data as DbAppointment
+  return (await mergeTimeZones(client, [data as DbAppointment]))[0]
 }
 
 /** The signed-in client's appointments (RLS scopes the select to the owner). */
@@ -310,13 +362,26 @@ export async function fetchClientAppointments(
         .select(APPOINTMENT_COLUMNS_BASE)
         .eq("client_id", clientId)
         .order("scheduled_date", { ascending: false })
-      if (!fallback.error) return (fallback.data ?? []) as DbAppointment[]
+      if (!fallback.error)
+        return await mergeTimeZones(client, (fallback.data ?? []) as DbAppointment[])
     }
     console.error("[appointments] failed to load the appointments", error)
     return []
   }
 
-  return (data ?? []) as DbAppointment[]
+  return await mergeTimeZones(client, (data ?? []) as DbAppointment[])
+}
+
+/** Stamp each row with its provider's zone so the UI runs on the venue clock. */
+async function mergeTimeZones(
+  client: SupabaseClient,
+  rows: DbAppointment[],
+): Promise<DbAppointment[]> {
+  const zones = await fetchProviderTimeZones(
+    client,
+    rows.map((row) => row.provider_id),
+  )
+  return withProviderTimeZones(rows, zones)
 }
 
 /** Appointments booked with one provider (RLS scopes the select to its owner). */
@@ -337,13 +402,14 @@ export async function fetchProviderAppointments(
         .select(APPOINTMENT_COLUMNS_BASE)
         .eq("provider_id", providerId)
         .order("scheduled_date", { ascending: false })
-      if (!fallback.error) return (fallback.data ?? []) as DbAppointment[]
+      if (!fallback.error)
+        return await mergeTimeZones(client, (fallback.data ?? []) as DbAppointment[])
     }
     console.error("[appointments] failed to load the provider appointments", error)
     return []
   }
 
-  return (data ?? []) as DbAppointment[]
+  return await mergeTimeZones(client, (data ?? []) as DbAppointment[])
 }
 
 /** Result of a client-side cancellation, used to pick the toast message. */
@@ -373,7 +439,7 @@ export async function requestAppointmentCancellation(
   // option, and showing the right message beats surfacing a database error.
   const { data: slot, error: slotError } = await client
     .from("appointments")
-    .select("scheduled_date, scheduled_time")
+    .select("scheduled_date, scheduled_time, provider_id")
     .eq("id", id)
     .maybeSingle()
 
@@ -381,11 +447,18 @@ export async function requestAppointmentCancellation(
     console.error("[appointments] failed to read the appointment slot", slotError)
     return null
   }
-  if (
-    slot &&
-    !canClientModify({ date: slot.scheduled_date, time: toHhMm(slot.scheduled_time) }, Date.now())
-  ) {
-    return "too-late"
+  if (slot) {
+    // Same clock as the RPC below: the venue's own zone, not the browser's.
+    const zones = await fetchProviderTimeZones(client, [slot.provider_id])
+    const timeZone = zones[slot.provider_id]
+    if (
+      !canClientModify(
+        { date: slot.scheduled_date, time: toHhMm(slot.scheduled_time), timeZone },
+        Date.now(),
+      )
+    ) {
+      return "too-late"
+    }
   }
 
   // The reason is persisted in `cancellation_reason` so the professional can

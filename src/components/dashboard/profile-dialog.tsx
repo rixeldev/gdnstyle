@@ -7,14 +7,17 @@ import { useTranslation } from "react-i18next"
 import { Alert } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Modal } from "@/components/ui/modal"
+import { Select } from "@/components/ui/select"
 import { PasswordField, TextArea, TextField } from "@/components/ui/text-field"
 import { toast } from "@/components/ui/toast"
+import { DEFAULT_TIME_ZONE } from "@/constants/timezones"
 import type { SessionUser } from "@/libs/session"
 import { getSupabaseBrowserClient } from "@/libs/supabase/client"
 import { createAccountSchema, createChangePasswordSchema } from "@/libs/validation/auth"
 import { signInWithPassword, signOut, updatePassword, updateProfile } from "@/services/auth.service"
 import { updateOwnedProvider } from "@/services/provider.service"
 import { translateAuthError } from "@/utils/auth-error"
+import { timeZoneOptions } from "@/utils/timezone"
 import { fieldErrorsFrom } from "@/utils/zod"
 
 interface ProfileDialogProps {
@@ -50,6 +53,7 @@ export function ProfileDialog({ open, user, onClose }: ProfileDialogProps) {
   const [phone, setPhone] = useState(user.phone ?? "")
   const [bio, setBio] = useState(user.bio ?? "")
   const [businessName, setBusinessName] = useState(user.businessName ?? "")
+  const [timeZone, setTimeZone] = useState(user.timeZone ?? DEFAULT_TIME_ZONE)
   const [socials, setSocials] = useState(user.socials)
   const [address, setAddress] = useState(user.address)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -117,6 +121,7 @@ export function ProfileDialog({ open, user, onClose }: ProfileDialogProps) {
         social_instagram: socials.instagram?.trim() || null,
         social_tiktok: socials.tiktok?.trim() || null,
         social_whatsapp: socials.whatsapp?.trim() || null,
+        timezone: timeZone,
       })
     }
 
@@ -265,6 +270,25 @@ export function ProfileDialog({ open, user, onClose }: ProfileDialogProps) {
                     placeholder="+1 212 555 0100"
                     inputMode="tel"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label
+                    htmlFor="account-timezone"
+                    className="text-cream/80 block text-sm font-medium"
+                  >
+                    {t("dashboard.account.timeZone")}
+                  </label>
+                  <Select
+                    id="account-timezone"
+                    value={timeZone}
+                    options={timeZoneOptions()}
+                    onChange={setTimeZone}
+                    ariaLabel={t("dashboard.account.timeZone")}
+                    className="w-full"
+                    triggerClassName="max-w-none h-11 w-full rounded-xl pl-3.5 text-sm"
+                  />
+                  <p className="text-cream/45 text-xs">{t("dashboard.account.timeZoneHint")}</p>
                 </div>
               </>
             )}

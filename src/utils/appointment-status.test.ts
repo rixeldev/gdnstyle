@@ -75,3 +75,25 @@ describe("isHistoryBooking", () => {
     expect(isHistoryBooking("overdue", DATE, TIME, start + MINUTE)).toBe(false)
   })
 })
+
+describe("the provider's clock", () => {
+  const zoned = { ...booking, timeZone: "America/New_York" }
+  const zonedStart = timeslotEpoch(DATE, TIME, "America/New_York")
+
+  it("measures the 1h30m window in the venue's zone, not the browser's", () => {
+    expect(canClientModify(zoned, zonedStart - 91 * MINUTE)).toBe(true)
+    expect(canClientModify(zoned, zonedStart - 89 * MINUTE)).toBe(false)
+  })
+
+  it("turns overdue against the venue's clock", () => {
+    const endsAt = zonedStart + 30 * MINUTE
+    expect(appointmentDisplayStatus(zoned, endsAt)).toBe("pending")
+    expect(appointmentDisplayStatus(zoned, endsAt + 1)).toBe("overdue")
+  })
+
+  it("sends a past confirmed row to history in the venue's zone too", () => {
+    expect(isHistoryBooking("confirmed", DATE, TIME, zonedStart + MINUTE, "America/New_York")).toBe(
+      true,
+    )
+  })
+})

@@ -156,6 +156,10 @@ function adaptVenue({
       rating: provider.rating ?? 0,
       reviews: provider.reviews ?? 0,
       specialties: splitCategoryNames(link.category),
+      // The zone the venue's stored hours are written in: the booking grid
+      // decides which hours are already past with this clock, not the
+      // visitor's own.
+      timeZone: provider.timezone ?? undefined,
     })
 
     for (const service of servicesByProvider.get(provider.id) ?? []) {

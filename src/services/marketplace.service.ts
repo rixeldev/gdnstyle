@@ -23,10 +23,11 @@ const CATEGORY_COLUMNS = "id,category,image_category"
 const LOCATION_COLUMNS =
   "id,name,address,city,state,country,postal_code,latitude,longitude,image_url,image_alt,category"
 // The public catalog reads the `provider_public` view (migration 0012), which
-// projects exactly these columns: `providers` itself answers only its owner,
-// so the Stripe and identity columns never leave the table.
+// answers for these columns: `providers` itself answers only its owner, so the
+// Stripe and identity columns never leave the table. `timezone` rides along so
+// the booking grid can tell past hours in the venue's own clock.
 const PROVIDER_COLUMNS =
-  "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,social_instagram,social_whatsapp"
+  "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,social_instagram,social_whatsapp,timezone"
 const PROVIDER_LOCATION_COLUMNS = "id,provider_id,location_id,category,image"
 const PROVIDER_SERVICE_COLUMNS =
   "id,provider_id,name,description,category,price,duration,image_url,is_active"

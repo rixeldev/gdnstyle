@@ -61,6 +61,13 @@ export interface Booking {
   /** Why the appointment was cancelled, when someone cancelled it. */
   cancellationReason?: string
   /**
+   * The professional's IANA zone (`providers.timezone`), which the stored
+   * wall-clock `date`/`time` are written in. The status math below reads the
+   * clock in that zone so a client in another one still sees the truth; local
+   * demo records have none and use the browser's zone.
+   */
+  timeZone?: string
+  /**
    * Status as shown in the UI, derived from the clock at read time. `overdue`
    * is never stored: it only appears for a pending appointment whose slot has
    * already ended.
@@ -77,7 +84,7 @@ export interface Booking {
 }
 
 function sortByWhen(a: Booking, b: Booking): number {
-  return timeslotEpoch(a.date, a.time) - timeslotEpoch(b.date, b.time)
+  return timeslotEpoch(a.date, a.time, a.timeZone) - timeslotEpoch(b.date, b.time, b.timeZone)
 }
 
 /** Digits-only number for the `numeric` `client_phone` column (null when absent). */
@@ -217,6 +224,7 @@ export function useBookings() {
           date,
           time,
           durationMinutes: target.durationMinutes ?? 30,
+          timeZone: target.timeZone,
         })
         if (!updated) return null
 
@@ -249,7 +257,8 @@ export function useBookings() {
   // An overdue booking is still unresolved (nobody confirmed it), so
   // `isHistoryBooking` keeps it in the active list where both sides can act
   // instead of quietly moving it to history.
-  const isPast = (b: Booking) => isHistoryBooking(b.displayStatus ?? "pending", b.date, b.time, now)
+  const isPast = (b: Booking) =>
+    isHistoryBooking(b.displayStatus ?? "pending", b.date, b.time, now, b.timeZone)
 
   const upcoming = withStatus.filter((b) => !isPast(b)).sort(sortByWhen)
   const past = withStatus.filter(isPast).sort(sortByWhen).reverse()

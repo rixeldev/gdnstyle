@@ -19,6 +19,13 @@ interface StatusInput {
   /** `HH:MM`. */
   time: string
   durationMinutes?: number | null
+  /**
+   * The provider's IANA zone (`providers.timezone`), which the stored wall
+   * clock is written in. Without it the browser's own zone is used — the
+   * fallback for local demo records and for rows fetched before migration
+   * 0013 existed.
+   */
+  timeZone?: string | null
 }
 
 /**
@@ -41,7 +48,7 @@ export function appointmentDisplayStatus(
   if (stored === "confirmed" || stored === "completed") return "confirmed"
 
   const endsAt =
-    timeslotEpoch(booking.date, booking.time) +
+    timeslotEpoch(booking.date, booking.time, booking.timeZone) +
     Math.max(1, booking.durationMinutes ?? DEFAULT_DURATION_MIN) * 60_000
 
   return nowMs > endsAt ? "overdue" : "pending"
@@ -49,7 +56,7 @@ export function appointmentDisplayStatus(
 
 /** Minutes left until an appointment starts (0 once it has started). */
 export function minutesUntilStart(booking: StatusInput, nowMs: number): number {
-  const remaining = timeslotEpoch(booking.date, booking.time) - nowMs
+  const remaining = timeslotEpoch(booking.date, booking.time, booking.timeZone) - nowMs
   return remaining > 0 ? Math.ceil(remaining / 60_000) : 0
 }
 
@@ -82,6 +89,10 @@ export function isHistoryBooking(
   date: string,
   time: string,
   nowMs: number,
+  timeZone?: string | null,
 ): boolean {
-  return status === "cancelled" || (status === "confirmed" && timeslotEpoch(date, time) < nowMs)
+  return (
+    status === "cancelled" ||
+    (status === "confirmed" && timeslotEpoch(date, time, timeZone) < nowMs)
+  )
 }

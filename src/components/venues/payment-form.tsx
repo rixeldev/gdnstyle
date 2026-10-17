@@ -42,6 +42,11 @@ export interface CloudBookingContext {
   clientName?: string | null
   clientEmail?: string | null
   clientPhone?: number | null
+  /**
+   * The venue's zone, read by the pre-charge slot re-check only (it measures
+   * "already past" in the venue's clock); it is never sent to the function.
+   */
+  timeZone?: string | null
 }
 
 interface PaymentFormProps {
@@ -334,6 +339,7 @@ function CloudPaymentForm({ booking, amount, locale, onCloudPaid }: CloudPayment
       dateKey: booking.date,
       time: booking.time,
       durationMinutes: booking.durationMinutes ?? 30,
+      timeZone: booking.timeZone,
     })
     if (!available) {
       throw new SlotUnavailableError("slot-taken")

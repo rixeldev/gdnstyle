@@ -19,6 +19,8 @@ export interface VenueProfessional {
   specialtyKey?: string
   /** Years of experience (static records only). */
   experience?: number
+  /** The professional's IANA zone (database records only). */
+  timeZone?: string
 }
 
 /** A bookable service (`provider_services` row) offered at a location. */

@@ -33,6 +33,12 @@ export interface SessionUser {
   address: AccountAddress
   /** Professionals publish a business name; customers have none. */
   businessName: string | null
+  /**
+   * The professional's IANA zone (`providers.timezone`): the clock their
+   * stored appointment hours are written in. `null` for customers, for the
+   * demo layer and for professionals who have not picked one yet.
+   */
+  timeZone: string | null
   /** Public contact links a professional shows (empty for customers). */
   socials: AccountSocials
   /** Permission keys granted by the DB `roles` row (static map as fallback). */
@@ -78,6 +84,7 @@ function userFromDemo(): SessionUser | null {
     bio: session.bio ?? null,
     address: patch.address ?? EMPTY_ADDRESS,
     businessName: patch.businessName ?? null,
+    timeZone: null,
     socials: patch.socials ?? EMPTY_SOCIALS,
     permissions: ROLE_PERMISSIONS[session.role],
     demo: true,
@@ -163,6 +170,7 @@ export function useSession(): SessionState {
           bio: profile?.bio ?? null,
           address,
           businessName: provider?.business_name ?? null,
+          timeZone: provider?.timezone ?? null,
           socials: {
             instagram: provider?.social_instagram ?? null,
             tiktok: provider?.social_tiktok ?? null,

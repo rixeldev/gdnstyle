@@ -130,6 +130,9 @@ export function RescheduleDialog({ booking, reschedule, onClose }: RescheduleDia
         durationMinutes,
         occupied,
         schedule,
+        // The booking already knows its venue's zone; the grid drops hours
+        // already past in that clock.
+        timeZone: booking.timeZone,
         demo: !live,
       })
     : []

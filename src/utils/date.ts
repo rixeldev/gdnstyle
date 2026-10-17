@@ -57,11 +57,50 @@ export function buildMonthGrid(month: Date): Array<Date | null> {
   return cells
 }
 
-/** Milliseconds for a `YYYY-MM-DD` + `HH:MM` pair (for ordering & expiry). */
-export function timeslotEpoch(dateKey: string, time: string): number {
+/**
+ * Milliseconds for a `YYYY-MM-DD` + `HH:MM` pair (for ordering & expiry).
+ *
+ * The pair is a naive venue wall-clock time. With `timeZone` it is read as
+ * that zone's local time — the same clock the database compares it against
+ * (`providers.timezone`, migration 0013); without one it falls back to the
+ * browser's zone, which is the right reading for local demo records and for
+ * rows fetched before that migration exists.
+ */
+export function timeslotEpoch(dateKey: string, time: string, timeZone?: string | null): number {
   const [year, month, day] = dateKey.split("-").map(Number)
   const [hours, minutes] = time.split(":").map(Number)
+
+  if (timeZone) {
+    const wallClock = Date.UTC(year, month - 1, day, hours, minutes)
+    try {
+      // Two passes: the first offset guess can land on the wrong side of a DST
+      // change, and re-reading the offset at the corrected instant settles it.
+      const first = wallClock - zoneOffsetMs(wallClock, timeZone)
+      return wallClock - zoneOffsetMs(first, timeZone)
+    } catch {
+      /* unknown zone: read it as the browser's own clock */
+    }
+  }
+
   return new Date(year, month - 1, day, hours, minutes).getTime()
+}
+
+/** Offset of `timeZone` at the instant `epochMs`, in milliseconds. */
+function zoneOffsetMs(epochMs: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(epochMs))
+
+  const get = (type: string) => Number(parts.find((part) => part.type === type)?.value)
+  const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"))
+  return asUtc - Math.floor(epochMs / 1000) * 1000
 }
 
 /** Stable integer per UTC day (for deterministic test availability). */

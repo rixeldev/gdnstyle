@@ -36,4 +36,11 @@ export interface DbAppointment {
   payment_status: string | null
   refund_status: string | null
   refund_reason: string | null
+  /**
+   * The provider's IANA zone (`providers.timezone` via the `provider_public`
+   * view, migration 0013). Merged onto the row by the service after the read
+   * — it is never selected from `appointments` itself — so the browser can
+   * classify the booking with the same clock the database uses.
+   */
+  provider_timezone?: string | null
 }

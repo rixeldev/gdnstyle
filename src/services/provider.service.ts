@@ -135,7 +135,7 @@ export async function fetchProviderForUser(
   const { data, error } = await client
     .from("providers")
     .select(
-      "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,address_line1,address_line2,address_city,address_state,address_postal_code,address_country,social_instagram,social_tiktok,social_whatsapp",
+      "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,address_line1,address_line2,address_city,address_state,address_postal_code,address_country,social_instagram,social_tiktok,social_whatsapp,timezone",
     )
     .eq("user_id", userId)
     .limit(1)
@@ -163,6 +163,8 @@ export interface OwnedProviderPatch {
   social_instagram?: string | null
   social_tiktok?: string | null
   social_whatsapp?: string | null
+  /** IANA zone the venue's stored appointment hours are written in. */
+  timezone?: string | null
 }
 
 /**

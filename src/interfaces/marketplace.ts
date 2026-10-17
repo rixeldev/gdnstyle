@@ -52,6 +52,11 @@ export interface DbProvider {
   social_twitter: string | null
   social_youtube: string | null
   social_whatsapp: string | null
+  /**
+   * IANA zone the stored appointment times are written in (migration 0013).
+   * Optional because not every read selects it.
+   */
+  timezone?: string | null
 }
 
 /** A work sample shown in a professional's portfolio (`provider_portfolio`). */

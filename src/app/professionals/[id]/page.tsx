@@ -6,6 +6,7 @@ import { VenueShell } from "@/components/venues/venue-shell"
 import type { ProviderProfile } from "@/constants/provider-profile"
 import { SITE } from "@/constants/site"
 import { getServerProvider } from "@/libs/marketplace/server"
+import { jsonLdHtml } from "@/utils/json-ld"
 
 interface ProviderPageProps {
   params: Promise<{ id: string }>
@@ -97,7 +98,7 @@ export default async function ProviderPage({ params }: ProviderPageProps) {
       <script
         type="application/ld+json"
         // Structured data is generated from the database record.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(profile)) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdHtml(buildJsonLd(profile)) }}
       />
       <ProviderProfileView profile={profile} />
     </VenueShell>

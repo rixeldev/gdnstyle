@@ -7,6 +7,7 @@ import { SITE } from "@/constants/site"
 import type { Venue } from "@/constants/venues"
 import { getServerVenue } from "@/libs/marketplace/server"
 import { isCustomVenueId } from "@/libs/venue-store"
+import { jsonLdHtml } from "@/utils/json-ld"
 import { venueLocationLabel } from "@/utils/venue"
 
 interface VenuePageProps {
@@ -104,7 +105,7 @@ export default async function VenuePage({ params }: VenuePageProps) {
         <script
           type="application/ld+json"
           // Structured data is generated from the database/static records.
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(venue)) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdHtml(buildJsonLd(venue)) }}
         />
       )}
       <VenueDetailRoute id={id} initialVenue={venue} />

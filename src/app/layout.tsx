@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next"
+import { connection } from "next/server"
 
 import { AppProviders } from "@/components/providers/app-providers"
 import { SkipLink } from "@/components/ui/skip-link"
@@ -50,7 +51,25 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 }
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+/**
+ * The nonce CSP makes every route render per request (see `connection()` in
+ * this layout), so no page produces a static shell anymore. `instant = false`
+ * on the root layout tells Cache Components that is intended — a `false` this
+ * high takes precedence for the whole app.
+ */
+export const instant = false
+
+/**
+ * The proxy mints a CSP nonce per request, and Next stamps it on its own
+ * scripts only while rendering dynamically — a page prerendered at build time
+ * carries inline scripts with no nonce and would be blocked by that very
+ * header. Awaiting `connection()` here opts the whole tree out of
+ * prerendering, which is the price of a nonce-based CSP; the layout wraps
+ * every route, so one call covers them all.
+ */
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  await connection()
+
   return (
     <html
       // English is the served language; a visitor who picked another one is

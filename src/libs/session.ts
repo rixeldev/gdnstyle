@@ -132,7 +132,20 @@ export function useSession(): SessionState {
 
     async function apply(session: Session | null) {
       if (!session?.user) {
-        if (active) setState({ ready: true, user: null })
+        // Do not un-authenticate on the first null. This runs inside the auth
+        // flow, where a refresh still in flight (or cookies that a response
+        // just renewed) can report null for one tick even though the session
+        // is fine; taking it at face value bounces every screen between
+        // `/dashboard` and `/auth/login` until the state settles. The re-read
+        // is deferred with `setTimeout` because Supabase asks callers not to
+        // call `getSession` synchronously inside `onAuthStateChange`.
+        setTimeout(() => {
+          void client.auth.getSession().then(({ data }) => {
+            if (!active) return
+            if (data.session?.user) void apply(data.session)
+            else setState({ ready: true, user: null })
+          })
+        }, 0)
         return
       }
 

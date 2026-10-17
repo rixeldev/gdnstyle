@@ -31,8 +31,13 @@ export async function updateSession(request: NextRequest): Promise<NextResponse>
     },
   })
 
-  // Touching getUser() is what actually refreshes the token when needed.
-  await supabase.auth.getUser()
-
+  // Deliberately no `getUser()` here. Refreshing the token from the proxy
+  // races the browser client's own auto-refresh: two JS realms holding the
+  // same rotating refresh token, and whoever loses makes the session read as
+  // null for a moment — which bounces signed-in visitors between `/dashboard`
+  // (no session → login) and `/auth/login` (session → dashboard) until the
+  // state settles. The browser client owns refresh; the cookies stay in sync
+  // through `getAll`/`setAll` above, and a server component that needs the
+  // user calls `auth.getUser()` for its own request.
   return response
 }

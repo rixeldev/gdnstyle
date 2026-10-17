@@ -122,6 +122,14 @@ export async function fetchProviderProfileData(
   }
 }
 
+/** True when Postgres refused the query for an unknown column (42703 / PGRST204). */
+function isMissingColumn(error: { code?: string } | null): boolean {
+  return error?.code === "42703" || error?.code === "PGRST204"
+}
+
+const PROVIDER_SESSION_COLUMNS =
+  "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,address_line1,address_line2,address_city,address_state,address_postal_code,address_country,social_instagram,social_tiktok,social_whatsapp"
+
 /**
  * The `providers` row owned by `auth.uid()`. Its presence is what makes a
  * signed-in visitor a professional (never `profiles.role`). The address columns
@@ -134,12 +142,23 @@ export async function fetchProviderForUser(
 ): Promise<DbProvider | null> {
   const { data, error } = await client
     .from("providers")
-    .select(
-      "id,user_id,full_name,business_name,email,phone,photo,rating,reviews,charges_enabled,stripe_onboarding_completed,address_line1,address_line2,address_city,address_state,address_postal_code,address_country,social_instagram,social_tiktok,social_whatsapp,timezone",
-    )
+    .select(`${PROVIDER_SESSION_COLUMNS},timezone`)
     .eq("user_id", userId)
     .limit(1)
     .maybeSingle()
+
+  // Migration 0013 not applied yet: the row itself still matters — the role
+  // backstop, the provider id and the account dialog all read it — so retry
+  // without the timezone instead of losing the professional outright.
+  if (error && isMissingColumn(error)) {
+    const fallback = await client
+      .from("providers")
+      .select(PROVIDER_SESSION_COLUMNS)
+      .eq("user_id", userId)
+      .limit(1)
+      .maybeSingle()
+    if (!fallback.error) return (fallback.data as DbProvider | null) ?? null
+  }
 
   if (error) {
     console.error("[providers] failed to load the provider row", error)

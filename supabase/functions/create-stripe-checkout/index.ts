@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { cartItems, shippingInfo, userId } = await req.json()
+    const { cartItems, shippingInfo } = await req.json()
 
     if (!cartItems || cartItems.length === 0) {
       return new Response(
@@ -39,6 +39,28 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
+
+    // The order belongs to whoever is signed in. `userId` used to come from the
+    // request body, so any caller could stamp any account (or none) into the
+    // PaymentIntent metadata and the tracking row; it now comes from the JWT.
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "")
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token)
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: "Debes iniciar sesión para comprar",
+          code: "UNAUTHORIZED",
+        }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      )
+    }
+
+    const userId = user.id
 
     // Obtener productos de la base de datos para calcular precios
     const productIds = cartItems.map((item: any) => item.productId || item.id)
@@ -84,7 +106,7 @@ Deno.serve(async (req) => {
       amount: String(Math.round(total * 100)), // Stripe usa centavos
       currency: "usd",
       "automatic_payment_methods[enabled]": "true",
-      "metadata[userId]": userId || "",
+      "metadata[userId]": userId,
       "metadata[cartItems]": JSON.stringify(cartItems),
       "metadata[shippingInfo]": JSON.stringify(shippingInfo || {}),
     })
@@ -108,7 +130,7 @@ Deno.serve(async (req) => {
     const { error: sessionError } = await supabase.from("checkout_sessions").insert({
       stripe_session_id: stripeResult.id,
       stripe_payment_intent_id: stripeResult.id,
-      user_id: userId || null,
+      user_id: userId,
       cart_items: cartItems,
       shipping_info: shippingInfo || {},
       total: total,

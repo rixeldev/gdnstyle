@@ -360,10 +360,13 @@ export interface ShopCartItem {
   quantity: number
 }
 
+/**
+ * Shop checkout. The caller must be signed in: the function reads the account
+ * from the JWT it is given, so no id travels in the payload.
+ */
 export function createShopCheckout(input: {
   cartItems: ShopCartItem[]
   shippingInfo: Record<string, string>
-  userId: string
 }) {
   return invokeFunction<{ paymentIntent: string | null; paymentIntentId: string }>(
     "create-stripe-checkout",

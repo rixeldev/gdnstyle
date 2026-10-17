@@ -825,7 +825,6 @@ function CheckoutDialog({ lines, total, money, userId, onClose, onPaid }: Checko
           quantity: line.quantity,
         })),
         shippingInfo: values,
-        userId,
       })
       if (!result.paymentIntent) {
         setMessage(t("common.tryAgain"))

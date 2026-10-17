@@ -52,7 +52,7 @@ export function ProviderEarningsSection() {
   useEffect(() => {
     if (!supabase) return
     let active = true
-    void getProviderPayments()
+    void getProviderPayments(locale)
       .then((value) => {
         if (active) setData(value)
       })
@@ -69,7 +69,7 @@ export function ProviderEarningsSection() {
     return () => {
       active = false
     }
-  }, [supabase])
+  }, [supabase, locale])
 
   if (!supabase) return null
 

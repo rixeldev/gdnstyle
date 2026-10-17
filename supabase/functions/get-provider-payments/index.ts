@@ -16,6 +16,21 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
+    // The rows arrive pre-formatted for the dashboard table, so they follow
+    // the locale the caller renders with (the app speaks en-US and es-US).
+    // Anything else falls back to the default: English, US formatting.
+    let locale = "en-US"
+    try {
+      const body = await req.json()
+      if (body?.locale === "es-US") locale = "es-US"
+    } catch {
+      /* no body: keep the default locale */
+    }
+    const fallback =
+      locale === "es-US"
+        ? { client: "Cliente", service: "Servicio", method: "Tarjeta online" }
+        : { client: "Client", service: "Service", method: "Card payment" }
+
     const authHeader = req.headers.get("Authorization")
     if (!authHeader) {
       throw new Error("No authorization header")
@@ -110,18 +125,18 @@ serve(async (req) => {
 
       return {
         id: payment.id,
-        clientName: appointment?.client_name || "Cliente",
-        service: appointment?.service_name || "Servicio",
+        clientName: appointment?.client_name || fallback.client,
+        service: appointment?.service_name || fallback.service,
         amount: amt,
         commission: fee,
         netAmount: Math.round((amt - fee) * 100) / 100,
-        paymentMethod: "Tarjeta online",
-        date: created.toLocaleDateString("es-ES", {
+        paymentMethod: fallback.method,
+        date: created.toLocaleDateString(locale, {
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
         }),
-        time: created.toLocaleTimeString("es-ES", {
+        time: created.toLocaleTimeString(locale, {
           hour: "2-digit",
           minute: "2-digit",
         }),

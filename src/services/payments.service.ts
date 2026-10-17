@@ -248,8 +248,13 @@ export function processRefund(
 /* Provider finances                                                           */
 /* -------------------------------------------------------------------------- */
 
-export function getProviderPayments() {
-  return invokeFunction<ProviderPaymentsPayload>("get-provider-payments", {})
+/**
+ * The professional's earnings. The rows arrive pre-formatted for the table,
+ * so the function is told which locale the dashboard renders with (en-US or
+ * es-US) instead of hardcoding one.
+ */
+export function getProviderPayments(locale: string) {
+  return invokeFunction<ProviderPaymentsPayload>("get-provider-payments", { locale })
 }
 
 export function processWithdrawal(amount: number) {

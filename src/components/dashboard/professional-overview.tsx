@@ -48,7 +48,7 @@ export function ProfessionalOverview({ onNavigate }: ProfessionalOverviewProps) 
   useEffect(() => {
     if (!supabase || !user?.providerId) return
     let active = true
-    void getProviderPayments()
+    void getProviderPayments(locale)
       .then((value) => {
         if (active) setMonthEarnings(value.stats.monthlyEarnings ?? 0)
       })
@@ -58,7 +58,7 @@ export function ProfessionalOverview({ onNavigate }: ProfessionalOverviewProps) 
     return () => {
       active = false
     }
-  }, [supabase, user?.providerId])
+  }, [supabase, user?.providerId, locale])
 
   const todayKey = toDateKey(new Date())
   const agenda = upcoming.filter((booking) => booking.date === todayKey).slice(0, AGENDA_LIMIT)
